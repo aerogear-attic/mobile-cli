@@ -1,0 +1,14 @@
+apiVersion: mobile.k8s.io/v1
+kind: MobileClient
+metadata:
+  annotations:
+    icon: fa-apple
+  labels:
+    group: mobileapp
+    name: app2
+  name: app2-2511256848
+Spec:
+  clientType: iOS
+  apiKey: 834d44f-d697-4c56-aec6-47940679f79a
+  name: app2
+
