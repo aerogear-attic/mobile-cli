@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var templates = map[string]string{}
+
 // App represents a mobile app
 type App struct {
 	ID          string            `json:"id"`

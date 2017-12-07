@@ -1,0 +1,7 @@
+# this file defines the mobile plugin for kubernetes or OpenShift. To use it
+# add it to the plugins directory under ~/.kube/plugins/mobile note you may need to create this directory
+name: "mobile"
+shortDesc: "mobile cli"
+longDesc: >
+  lets you perform mobile actions against kubernetes or OpenShift
+command: mobile

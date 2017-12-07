@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/feedhenry/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	sc "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,11 +13,13 @@ import (
 	v1alpha1 "k8s.io/client-go/pkg/apis/settings/v1alpha1"
 )
 
+// TODO CHANGE THIS NOW THAT WE HAVE A CLIENT
 type serviceCatalogClient struct {
 	k8host    string
 	token     string
 	namespace string
 	k8client  kubernetes.Interface
+	scClient  sc.Interface
 }
 
 //TODO this is fragile and should be changed to use the real types and client https://github.com/kubernetes-incubator/service-catalog/issues/1367
@@ -72,7 +75,7 @@ func (sc *serviceCatalogClient) podPreset(objectName, secretName, svcName, targe
 			},
 		},
 	}
-	if _, err := clientset.SettingsV1alpha1().PodPresets(namespace).Create(&podPreset); err != nil {
+	if _, err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Create(&podPreset); err != nil {
 		return errors.Wrap(err, "failed to create pod preset for service ")
 	}
 	return nil
@@ -104,19 +107,19 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName str
 	// only care about the first one as there only should ever be one.
 	svcInst := svcInstList.Items[0]
 	binding, _ := createBindingObject(svcInst.Name, params, objectName)
-	bindingResp, err := scClientSet.ServicecatalogV1beta1().ServiceBindings(targetSvcNamespace).Create(binding)
+	bindingResp, err := sc.scClient.ServicecatalogV1beta1().ServiceBindings(targetSvcNamespace).Create(binding)
 	if err := sc.podPreset(objectName, objectName, bindableService, targetSvcName, targetSvcNamespace); err != nil {
 		return errors.Wrap(err, "failed to get pod preset")
 	}
 	//update the deployment with an annotation
-	dep, err := clientset.AppsV1beta1().Deployments(targetSvcNamespace).Get(targetSvcName, meta_v1.GetOptions{})
+	dep, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Get(targetSvcName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
 	}
 
 	dep.Spec.Template.Labels[bindableService] = "enabled"
 	dep.Spec.Template.Labels[bindableService+"-binding"] = bindingResp.Name
-	if _, err := clientset.AppsV1beta1().Deployments(targetSvcNamespace).Update(dep); err != nil {
+	if _, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
 	}
 	return nil
@@ -125,7 +128,7 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName str
 //UnBindFromService will Delete the binding, the pod preset and the update the deployment
 func (sc *serviceCatalogClient) UnBindFromService(bindableService, targetSvcName, targetSvcNamespace string) error {
 	objectName := bindableService + "-" + targetSvcName
-	dep, err := clientset.AppsV1beta1().Deployments(targetSvcNamespace).Get(targetSvcName, meta_v1.GetOptions{})
+	dep, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Get(targetSvcName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
 	}
@@ -136,14 +139,14 @@ func (sc *serviceCatalogClient) UnBindFromService(bindableService, targetSvcName
 	delete(dep.Spec.Template.Labels, bindableService+"-binding")
 	delete(dep.Spec.Template.Labels, bindableService)
 
-	if err := scClientSet.ServicecatalogV1beta1().ServiceBindings(targetSvcNamespace).Delete(bindingID, &meta_v1.DeleteOptions{}); err != nil {
+	if err := sc.scClient.ServicecatalogV1beta1().ServiceBindings(targetSvcNamespace).Delete(bindingID, &meta_v1.DeleteOptions{}); err != nil {
 		return err
 	}
 	// binding deleted we will remove the pod preset and update deployment
-	if err := clientset.SettingsV1alpha1().PodPresets(targetSvcNamespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
+	if err := sc.k8client.SettingsV1alpha1().PodPresets(targetSvcNamespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
 		return errors.Wrap(err, "unbinding "+bindableService+" and "+targetSvcName+" failed to delete pod preset")
 	}
-	if _, err := clientset.AppsV1beta1().Deployments(targetSvcNamespace).Update(dep); err != nil {
+	if _, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed to update the deployment for "+targetSvcName+" after unbinding "+bindableService)
 	}
 	return nil
@@ -155,12 +158,12 @@ func (sc *serviceCatalogClient) AddMobileApiKeys(targetSvcName, namespace string
 	if err := sc.podPreset(objectName, IntegrationAPIKeys, IntegrationAPIKeys, targetSvcName, namespace); err != nil {
 		return errors.Wrap(err, "")
 	}
-	dep, err := clientset.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
+	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName+" cannot redeploy.")
 	}
 	dep.Spec.Template.Labels[IntegrationAPIKeys] = "enabled"
-	if _, err := clientset.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
 	}
 	return nil
@@ -169,23 +172,23 @@ func (sc *serviceCatalogClient) AddMobileApiKeys(targetSvcName, namespace string
 // create pod preset with apikeys secret, update deployment with label
 func (sc *serviceCatalogClient) RemoveMobileApiKeys(targetSvcName, namespace string) error {
 	objectName := IntegrationAPIKeys + "-" + targetSvcName
-	if err := clientset.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
+	if err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
 		return errors.Wrap(err, "removing api keys failed to delete pod preset")
 	}
-	dep, err := clientset.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
+	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName+" cannot redeploy.")
 	}
 
 	delete(dep.Spec.Template.Labels, IntegrationAPIKeys)
-	if _, err := clientset.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
 	}
 	return nil
 }
 
 func (sc *serviceCatalogClient) serviceClassByServiceName(name, token string) (*v1beta1.ClusterServiceClass, error) {
-	serviceClasses, err := scClientSet.ServicecatalogV1beta1().ClusterServiceClasses().List(meta_v1.ListOptions{})
+	serviceClasses, err := sc.scClient.ServicecatalogV1beta1().ClusterServiceClasses().List(meta_v1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +203,7 @@ func (sc *serviceCatalogClient) serviceClassByServiceName(name, token string) (*
 }
 
 func (sc *serviceCatalogClient) serviceInstancesForServiceClass(token, serviceClass string, ns string) (*v1beta1.ServiceInstanceList, error) {
-	si, err := scClientSet.ServicecatalogV1beta1().ServiceInstances(currentNamespace()).List(meta_v1.ListOptions{})
+	si, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).List(meta_v1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,19 @@
+{
+  "kind": "MobileClient",
+  "apiVersion": "mobile.k8s.io/v1alpha1",
+  "metadata": {
+    "annotations": {
+      "icon": "fa-apple"
+    },
+    "labels": {
+      "created": "2017-11-24 16:02:27",
+      "icon": "icon-cordova"
+    },
+    "name": "app2-2511256848"
+  },
+  "spec": {
+    "name": "myapp",
+    "apiKey": "25113a4f-48b3-4dbb-b462-e2d388a475ac",
+    "clientType": "cordova"
+  }
+}

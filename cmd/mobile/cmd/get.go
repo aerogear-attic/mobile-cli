@@ -18,17 +18,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getCmd represents the get command
-var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "get clients, service and clientbuilds",
+func NewGetCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "get",
+		Short: "get clients, service and clientbuilds",
 
-	Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, args []string) {
 
-	},
-}
-
-func init() {
-	RootCmd.AddCommand(getCmd)
+		},
+	}
 
 }
