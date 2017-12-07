@@ -73,12 +73,12 @@ get
     - clients
         - get clients #returns a list of mobile clients within the current namespace
         - get client <clientName> # returns a single mobile client
-    - service-config
-        - get service-configs # returns a list of mobile aware service configurations (this is the full unfiltered configuration data)
-        - get service-config <serviceName> #returns a single mobile aware service configuration (this is the full unfiltered configuration data) 
-    - client-config
-        - get client-config # returns the filtered configuration as should be consumed by mobile clients making use of the sdks 
-    - client-build
+    - serviceconfig
+        - get serviceconfigs # returns a list of mobile aware service configurations (this is the full unfiltered configuration data)
+        - get serviceconfig <serviceName> #returns a single mobile aware service configuration (this is the full unfiltered configuration data) 
+    - clientconfig
+        - get clientconfig # returns the filtered configuration as should be consumed by mobile clients making use of the sdks 
+    - clientbuild
         - get clientbuilds #returns a list of mobile client builds
         - get clientbuild <clientBuildName> #returns a single mobile client build
     - bindings   
@@ -90,8 +90,8 @@ create
     
     - client
         - create client <clientName> <clientType> # will create a representation of the mobile client application
-    - service-config
-        - create service-config # this command will likely prompt for needed imputs    
+    - serviceconfig
+        - create serviceconfig # this command will likely prompt for needed imputs    
     - binding
         - create binding <consuming_service> <bindable_service> # will create the binding and pod preset and optionally redeploy the integration_taget
         for example: mobile create binding fh-sync keycloak 
@@ -104,7 +104,7 @@ delete
     - client
         - delete client <clientID> # removes the configmap or mobileclient object if we go with CRD
     - service-config
-        - delete service-config <configName> # remove the configur        
+        - delete serviceconfig <configName> # remove the configur        
     - binding
         - delete binding <consuming_servicet> <bindable_service> # removes all the objects created when the binding was enabled. 
         for example mobile delete binding fh-sync keycloak

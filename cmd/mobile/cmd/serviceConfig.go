@@ -82,7 +82,7 @@ func NewServiceConfigCommand(k8client kubernetes.Interface) *ServiceConfigCmd {
 
 func (scc *ServiceConfigCmd) BuildListServiceConfigCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "services",
+		Use:   "serviceconfigs",
 		Short: "get a list of deployed mobile enabled services",
 		Run: func(cmd *cobra.Command, args []string) {
 			out := listServices(currentNamespace(cmd.Flags()), scc.k8client)
@@ -113,7 +113,7 @@ func (scc *ServiceConfigCmd) BuildListServiceConfigCmd() *cobra.Command {
 
 func (scc *ServiceConfigCmd) BuildGetServiceConfigCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "service",
+		Use:   "serviceconfig",
 		Short: "get a mobile aware service definition",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
