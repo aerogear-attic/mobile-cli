@@ -66,6 +66,29 @@ The design of the cli API attempts to give a familiar feel to users familiar wil
 It is also intended to use parlance familiar to mobile developers in order to help them become more productive
 and avoid needing to know the innards of various kubernetes resources.
 
+## Core Objects or Resources
+
+In a similar fashion to the oc and kubectl CLI, we have some core resources that we work with. Some of these are backed by things like secrets while others are
+defined as custom resources.
+
+- **MobileClient:** the mobile client is a resource that represents your mobile client app as part of the OpenShift UI. It gives us the context and information needed to show you relevant information
+around your particular mobile runtime as well as allowing us setup the different kind of client builds required.
+
+- **ClientConfig** the client config, is a resource created by aggregating together all of the available service configs. This resource is configuration
+required in order to consume your mobile aware services from your mobile client. It is used by the client SDKs for the various mobile services.
+
+-  **ServiceConfig:** the Service Config stores information about a mobile aware service and is backed by a secret. This information is then used to populate your mobile client's config.
+This information could be anything but often is made up of values such as the URI of the service and perhaps some headers and configuration particular to that service.
+
+- **ClientBuild** the ClientBuild is backed by a regular BuildConfig however the cli will help you create this BuildConfig with as little effort as possible. Allowing you to focus on
+just the mobile parts rather than needing to understand how to setup and manage a buildconfig and builds. For example, it will help you manage build credentials, and keys and ensure the build integrates
+seamlessly with the areogear mobile build farm .
+
+- **Binding** the Binding is backed by a binding resource in the service catalog. Once again we try to remove the need to understand how to create the
+native objects so that you can focus on being productive and building your mobile app. When doing a binding, you will be able to integrate different
+mobile services together. For example when using sync and keycloak you can bind them together and have your sync service protected by keycloak. This is as simple as
+```mobile bind fh-sync keycloak```
+
 ### Command Structure
 
 get 
