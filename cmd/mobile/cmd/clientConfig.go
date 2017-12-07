@@ -34,7 +34,7 @@ func NewClientConfigCmd(k8Client kubernetes.Interface) *ClientConfigCmd {
 	}
 }
 
-func (ccc *ClientConfigCmd) BuildGetClientConfigCmd() *cobra.Command {
+func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "clientconfig",
 		Short: "get clientconfig returns a client ready filtered configuration of the available services.",

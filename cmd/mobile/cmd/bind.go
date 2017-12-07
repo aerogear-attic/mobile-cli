@@ -19,10 +19,10 @@ func NewBindCmd(scClient sc.Interface, k8Client kubernetes.Interface) *BindCmd {
 	return &BindCmd{scClient: scClient, k8Client: k8Client}
 }
 
-func (bc *BindCmd) BuildCreateBindCmd() *cobra.Command {
+func (bc *BindCmd) CreateBindCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "binding",
-		Short: "bind mobile services that integrate together together",
+		Short: "bind mobile services that integrate together",
 		Long: `example usage: kubectl plugin mobile create binding <client_service> <bindable_service>
 mobile --namespace=myproject create binding <client_service> <bindable_service>
 oc plugin mobile create binding <client_service> <bindable_service>
@@ -52,16 +52,11 @@ oc plugin mobile create binding <client_service> <bindable_service>
 	return cmd
 }
 
-func (bc *BindCmd) BuildDeleteBindCmd() *cobra.Command {
+func (bc *BindCmd) DeleteBindCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "integration",
+		Use:   "binding",
 		Short: "disintegrate mobile services together",
-		Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 2 {
 				log.Fatal("expected a service to bind from and to ")
@@ -75,6 +70,28 @@ to quickly create a Cobra application.`,
 		},
 	}
 
+}
+
+func (bc *BindCmd) GetBindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "binding",
+		Short: "get a single binding",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+	return cmd
+}
+
+func (bc *BindCmd) ListBindingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bindings",
+		Short: "get a list of bindings",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+	return cmd
 }
 
 func buildBindParams(from *Service, to *Service) map[string]interface{} {

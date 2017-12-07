@@ -80,7 +80,7 @@ func NewServiceConfigCommand(k8client kubernetes.Interface) *ServiceConfigCmd {
 	}
 }
 
-func (scc *ServiceConfigCmd) BuildListServiceConfigCmd() *cobra.Command {
+func (scc *ServiceConfigCmd) ListServiceConfigCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceconfigs",
 		Short: "get a list of deployed mobile enabled services",
@@ -111,7 +111,7 @@ func (scc *ServiceConfigCmd) BuildListServiceConfigCmd() *cobra.Command {
 	}
 }
 
-func (scc *ServiceConfigCmd) BuildGetServiceConfigCmd() *cobra.Command {
+func (scc *ServiceConfigCmd) GetServiceConfigCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceconfig",
 		Short: "get a mobile aware service definition",
@@ -158,4 +158,26 @@ func (scc *ServiceConfigCmd) BuildGetServiceConfigCmd() *cobra.Command {
 			}
 		},
 	}
+}
+
+func (scc *ServiceConfigCmd) CreateServiceConfigCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "serviceconfig",
+		Short: "create a new service config",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+	return cmd
+}
+
+func (scc *ServiceConfigCmd) DeleteServiceConfigCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "serviceconfig",
+		Short: "delete a service config",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+	return cmd
 }

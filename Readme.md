@@ -103,7 +103,7 @@ delete
 
     - client
         - delete client <clientID> # removes the configmap or mobileclient object if we go with CRD
-    - service-config
+    - serviceconfig
         - delete serviceconfig <configName> # remove the configur        
     - binding
         - delete binding <consuming_servicet> <bindable_service> # removes all the objects created when the binding was enabled. 

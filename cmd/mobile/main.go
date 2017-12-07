@@ -40,12 +40,16 @@ func main() {
 	var clientCmd = cmd.NewClientCmd(mobileClient)
 	var bindCmd = cmd.NewBindCmd(scClient, k8Client)
 	var serviceConfigCmd = cmd.NewServiceConfigCommand(k8Client)
+	var clientCfgCmd = cmd.NewClientConfigCmd(k8Client)
+	var clientBuilds = cmd.NewClientBuildsCmd()
 	// create
 	{
 		createCmd := cmd.NewCreateCommand()
 
-		createCmd.AddCommand(bindCmd.BuildCreateBindCmd())
+		createCmd.AddCommand(bindCmd.CreateBindCmd())
 		createCmd.AddCommand(clientCmd.CreateClientCmd())
+		createCmd.AddCommand(serviceConfigCmd.CreateServiceConfigCmd())
+		createCmd.AddCommand(clientBuilds.CreateClientBuildsCmd())
 		rootCmd.AddCommand(createCmd)
 
 	}
@@ -54,16 +58,37 @@ func main() {
 		getCmd := cmd.NewGetCommand()
 		getCmd.AddCommand(clientCmd.GetClientCmd())
 		getCmd.AddCommand(clientCmd.ListClientsCmd())
-		getCmd.AddCommand(serviceConfigCmd.BuildGetServiceConfigCmd())
-		getCmd.AddCommand(serviceConfigCmd.BuildListServiceConfigCmd())
+		getCmd.AddCommand(serviceConfigCmd.GetServiceConfigCmd())
+		getCmd.AddCommand(serviceConfigCmd.ListServiceConfigCmd())
+		getCmd.AddCommand(clientCfgCmd.GetClientConfigCmd())
+		getCmd.AddCommand(bindCmd.GetBindingCmd())
+		getCmd.AddCommand(bindCmd.ListBindingCmd())
+		getCmd.AddCommand(clientBuilds.GetClientBuildsCmd())
+		getCmd.AddCommand(clientBuilds.ListClientBuildsCmd())
 		rootCmd.AddCommand(getCmd)
 	}
 	// delete
 	{
 		deleteCmd := cmd.NewDeleteComand()
-		deleteCmd.AddCommand(bindCmd.BuildDeleteBindCmd())
+		deleteCmd.AddCommand(bindCmd.DeleteBindCmd())
 		deleteCmd.AddCommand(clientCmd.DeleteClientCmd())
+		deleteCmd.AddCommand(serviceConfigCmd.DeleteServiceConfigCmd())
+		deleteCmd.AddCommand(clientBuilds.DeleteClientBuildsCmd())
 		rootCmd.AddCommand(deleteCmd)
+	}
+
+	// stop
+	{
+		stopCmd := cmd.NewStopCmd()
+		stopCmd.AddCommand(clientBuilds.StopClientBuildsCmd())
+		rootCmd.AddCommand(stopCmd)
+	}
+
+	// start
+	{
+		startCmd := cmd.NewStartCmd()
+		startCmd.AddCommand(clientBuilds.StartClientBuildsCmd())
+		rootCmd.AddCommand(startCmd)
 	}
 
 	if err := rootCmd.Execute(); err != nil {
