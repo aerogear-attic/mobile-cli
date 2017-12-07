@@ -17,9 +17,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
-	servicecatalogv1beta1 "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
-	fakeservicecatalogv1beta1 "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1/fake"
+	clientset "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	servicecatalogv1beta1 "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
+	fakeservicecatalogv1beta1 "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

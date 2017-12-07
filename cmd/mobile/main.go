@@ -23,9 +23,9 @@ import (
 
 	"path/filepath"
 
-	"github.com/feedhenry/mobile-cli/cmd/mobile/cmd"
-	m "github.com/feedhenry/mobile-cli/pkg/client/mobile/clientset/versioned"
-	sc "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	"github.com/aerogear/mobile-cli/cmd/mobile/cmd"
+	m "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
+	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 )
 
 func main() {

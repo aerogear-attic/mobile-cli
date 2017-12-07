@@ -17,7 +17,7 @@ limitations under the License.
 package versioned
 
 import (
-	mobilev1alpha1 "github.com/feedhenry/mobile-cli/pkg/client/mobile/clientset/versioned/typed/mobile/v1alpha1"
+	mobilev1alpha1 "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/typed/mobile/v1alpha1"
 	glog "github.com/golang/glog"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

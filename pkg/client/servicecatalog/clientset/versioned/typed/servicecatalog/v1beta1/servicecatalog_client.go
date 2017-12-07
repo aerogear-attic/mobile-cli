@@ -17,8 +17,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/feedhenry/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	"github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned/scheme"
+	v1beta1 "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

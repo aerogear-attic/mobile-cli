@@ -3,7 +3,7 @@ package cmd
 import (
 	"log"
 
-	sc "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"

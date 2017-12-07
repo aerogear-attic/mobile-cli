@@ -1,4 +1,4 @@
-package: github.com/feedhenry/mobile-cli
+package: github.com/aerogear/mobile-cli
 import:
 - package: github.com/golang/glog
 - package: github.com/pkg/errors

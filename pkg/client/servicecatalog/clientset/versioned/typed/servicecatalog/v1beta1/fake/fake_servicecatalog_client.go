@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	v1beta1 "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
+	v1beta1 "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/feedhenry/mobile-cli/pkg/apis/mobile/v1alpha1"
-	mobile "github.com/feedhenry/mobile-cli/pkg/client/mobile/clientset/versioned"
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
+	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cobra"

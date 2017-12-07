@@ -17,7 +17,7 @@ limitations under the License.
 package internalversion
 
 import (
-	"github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/scheme"
+	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

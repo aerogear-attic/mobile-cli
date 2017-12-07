@@ -17,8 +17,8 @@ limitations under the License.
 package internalversion
 
 import (
-	mobile "github.com/feedhenry/mobile-cli/pkg/apis/mobile"
-	scheme "github.com/feedhenry/mobile-cli/pkg/client/mobile/clientset/internalversion/scheme"
+	mobile "github.com/aerogear/mobile-cli/pkg/apis/mobile"
+	scheme "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/internalversion/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

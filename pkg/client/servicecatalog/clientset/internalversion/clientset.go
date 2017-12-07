@@ -17,7 +17,7 @@ limitations under the License.
 package internalversion
 
 import (
-	servicecataloginternalversion "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/typed/servicecatalog/internalversion"
+	servicecataloginternalversion "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/typed/servicecatalog/internalversion"
 	glog "github.com/golang/glog"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

@@ -3,7 +3,7 @@ package cmd
 import (
 	"strings"
 
-	"github.com/feedhenry/mobile-cli/pkg/apis/mobile/v1alpha1"
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
 	"github.com/pkg/errors"
 )
 

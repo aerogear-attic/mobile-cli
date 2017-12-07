@@ -3,8 +3,8 @@ package cmd
 import (
 	"encoding/json"
 
-	"github.com/feedhenry/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	sc "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

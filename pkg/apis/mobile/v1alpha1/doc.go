@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=github.com/feedhenry/mobile-cli/pkg/apis/mobile
+// +k8s:conversion-gen=github.com/aerogear/mobile-cli/pkg/apis/mobile
 // +k8s:openapi-gen=true
 // +k8s:defaulter-gen=TypeMeta
 

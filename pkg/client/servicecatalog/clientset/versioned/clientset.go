@@ -17,7 +17,7 @@ limitations under the License.
 package versioned
 
 import (
-	servicecatalogv1beta1 "github.com/feedhenry/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
+	servicecatalogv1beta1 "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
 	glog "github.com/golang/glog"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"

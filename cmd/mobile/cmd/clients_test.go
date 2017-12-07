@@ -10,10 +10,10 @@ import (
 
 	"regexp"
 
-	"github.com/feedhenry/mobile-cli/cmd/mobile/cmd"
-	"github.com/feedhenry/mobile-cli/pkg/apis/mobile/v1alpha1"
-	"github.com/feedhenry/mobile-cli/pkg/client/mobile/clientset/versioned"
-	mcFake "github.com/feedhenry/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
+	"github.com/aerogear/mobile-cli/cmd/mobile/cmd"
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
+	"github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
+	mcFake "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	kt "k8s.io/client-go/testing"

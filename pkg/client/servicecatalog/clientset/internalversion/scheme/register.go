@@ -17,14 +17,15 @@ limitations under the License.
 package scheme
 
 import (
-	servicecatalog "github.com/feedhenry/mobile-cli/pkg/apis/servicecatalog/install"
+	os "os"
+
+	servicecatalog "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/install"
 	announced "k8s.io/apimachinery/pkg/apimachinery/announced"
 	registered "k8s.io/apimachinery/pkg/apimachinery/registered"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
-	os "os"
 )
 
 var Scheme = runtime.NewScheme()

@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	servicecatalogv1beta1 "github.com/feedhenry/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	servicecatalogv1beta1 "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

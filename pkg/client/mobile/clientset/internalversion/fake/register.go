@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	mobileinternalversion "github.com/feedhenry/mobile-cli/pkg/apis/mobile"
+	mobileinternalversion "github.com/aerogear/mobile-cli/pkg/apis/mobile"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
