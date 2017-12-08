@@ -1,5 +1,7 @@
 ## The Mobile Cli is a standalone cli that can also be used a kubectl / oc plugin
 
+## Note this is still under construction and not yet fit for use
+
 ### Install
 
 ### Pre req
