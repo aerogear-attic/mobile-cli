@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"log"
 
 	"fmt"
 
@@ -18,13 +17,13 @@ import (
 	kalpha "k8s.io/client-go/pkg/apis/settings/v1alpha1"
 )
 
-type BindCmd struct {
+type IntegrationCmd struct {
 	scClient sc.Interface
 	k8Client kubernetes.Interface
 }
 
-func NewBindCmd(scClient sc.Interface, k8Client kubernetes.Interface) *BindCmd {
-	return &BindCmd{scClient: scClient, k8Client: k8Client}
+func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface) *IntegrationCmd {
+	return &IntegrationCmd{scClient: scClient, k8Client: k8Client}
 }
 
 func createBindingObject(bindingName, instance string, params map[string]interface{}, secretName string) (*v1beta1.ServiceBinding, error) {
@@ -86,13 +85,13 @@ func podPreset(objectName, secretName, producerSvcName, consumerSvcName string) 
 
 }
 
-func (bc *BindCmd) CreateBindCmd() *cobra.Command {
+func (bc *IntegrationCmd) CreateIntegrationCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "binding",
-		Short: "bind mobile service instances that integrate together",
-		Long: `example usage: kubectl plugin mobile create binding <client_service_instance> <bindable_service_instance>
-mobile --namespace=myproject create binding <client_service_instance> <bindable_service_instance>
-oc plugin mobile create binding <client_service_instance> <bindable_service_instance>
+		Use:   "integration <consuming_service_instance_id> <providing_service_instance_id>",
+		Short: "integrate certain mobile services together",
+		Long: `example usage: kubectl plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
+mobile --namespace=myproject create integration <consuming_service_instance_id> <providing_service_instance_id>
+oc plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
 	`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
@@ -112,7 +111,7 @@ oc plugin mobile create binding <client_service_instance> <bindable_service_inst
 			consumerSvc := getService(namespace, consumerSvcInst.Labels["serviceName"], bc.k8Client) // the consumer service
 			providerSvc := getService(namespace, providerSvcInst.Labels["serviceName"], bc.k8Client) // the provider service
 			bindParams := buildBindParams(providerSvc, consumerSvc)
-			objectName := bindingName(consumerSvcInstName, providerSvcInstName)
+			objectName := objectName(consumerSvcInstName, providerSvcInstName)
 			binding, err := createBindingObject(objectName, providerSvcInst.Name, bindParams, objectName)
 			if err != nil {
 				return err
@@ -129,7 +128,7 @@ oc plugin mobile create binding <client_service_instance> <bindable_service_inst
 				return err
 			}
 			if !redeploy {
-				fmt.Println("you will need to redeploy your service to pick up the changes")
+				fmt.Println("you will need to redeploy your service/pod to pick up the changes")
 				return nil
 			}
 			//update the deployment with an annotation
@@ -149,18 +148,21 @@ oc plugin mobile create binding <client_service_instance> <bindable_service_inst
 	return cmd
 }
 
-func bindingName(consumer, provider string) string {
+func objectName(consumer, provider string) string {
 	return consumer + "-" + provider
 }
 
-func (bc *BindCmd) DeleteBindCmd() *cobra.Command {
+func (bc *IntegrationCmd) DeleteIntegrationCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "binding",
-		Short: "disintegrate mobile services together",
-		Long:  ``,
+		Use:   "integration <consuming_service_instance_id> <providing_service_instance_id>",
+		Short: "delete the integration between mobile services.",
+		Long: `example usage: kubectl plugin mobile delete integration <consuming_service_instance_id> <providing_service_instance_id>
+mobile --namespace=myproject delete integration <consuming_service_instance_id> <providing_service_instance_id>
+oc plugin mobile delete integration <consuming_service_instance_id> <providing_service_instance_id>
+	`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				log.Fatal("expected a service to bind from and to ")
+				return errors.New("missing arguments.")
 			}
 			namespace := currentNamespace(cmd.Flags())
 			consumerSvcInstName := args[0]
@@ -176,7 +178,7 @@ func (bc *BindCmd) DeleteBindCmd() *cobra.Command {
 			}
 			consumerSvcName := consumerSvcInst.Labels["serviceName"]
 			providerSvcName := providerSvcInst.Labels["serviceName"]
-			objectName := bindingName(consumerSvcInstName, providerSvcInstName)
+			objectName := objectName(consumerSvcInstName, providerSvcInstName)
 			if err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
 				return err
 			}
@@ -207,10 +209,10 @@ func (bc *BindCmd) DeleteBindCmd() *cobra.Command {
 	return cmd
 }
 
-func (bc *BindCmd) GetBindingCmd() *cobra.Command {
+func (bc *IntegrationCmd) GetIntegrationCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "binding",
-		Short: "get a single binding",
+		Use:   "integration",
+		Short: "get a single integration",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
@@ -218,10 +220,10 @@ func (bc *BindCmd) GetBindingCmd() *cobra.Command {
 	return cmd
 }
 
-func (bc *BindCmd) ListBindingCmd() *cobra.Command {
+func (bc *IntegrationCmd) ListBindingCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bindings",
-		Short: "get a list of bindings",
+		Use:   "integrations",
+		Short: "get a list of the current integrations between services",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},

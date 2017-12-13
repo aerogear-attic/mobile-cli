@@ -132,7 +132,8 @@ type instanceCreateParams struct {
 
 func (sc *ServicesCmd) ProvisionServiceCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "serviceinstance <serviceName>",
+		Use:   "serviceinstance <serviceName>",
+		Short: `create a running instance of the given service`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected the name of a service to provision")

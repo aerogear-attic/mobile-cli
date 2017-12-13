@@ -130,9 +130,9 @@ get
     - clientbuild
         - get clientbuilds #returns a list of mobile client builds
         - get clientbuild <clientBuildName> #returns a single mobile client build
-    - bindings   
-        - get bindings # returns a list of bindings between mobile aware services and their consumers
-        - get binding <bindingName> # return a single binding and the name of the services consuming it
+    - integrations   
+        - get integrations # returns a list of integrations between mobile aware services and their consumers
+        - get integration <name> # return a single integration and the name of the services consuming it
     
     
 create 
@@ -141,9 +141,9 @@ create
         - create client <clientName> <clientType> # will create a representation of the mobile client application
     - serviceconfig
         - create serviceconfig # this command will likely prompt for needed imputs    
-    - binding
-        - create binding <consuming_service> <bindable_service> # will create the binding and pod preset and optionally redeploy the integration_taget
-        for example: mobile create binding fh-sync keycloak 
+    - integration
+        - create integration <consuming_service_inst_id> <providing_service_inst_id> # will create the binding and pod preset and optionally redeploy the consuming service
+        for example: mobile create integration fh-sync keycloak 
     - clientbuild
         - create clientbuild <clientID> <git_Source> [buildName] # will create a Jenkins PipeLine based buildconfig likely will need a several option flags to cover
         things like credentials and keys
@@ -154,8 +154,8 @@ delete
         - delete client <clientID> # removes the configmap or mobileclient object if we go with CRD
     - serviceconfig
         - delete serviceconfig <configName> # remove the configur        
-    - binding
-        - delete binding <consuming_servicet> <bindable_service> # removes all the objects created when the binding was enabled. 
+    - integration
+        - delete integration <consuming_service_inst_id> <providing_service_inst_id> # removes all the objects created when the integratio was enabled. 
         for example mobile delete binding fh-sync keycloak
     - clientbuild
         - delete the buildconfig and any other related object that back the client build.

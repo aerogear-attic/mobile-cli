@@ -39,7 +39,7 @@ func main() {
 		out              = os.Stdout
 		rootCmd          = cmd.NewRootCmd()
 		clientCmd        = cmd.NewClientCmd(mobileClient, out)
-		bindCmd          = cmd.NewBindCmd(scClient, k8Client)
+		bindCmd          = cmd.NewIntegrationCmd(scClient, k8Client)
 		serviceConfigCmd = cmd.NewServiceConfigCommand(k8Client)
 		clientCfgCmd     = cmd.NewClientConfigCmd(k8Client)
 		clientBuilds     = cmd.NewClientBuildsCmd()
@@ -50,7 +50,7 @@ func main() {
 	{
 		createCmd := cmd.NewCreateCommand()
 		createCmd.AddCommand(svcCmd.ProvisionServiceCmd())
-		createCmd.AddCommand(bindCmd.CreateBindCmd())
+		createCmd.AddCommand(bindCmd.CreateIntegrationCmd())
 		createCmd.AddCommand(clientCmd.CreateClientCmd())
 		createCmd.AddCommand(serviceConfigCmd.CreateServiceConfigCmd())
 		createCmd.AddCommand(clientBuilds.CreateClientBuildsCmd())
@@ -65,7 +65,7 @@ func main() {
 		getCmd.AddCommand(serviceConfigCmd.GetServiceConfigCmd())
 		getCmd.AddCommand(serviceConfigCmd.ListServiceConfigCmd())
 		getCmd.AddCommand(clientCfgCmd.GetClientConfigCmd())
-		getCmd.AddCommand(bindCmd.GetBindingCmd())
+		getCmd.AddCommand(bindCmd.GetIntegrationCmd())
 		getCmd.AddCommand(bindCmd.ListBindingCmd())
 		getCmd.AddCommand(clientBuilds.GetClientBuildsCmd())
 		getCmd.AddCommand(clientBuilds.ListClientBuildsCmd())
@@ -76,7 +76,7 @@ func main() {
 	// delete
 	{
 		deleteCmd := cmd.NewDeleteComand()
-		deleteCmd.AddCommand(bindCmd.DeleteBindCmd())
+		deleteCmd.AddCommand(bindCmd.DeleteIntegrationCmd())
 		deleteCmd.AddCommand(clientCmd.DeleteClientCmd())
 		deleteCmd.AddCommand(serviceConfigCmd.DeleteServiceConfigCmd())
 		deleteCmd.AddCommand(clientBuilds.DeleteClientBuildsCmd())
