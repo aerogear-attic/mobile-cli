@@ -1,5 +1,29 @@
 ## The Mobile Cli is a standalone cli that can also be used a kubectl / oc plugin
 
+The mobile cli focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite
+of services ontop of Kubernetes / OpenShift. 
+
+It uses a language familiar to mobile developers and abstracts away some of the complexity of dealing with Kubernetes / OpenShift which can be 
+initially daunting and overwhelming.
+
+### Examples
+```
+
+mobile get services
+
+mobile provision fh-sync
+
+mobile --namespace=myproject get sdkconfig
+
+mobile create binding fh-sync keycloak
+
+mobile create clientbuild <MobileClientID> <Git_Source_Url> [buildName]
+
+mobile get buildartifact <clientBuildID> 
+
+``` 
+
+
 ### Install
 
 ### Pre req

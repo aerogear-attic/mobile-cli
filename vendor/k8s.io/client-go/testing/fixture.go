@@ -70,7 +70,6 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 		ns := action.GetNamespace()
 		gvr := action.GetResource()
 
-
 		// Here and below we need to switch on implementation types,
 		// not on interfaces, as some interfaces are identical
 		// (e.g. UpdateAction and CreateAction), so if we use them,
@@ -78,7 +77,6 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 		switch action := action.(type) {
 
 		case ListActionImpl:
-			fmt.Print("resource ", gvr, action.GetKind())
 			obj, err := tracker.List(gvr, action.GetKind(), ns)
 			return true, obj, err
 

@@ -1,5 +1,5 @@
-hash: 0991219d4d9abb028ee2d81ad5bbd2ab73096b5cb6431b6566e4de30acac1c89
-updated: 2017-12-06T11:41:09.077607Z
+hash: 29054621ae23155f331dc3fdc5890b6ff6cb277e751ace8e4acbb2f04cdce0d8
+updated: 2017-12-08T11:28:37.930876Z
 imports:
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
@@ -70,8 +70,12 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/mattn/go-runewidth
+  version: 97311d9f7767e3d6f422ea06661bc2c7a19e8a5d
 - name: github.com/mitchellh/mapstructure
   version: 06020f85339e21b2478f756a78e295255ffa4d6a
+- name: github.com/olekukonko/tablewriter
+  version: 65fec0d89a572b4367094e2058d3ebe667de3b60
 - name: github.com/pelletier/go-buffruneio
   version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
 - name: github.com/pelletier/go-toml

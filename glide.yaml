@@ -36,3 +36,7 @@ import:
   - testing
   - tools/clientcmd
   - util/flowcontrol
+- package: github.com/olekukonko/tablewriter
+  version: 65fec0d89a572b4367094e2058d3ebe667de3b60
+- package: github.com/mattn/go-runewidth
+  version: ~0.0.2

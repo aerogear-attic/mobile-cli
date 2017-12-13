@@ -23,9 +23,9 @@ import (
 
 	"path/filepath"
 
-	"github.com/aerogear/mobile-cli/cmd/mobile/cmd"
 	m "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	"github.com/aerogear/mobile-cli/pkg/cmd"
 )
 
 func main() {
@@ -35,17 +35,21 @@ func main() {
 	}
 
 	k8Client, mobileClient, scClient := NewClientsOrDie(*kubeconfig)
+	var (
+		out              = os.Stdout
+		rootCmd          = cmd.NewRootCmd()
+		clientCmd        = cmd.NewClientCmd(mobileClient, out)
+		bindCmd          = cmd.NewBindCmd(scClient, k8Client)
+		serviceConfigCmd = cmd.NewServiceConfigCommand(k8Client)
+		clientCfgCmd     = cmd.NewClientConfigCmd(k8Client)
+		clientBuilds     = cmd.NewClientBuildsCmd()
+		svcCmd           = cmd.NewServicesCmd(scClient, k8Client, out)
+	)
 
-	var rootCmd = cmd.NewRootCmd()
-	var clientCmd = cmd.NewClientCmd(mobileClient)
-	var bindCmd = cmd.NewBindCmd(scClient, k8Client)
-	var serviceConfigCmd = cmd.NewServiceConfigCommand(k8Client)
-	var clientCfgCmd = cmd.NewClientConfigCmd(k8Client)
-	var clientBuilds = cmd.NewClientBuildsCmd()
 	// create
 	{
 		createCmd := cmd.NewCreateCommand()
-
+		createCmd.AddCommand(svcCmd.ProvisionServiceCmd())
 		createCmd.AddCommand(bindCmd.CreateBindCmd())
 		createCmd.AddCommand(clientCmd.CreateClientCmd())
 		createCmd.AddCommand(serviceConfigCmd.CreateServiceConfigCmd())
@@ -65,6 +69,8 @@ func main() {
 		getCmd.AddCommand(bindCmd.ListBindingCmd())
 		getCmd.AddCommand(clientBuilds.GetClientBuildsCmd())
 		getCmd.AddCommand(clientBuilds.ListClientBuildsCmd())
+		getCmd.AddCommand(svcCmd.ListServicesCmd())
+		getCmd.AddCommand(svcCmd.ListServiceInstCmd())
 		rootCmd.AddCommand(getCmd)
 	}
 	// delete
@@ -74,6 +80,7 @@ func main() {
 		deleteCmd.AddCommand(clientCmd.DeleteClientCmd())
 		deleteCmd.AddCommand(serviceConfigCmd.DeleteServiceConfigCmd())
 		deleteCmd.AddCommand(clientBuilds.DeleteClientBuildsCmd())
+		deleteCmd.AddCommand(svcCmd.DeprovisionServiceInstCmd())
 		rootCmd.AddCommand(deleteCmd)
 	}
 
