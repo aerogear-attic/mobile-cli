@@ -1,5 +1,7 @@
 ## The Mobile Cli is a standalone cli that can also be used a kubectl / oc plugin
 
+## Note this is still under construction and not yet fit for use
+
 The mobile cli focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite
 of services ontop of Kubernetes / OpenShift. 
 
