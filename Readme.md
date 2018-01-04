@@ -24,7 +24,17 @@ mobile create clientbuild <MobileClientID> <Git_Source_Url> [buildName]
 mobile get buildartifact <clientBuildID> 
 
 ``` 
+### Build 
 
+```
+glide install
+go build cmd/mobile/main.go
+```
+To test run
+
+```
+./main
+```
 
 ### Install
 
