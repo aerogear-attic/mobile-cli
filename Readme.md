@@ -24,6 +24,14 @@ mobile create clientbuild <MobileClientID> <Git_Source_Url> [buildName]
 mobile get buildartifact <clientBuildID> 
 
 ``` 
+### Checkout 
+
+```
+mkdir -p $GOPATH/src/github.com/aerogear
+cd $GOPATH/src/github.com/aerogear
+git clone https://github.com/aerogear/mobile-cli
+```
+
 ### Build 
 
 ```
