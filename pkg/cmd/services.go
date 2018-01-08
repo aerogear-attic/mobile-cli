@@ -283,13 +283,16 @@ func (sc *ServicesCmd) DeprovisionServiceInstCmd() *cobra.Command {
 			}
 			ns := currentNamespace(cmd.Flags())
 			sid := args[0]
+			// Retrieve the service instance in full so we can build the secret name
+			serviceInstance, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Get(sid, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
 			if err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Delete(sid, &metav1.DeleteOptions{}); err != nil {
 				return err
 			}
-			if err := sc.k8Client.CoreV1().Secrets(ns).Delete(sid+"-params", &metav1.DeleteOptions{}); err != nil {
-				return err
-			}
-			return nil
+			secretName := serviceInstance.ObjectMeta.GenerateName + "params"
+			return sc.k8Client.CoreV1().Secrets(ns).Delete(secretName, &metav1.DeleteOptions{})
 		},
 	}
 }
