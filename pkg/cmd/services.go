@@ -72,9 +72,9 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 		var data [][]string
 		for _, item := range scL.Items {
 			extMeta := item.Spec.ExternalMetadata.Raw
-			extMap := map[string]string{}
-			json.Unmarshal(extMeta, &extMap)
-			data = append(data, []string{item.Spec.ExternalName, extMap["serviceName"], extMap["integrations"], item.Name})
+			extServiceClass := map[string]string{}
+			json.Unmarshal(extMeta, &extServiceClass)
+			data = append(data, []string{item.Spec.ExternalName, extServiceClass["serviceName"], extServiceClass["integrations"], item.Name})
 		}
 		table := tablewriter.NewWriter(writer)
 		table.AppendBulk(data)
@@ -96,12 +96,12 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 	}
 
 	for _, item := range mobileServices.Items {
-		var extData map[string]string
+		var extData ExternalServiceMetaData
 		rawData := item.Spec.ExternalMetadata.Raw
 		if err := json.Unmarshal(rawData, &extData); err != nil {
 			return nil, err
 		}
-		if extData["serviceName"] == name {
+		if extData.ServiceName == name {
 			return &item, nil
 		}
 	}
@@ -179,8 +179,8 @@ func (sc *ServicesCmd) ProvisionServiceCmd() *cobra.Command {
 			validServiceName := clusterServiceClass.Spec.ExternalName
 			sid := uuid.NewV4().String()
 			extMeta := clusterServiceClass.Spec.ExternalMetadata.Raw
-			extMap := map[string]string{}
-			if err := json.Unmarshal(extMeta, &extMap); err != nil {
+			var extServiceClass ExternalServiceMetaData
+			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
 				return err
 			}
 
@@ -190,7 +190,7 @@ func (sc *ServicesCmd) ProvisionServiceCmd() *cobra.Command {
 					Kind:       "ServiceInstance",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:       map[string]string{"id": sid, "serviceName": extMap["serviceName"]},
+					Labels:       map[string]string{"id": sid, "serviceName": extServiceClass.ServiceName},
 					Namespace:    ns,
 					GenerateName: validServiceName + "-",
 				},
@@ -283,13 +283,16 @@ func (sc *ServicesCmd) DeprovisionServiceInstCmd() *cobra.Command {
 			}
 			ns := currentNamespace(cmd.Flags())
 			sid := args[0]
+			// Retrieve the service instance in full so we can build the secret name
+			serviceInstance, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Get(sid, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
 			if err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Delete(sid, &metav1.DeleteOptions{}); err != nil {
 				return err
 			}
-			if err := sc.k8Client.CoreV1().Secrets(ns).Delete(sid+"-params", &metav1.DeleteOptions{}); err != nil {
-				return err
-			}
-			return nil
+			secretName := serviceInstance.ObjectMeta.GenerateName + "params"
+			return sc.k8Client.CoreV1().Secrets(ns).Delete(secretName, &metav1.DeleteOptions{})
 		},
 	}
 }
