@@ -68,7 +68,7 @@ func currentNamespace(flags *pflag.FlagSet) string {
 		}
 	}
 	if ns == "" {
-		log.Fatal("no namespace present. Cannot continue. Please set the --namespace flat or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var")
+		log.Fatal("no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var")
 	}
 	return ns
 }
