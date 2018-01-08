@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"io"
 
@@ -130,7 +129,7 @@ oc plugin mobile create client <name> <clientType>
 				app.Labels["icon"] = "icon-cordova"
 				break
 			}
-			app.Name = name + "-" + fmt.Sprintf("%v", time.Now().Unix())
+			app.Name = name + "-" + app.Spec.ClientType
 			if err := input.ValidateMobileClient(app); err != nil {
 				return errors.Wrap(err, "Failed validation while creating new mobile client")
 			}
