@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-
+	"strings"
 	"io"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
@@ -129,7 +129,7 @@ oc plugin mobile create client <name> <clientType>
 				app.Labels["icon"] = "icon-cordova"
 				break
 			}
-			app.Name = name + "-" + app.Spec.ClientType
+			app.Name = name + "-" + strings.ToLower(app.Spec.ClientType)
 			if err := input.ValidateMobileClient(app); err != nil {
 				return errors.Wrap(err, "Failed validation while creating new mobile client")
 			}
