@@ -29,7 +29,7 @@ type Service struct {
 	Writable     bool                           `json:"writable"`
 }
 
-type ServiceClass struct {
+type ExternalServiceMetaData struct {
 	Dependencies        []string `json:"dependencies"`
 	DisplayName         string   `json:"displayName"`
 	DocumentationURL    string   `json:"documentationUrl"`

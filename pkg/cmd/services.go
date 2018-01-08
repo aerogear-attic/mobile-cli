@@ -96,7 +96,7 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 	}
 
 	for _, item := range mobileServices.Items {
-		var extData ServiceClass
+		var extData ExternalServiceMetaData
 		rawData := item.Spec.ExternalMetadata.Raw
 		if err := json.Unmarshal(rawData, &extData); err != nil {
 			return nil, err
@@ -179,7 +179,7 @@ func (sc *ServicesCmd) ProvisionServiceCmd() *cobra.Command {
 			validServiceName := clusterServiceClass.Spec.ExternalName
 			sid := uuid.NewV4().String()
 			extMeta := clusterServiceClass.Spec.ExternalMetadata.Raw
-			var extServiceClass ServiceClass
+			var extServiceClass ExternalServiceMetaData
 			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
 				return err
 			}
