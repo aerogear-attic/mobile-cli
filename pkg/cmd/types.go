@@ -29,6 +29,15 @@ type Service struct {
 	Writable     bool                           `json:"writable"`
 }
 
+type ServiceClass struct {
+	Dependencies        []string `json:"dependencies"`
+	DisplayName         string   `json:"displayName"`
+	DocumentationURL    string   `json:"documentationUrl"`
+	ImageURL            string   `json:"imageUrl"`
+	ProviderDisplayName string   `json:"providerDisplayName"`
+	ServiceName         string   `json:"serviceName"`
+}
+
 type ServiceIntegration struct {
 	Enabled         bool   `json:"enabled"`
 	Component       string `json:"component"`
