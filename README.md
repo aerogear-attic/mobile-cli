@@ -1,5 +1,13 @@
 ## The Mobile Cli is a standalone cli that can also be used a kubectl / oc plugin
 
+|                 | Project Info  |
+| --------------- | ------------- |
+| License:        | Apache License, Version 2.0  |
+| Documentation:  | NA |
+| Issue tracker:  | NA  |
+| Mailing lists:  | [aerogear-users](http://aerogear-users.1116366.n5.nabble.com/) ([subscribe](https://lists.jboss.org/mailman/listinfo/aerogear-users))  |
+|                 | [aerogear-dev](http://aerogear-dev.1069024.n5.nabble.com/) ([subscribe](https://lists.jboss.org/mailman/listinfo/aerogear-dev)) 
+
 ## Note this is still under construction and not yet fit for use
 
 The mobile cli focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite
