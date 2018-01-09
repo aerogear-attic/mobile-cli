@@ -87,7 +87,16 @@ oc plugin mobile get client <clientID>`,
 			return nil
 		},
 	}
-
+	cc.Out.AddRenderer(command.Name(), "table", func(out io.Writer, mobileClient interface{}) error {
+		mClient := mobileClient.(*v1alpha1.MobileClient)
+		var data [][]string
+		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey})
+		table := tablewriter.NewWriter(out)
+		table.AppendBulk(data)
+		table.SetHeader([]string{"ID", "Namespace", "Name", "ClientType", "ApiKey"})
+		table.Render()
+		return nil
+	})
 	return command
 }
 
