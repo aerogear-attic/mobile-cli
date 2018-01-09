@@ -1,4 +1,4 @@
-package cmd
+package cmd_test
 
 import (
 	"bytes"
@@ -10,10 +10,10 @@ import (
 
 	"regexp"
 
-	"github.com/aerogear/mobile-cli/cmd/mobile/cmd"
 	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
-	"github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
+	mc "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	mcFake "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
+	"github.com/aerogear/mobile-cli/pkg/cmd"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	kt "k8s.io/client-go/testing"
@@ -22,7 +22,7 @@ import (
 func TestListClients(t *testing.T) {
 	cases := []struct {
 		Name         string
-		MobileClient func() versioned.Interface
+		MobileClient func() mc.Interface
 		ExpectError  bool
 		Flags        []string
 		Validate     func(t *testing.T, list *v1alpha1.MobileClientList)
@@ -30,7 +30,7 @@ func TestListClients(t *testing.T) {
 	}{
 		{
 			Name: "test getting mobile clients returns a list of clients",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				cs := &mcFake.Clientset{}
 				cs.AddReactor("list", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1alpha1.MobileClientList{
@@ -51,7 +51,7 @@ func TestListClients(t *testing.T) {
 		},
 		{
 			Name: "test getting mobile clients outputs clear error message on failure",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				cs := &mcFake.Clientset{}
 				cs.AddReactor("list", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, fmt.Errorf("failed to do something")
@@ -68,8 +68,7 @@ func TestListClients(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			underTest := cmd.NewClientCmd(tc.MobileClient())
-			underTest.Out = cmd.NewOutPutFactory(&stdOut)
+			underTest := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
 			clientCmd := underTest.ListClientsCmd()
 			root.AddCommand(clientCmd)
 			if err := clientCmd.ParseFlags(tc.Flags); err != nil {
@@ -102,7 +101,7 @@ func TestGetClient(t *testing.T) {
 	cases := []struct {
 		Name         string
 		ClientName   string
-		MobileClient func() versioned.Interface
+		MobileClient func() mc.Interface
 		ExpectError  bool
 		ErrorPattern string
 		Flags        []string
@@ -110,7 +109,7 @@ func TestGetClient(t *testing.T) {
 	}{
 		{
 			Name: "test get client returns only one client with the right name",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1alpha1.MobileClient{
@@ -134,7 +133,7 @@ func TestGetClient(t *testing.T) {
 		},
 		{
 			Name: "test get client returns a clear error when it fails",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("failed to get mobile client")
@@ -148,7 +147,7 @@ func TestGetClient(t *testing.T) {
 		},
 		{
 			Name: "test get client fails when missing a required argument",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				return mc
 			},
@@ -162,8 +161,8 @@ func TestGetClient(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(tc.MobileClient())
-			clientCmd.Out = cmd.NewOutPutFactory(&stdOut)
+			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
+
 			getClients := clientCmd.GetClientCmd()
 			root.AddCommand(getClients)
 			if err := getClients.ParseFlags(tc.Flags); err != nil {
@@ -200,7 +199,7 @@ func TestDeleteClient(t *testing.T) {
 	cases := []struct {
 		Name         string
 		ClientName   string
-		MobileClient func() versioned.Interface
+		MobileClient func() mc.Interface
 		ExpectError  bool
 		ErrorPattern string
 		Flags        []string
@@ -208,7 +207,7 @@ func TestDeleteClient(t *testing.T) {
 	}{
 		{
 			Name: "test delete client succeeds with no errors",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				return mc
 			},
@@ -217,7 +216,7 @@ func TestDeleteClient(t *testing.T) {
 		},
 		{
 			Name: "test delete client fails when missing arguments",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				return mc
 			},
@@ -227,7 +226,7 @@ func TestDeleteClient(t *testing.T) {
 		},
 		{
 			Name: "test delete client returns a clear error when delete fails",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("delete", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("failed to delete mobileclient")
@@ -244,8 +243,7 @@ func TestDeleteClient(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(tc.MobileClient())
-			clientCmd.Out = cmd.NewOutPutFactory(&stdOut)
+			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
 			deleteClient := clientCmd.DeleteClientCmd()
 			root.AddCommand(deleteClient)
 			if err := deleteClient.ParseFlags(tc.Flags); err != nil {
@@ -277,7 +275,7 @@ func TestCreateClient(t *testing.T) {
 	cases := []struct {
 		Name         string
 		Args         []string
-		MobileClient func() versioned.Interface
+		MobileClient func() mc.Interface
 		ExpectError  bool
 		ErrorPattern string
 		Flags        []string
@@ -286,7 +284,7 @@ func TestCreateClient(t *testing.T) {
 		{
 			Name: "test create cordova mobile client succeeds without error",
 			Args: []string{"test", "cordova"},
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
@@ -320,7 +318,7 @@ func TestCreateClient(t *testing.T) {
 		{
 			Name: "test create android mobile client succeeds without error",
 			Args: []string{"test", "android"},
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
@@ -354,7 +352,7 @@ func TestCreateClient(t *testing.T) {
 		{
 			Name: "test create iOS mobile client succeeds without error",
 			Args: []string{"test", "iOS"},
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
@@ -388,7 +386,7 @@ func TestCreateClient(t *testing.T) {
 		{
 			Name: "test create cordova mobile client succeeds without error",
 			Args: []string{"test", "cordova"},
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
@@ -424,7 +422,7 @@ func TestCreateClient(t *testing.T) {
 			Args:         []string{"test", "firefox"},
 			ExpectError:  true,
 			ErrorPattern: "^Failed validation while creating new mobile client: .*",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("should not have been called")
@@ -437,7 +435,7 @@ func TestCreateClient(t *testing.T) {
 			Name:        "test create mobile client fails when missing required arguments",
 			Args:        []string{"test"},
 			ExpectError: true,
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("should not have been called")
@@ -451,7 +449,7 @@ func TestCreateClient(t *testing.T) {
 			Args:         []string{"test", "cordova"},
 			ExpectError:  true,
 			ErrorPattern: "^failed to create mobile client:.*",
-			MobileClient: func() versioned.Interface {
+			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("something went wrong")
@@ -466,8 +464,7 @@ func TestCreateClient(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(tc.MobileClient())
-			clientCmd.Out = cmd.NewOutPutFactory(&stdOut)
+			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
 			createCmd := clientCmd.CreateClientCmd()
 			root.AddCommand(createCmd)
 			if err := createCmd.ParseFlags(tc.Flags); err != nil {

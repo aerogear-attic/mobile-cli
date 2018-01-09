@@ -49,6 +49,9 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "failed to get all flag")
 			}
+			if nil == scList {
+				return errors.New("no serviceclasses returned")
+			}
 			if !all {
 				tempList := &v1beta1.ClusterServiceClassList{}
 				for _, item := range scList.Items {
@@ -130,7 +133,7 @@ type instanceCreateParams struct {
 	Type                 string                       `json:"type"`
 }
 
-func (sc *ServicesCmd) ProvisionServiceCmd() *cobra.Command {
+func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstance <serviceName>",
 		Short: `create a running instance of the given service`,
@@ -271,7 +274,7 @@ func (sc *ServicesCmd) ProvisionServiceCmd() *cobra.Command {
 	return cmd
 }
 
-func (sc *ServicesCmd) DeprovisionServiceInstCmd() *cobra.Command {
+func (sc *ServicesCmd) DeleteServiceInstanceCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceinstance <serviceInstanceID>",
 		Short: "deletes a service instance and other objects created when provisioning the services instance such as pod presets",
