@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"io"
+	"strings"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
@@ -71,6 +71,7 @@ func (cc *ClientCmd) GetClientCmd() *cobra.Command {
 kubectl plugin mobile get client <clientID>
 oc plugin mobile get client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println(args, len(args))
 			if len(args) != 1 {
 				return errors.New("missing argument <clientID>")
 			}
@@ -108,6 +109,7 @@ oc plugin mobile create client <name> <clientType>
 			name := args[0]
 			clientType := args[1]
 			appKey := uuid.NewV4().String()
+			namespace := currentNamespace(cmd.Flags())
 			app := &v1alpha1.MobileClient{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "MobileClient",
@@ -133,7 +135,7 @@ oc plugin mobile create client <name> <clientType>
 			if err := input.ValidateMobileClient(app); err != nil {
 				return errors.Wrap(err, "Failed validation while creating new mobile client")
 			}
-			createdClient, err := cc.mobileClient.MobileV1alpha1().MobileClients(currentNamespace(cmd.Flags())).Create(app)
+			createdClient, err := cc.mobileClient.MobileV1alpha1().MobileClients(namespace).Create(app)
 			if err != nil {
 				return errors.Wrap(err, "failed to create mobile client")
 			}

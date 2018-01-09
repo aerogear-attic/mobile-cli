@@ -5,8 +5,14 @@ import (
 
 	"fmt"
 
+	"os"
+
+	"io"
+
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	"github.com/aerogear/mobile-cli/pkg/cmd/output"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
@@ -18,22 +24,24 @@ import (
 )
 
 type IntegrationCmd struct {
+	*BaseCmd
 	scClient sc.Interface
 	k8Client kubernetes.Interface
 }
 
 func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface) *IntegrationCmd {
-	return &IntegrationCmd{scClient: scClient, k8Client: k8Client}
+	return &IntegrationCmd{scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(os.Stdout)}}
 }
 
-func createBindingObject(bindingName, instance string, params map[string]interface{}, secretName string) (*v1beta1.ServiceBinding, error) {
+func createBindingObject(consumer, provider, bindingName, instance string, params map[string]interface{}, secretName string) (*v1beta1.ServiceBinding, error) {
 	pdata, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 	b := &v1beta1.ServiceBinding{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name: bindingName,
+			Name:        bindingName,
+			Annotations: map[string]string{"consumer": consumer, "provider": provider},
 		},
 		Spec: v1beta1.ServiceBindingSpec{
 			ServiceInstanceRef: v1beta1.LocalObjectReference{Name: instance},
@@ -79,10 +87,6 @@ func podPreset(objectName, secretName, producerSvcName, consumerSvcName string) 
 		},
 	}
 	return &podPreset
-	//if _, err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Create(&podPreset); err != nil {
-	//	return errors.Wrap(err, "failed to create pod preset for service ")
-	//}
-
 }
 
 func (bc *IntegrationCmd) CreateIntegrationCmd() *cobra.Command {
@@ -108,11 +112,12 @@ oc plugin mobile create integration <consuming_service_instance_id> <providing_s
 			if err != nil {
 				return err
 			}
+			//todo remove the need for these by updating the apbs to read the secrets themselves (https://github.com/feedhenry/keycloak-apb/issues/37)
 			consumerSvc := getService(namespace, consumerSvcInst.Labels["serviceName"], bc.k8Client) // the consumer service
 			providerSvc := getService(namespace, providerSvcInst.Labels["serviceName"], bc.k8Client) // the provider service
 			bindParams := buildBindParams(providerSvc, consumerSvc)
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
-			binding, err := createBindingObject(objectName, providerSvcInst.Name, bindParams, objectName)
+			binding, err := createBindingObject(consumerSvc.Name, providerSvc.Name, objectName, providerSvcInst.Name, bindParams, objectName)
 			if err != nil {
 				return err
 			}
@@ -220,17 +225,41 @@ func (bc *IntegrationCmd) GetIntegrationCmd() *cobra.Command {
 	return cmd
 }
 
-func (bc *IntegrationCmd) ListBindingCmd() *cobra.Command {
+func (bc *IntegrationCmd) ListIntegrationsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "integrations",
 		Short: "get a list of the current integrations between services",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// list services bincinbx show their annotation values
+			namespace := currentNamespace(cmd.Flags())
+			sbList, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).List(meta_v1.ListOptions{})
+			if err != nil {
+				return err
+			}
+			outType := outputType(cmd.Flags())
+			if err := bc.Out.Render("list"+cmd.Name(), outType, sbList); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
+	bc.Out.AddRenderer("list"+cmd.Name(), "table", func(out io.Writer, dataList interface{}) error {
+		bindingList := dataList.(*v1beta1.ServiceBindingList)
+		var data [][]string
+		for _, b := range bindingList.Items {
+			data = append(data, []string{b.Spec.ExternalID, b.Name, b.Annotations["provider"], b.Annotations["consumer"]})
+		}
+		table := tablewriter.NewWriter(out)
+		table.AppendBulk(data)
+		table.SetHeader([]string{"ID", "Name", "Provider", "Consumer"})
+		table.Render()
+		return nil
+
+	})
 	return cmd
 }
 
+// TODO remove need for this by retrieving the params from the secret in the APB
 func buildBindParams(from *Service, to *Service) map[string]interface{} {
 	var p = map[string]interface{}{}
 	p["credentials"] = map[string]string{

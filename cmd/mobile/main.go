@@ -49,7 +49,7 @@ func main() {
 	// create
 	{
 		createCmd := cmd.NewCreateCommand()
-		createCmd.AddCommand(svcCmd.ProvisionServiceCmd())
+		createCmd.AddCommand(svcCmd.CreateServiceInstanceCmd())
 		createCmd.AddCommand(bindCmd.CreateIntegrationCmd())
 		createCmd.AddCommand(clientCmd.CreateClientCmd())
 		createCmd.AddCommand(serviceConfigCmd.CreateServiceConfigCmd())
@@ -66,7 +66,7 @@ func main() {
 		getCmd.AddCommand(serviceConfigCmd.ListServiceConfigCmd())
 		getCmd.AddCommand(clientCfgCmd.GetClientConfigCmd())
 		getCmd.AddCommand(bindCmd.GetIntegrationCmd())
-		getCmd.AddCommand(bindCmd.ListBindingCmd())
+		getCmd.AddCommand(bindCmd.ListIntegrationsCmd())
 		getCmd.AddCommand(clientBuilds.GetClientBuildsCmd())
 		getCmd.AddCommand(clientBuilds.ListClientBuildsCmd())
 		getCmd.AddCommand(svcCmd.ListServicesCmd())
@@ -80,7 +80,7 @@ func main() {
 		deleteCmd.AddCommand(clientCmd.DeleteClientCmd())
 		deleteCmd.AddCommand(serviceConfigCmd.DeleteServiceConfigCmd())
 		deleteCmd.AddCommand(clientBuilds.DeleteClientBuildsCmd())
-		deleteCmd.AddCommand(svcCmd.DeprovisionServiceInstCmd())
+		deleteCmd.AddCommand(svcCmd.DeleteServiceInstanceCmd())
 		rootCmd.AddCommand(deleteCmd)
 	}
 
