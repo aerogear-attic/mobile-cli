@@ -1,0 +1,14 @@
+# .goreleaser.yml
+# Build customization
+builds:
+  - binary: mobile
+    main: ./cmd/mobile/main.go
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+archive:
+  format: tar.gz
+  
