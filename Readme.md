@@ -36,7 +36,7 @@ git clone https://github.com/aerogear/mobile-cli
 
 ```
 glide install
-make
+make build
 ```
 To test run
 
@@ -49,7 +49,7 @@ To test run
 To use the mobile-cli inside an APB container it needs to be compiled for the linux/amd64 platform:
 
 ```
-env GOOS=linux GOARCH=amd64 go build -o mobile ./cmd/mobile
+make build_linux
 ```
 
 ### Install
