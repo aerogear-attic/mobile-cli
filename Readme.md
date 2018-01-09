@@ -37,12 +37,20 @@ git clone https://github.com/aerogear/mobile-cli
 
 ```
 glide install
-go build cmd/mobile/main.go
+make build
 ```
 To test run
 
 ```
-./main
+./mobile
+```
+
+### Build for APB usage
+
+To use the mobile-cli inside an APB container it needs to be compiled for the linux/amd64 platform:
+
+```
+make build_linux
 ```
 
 ### Install
@@ -50,37 +58,7 @@ To test run
 ### Pre req
 
 - have a local kubernetes or oc cluster via something like minikube or oc cluster up
-
-### Setup the Custom Resource Definition
-
-```
-oc login -u system:admin
-oc create -f artifacts/mobileclient_crd.yaml
-
-```
-
-In OpenShift, add the following to the edit and admin roles
-
-``` 
-- apiGroups:
-  - mobile.k8s.io
-  attributeRestrictions: null
-  resources:
-  - mobileclients
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-```
-You can do this via the edit command in oc
-```
-oc edit clusterrole admin # add the above and save
-oc edit clusterrole edit # add the above and save
-```
+- Install glide (https://github.com/Masterminds/glide), e.g. `brew install glide`
 
 ### Setup the plugin
 
