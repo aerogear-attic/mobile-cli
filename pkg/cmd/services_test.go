@@ -82,12 +82,6 @@ func TestServicesCmd_ListServicesCmd(t *testing.T) {
 				return fakeClient
 			},
 			ExpectError: true,
-			Validate: func(t *testing.T, output []byte) {
-				err := string(output)
-				if err == "" {
-					t.Fatal("expected an error message but got none")
-				}
-			},
 		},
 	}
 

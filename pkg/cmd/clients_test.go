@@ -154,7 +154,7 @@ func TestGetClient(t *testing.T) {
 			ClientName:   "",
 			Flags:        []string{"--namespace=myproject", "-o=json"},
 			ExpectError:  true,
-			ErrorPattern: "^failed to get mobile client with clientID (\\w+)+:.*",
+			ErrorPattern: "^missing argument .*",
 		},
 	}
 	for _, tc := range cases {

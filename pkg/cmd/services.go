@@ -41,6 +41,7 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 		Short: "get mobile aware services that can be provisioned to your namespace",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			scList, err := sc.scClient.ServicecatalogV1beta1().ClusterServiceClasses().List(metav1.ListOptions{})
+			fmt.Println("sclist", scList, err)
 			if err != nil {
 				return errors.Wrap(err, "failed to list service classes")
 			}

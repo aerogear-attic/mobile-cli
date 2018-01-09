@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"io"
+	"strings"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
@@ -71,6 +71,7 @@ func (cc *ClientCmd) GetClientCmd() *cobra.Command {
 kubectl plugin mobile get client <clientID>
 oc plugin mobile get client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println(args, len(args))
 			if len(args) != 1 {
 				return errors.New("missing argument <clientID>")
 			}

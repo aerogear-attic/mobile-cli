@@ -7,7 +7,7 @@ SHELL = /bin/bash
 LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
 
 
-build:
+build: test-unit
 	go build -o mobile ./cmd/mobile
 
 build_linux:
