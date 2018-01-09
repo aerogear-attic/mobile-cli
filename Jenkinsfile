@@ -15,7 +15,13 @@ node ("go") {
       }
       
       stage ("Run") {
-        sh "./main"  
+        // workaround because of the https://issues.jboss.org/browse/FH-4471 
+        sh "mkdir -p /home/jenkins/.kube"
+        sh "rm /home/jenkins/.kube/config || true"
+        sh "oc config view > /home/jenkins/.kube/config"
+        //end of workaround
+
+        sh "./mobile"  
       }
     }
   }
