@@ -23,7 +23,7 @@ func NewDeleteComand() *cobra.Command {
 		Use:   "delete",
 		Short: "delete clients, clientbuilds etc",
 		Run: func(cmd *cobra.Command, args []string) {
-
+			cmd.Help()
 		},
 	}
 }
