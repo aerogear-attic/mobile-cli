@@ -1,7 +1,7 @@
 # .goreleaser.yml
 # Build customization
 builds:
-  - binary: om
+  - binary: mobile
     main: ./cmd/mobile/main.go
     goos:
       - windows
