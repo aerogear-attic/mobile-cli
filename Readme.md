@@ -9,15 +9,16 @@ It uses a language familiar to mobile developers and abstracts away some of the 
 initially daunting and overwhelming.
 
 ### Examples
+Note not all of these commands currently exist but are present below to show the general concept
 ```
 
 mobile get services
 
 mobile provision fh-sync
 
-mobile --namespace=myproject get sdkconfig
+mobile --namespace=myproject get clientconfig
 
-mobile create binding fh-sync keycloak
+mobile create integration fh-sync keycloak
 
 mobile create clientbuild <MobileClientID> <Git_Source_Url> [buildName]
 
