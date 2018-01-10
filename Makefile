@@ -10,7 +10,7 @@ LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
 setup:
 	@go get github.com/kisielk/errcheck
 
-build: test-unit
+build: check
 	go build -o mobile ./cmd/mobile
 
 build_linux:
