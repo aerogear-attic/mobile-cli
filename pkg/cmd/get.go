@@ -22,8 +22,11 @@ func NewGetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get",
 		Short: "get clients, service and clientbuilds",
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := cmd.Help(); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }
