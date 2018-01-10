@@ -23,8 +23,11 @@ func NewCreateCommand() *cobra.Command {
 		Use:   "create",
 		Short: "create clients, integrations, etc...",
 		Long:  `create allows you to do things such as create clients, clientbuilds and service bindings etc`,
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := cmd.Help(); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }
