@@ -77,7 +77,9 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 		for _, item := range scL.Items {
 			extMeta := item.Spec.ExternalMetadata.Raw
 			extServiceClass := map[string]string{}
-			json.Unmarshal(extMeta, &extServiceClass)
+			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
+				return err
+			}
 			data = append(data, []string{item.Spec.ExternalName, extServiceClass["serviceName"], extServiceClass["integrations"], item.Name})
 		}
 		table := tablewriter.NewWriter(writer)
