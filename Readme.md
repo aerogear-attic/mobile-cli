@@ -119,6 +119,10 @@ get
     - clients
         - get clients #returns a list of mobile clients within the current namespace
         - get client <clientName> # returns a single mobile client
+    - serviceinstances
+        - get serviceinstances <serviceName> # Returns a list of provisioned serviceInstances based on the service name.
+    - services
+        - get services # Returns mobile aware services that can be provisioned to your namespace
     - serviceconfig
         - get serviceconfigs # returns a list of mobile aware service configurations (this is the full unfiltered configuration data)
         - get serviceconfig <serviceName> #returns a single mobile aware service configuration (this is the full unfiltered configuration data) 
@@ -136,6 +140,8 @@ create
     
     - client
         - create client <clientName> <clientType> # will create a representation of the mobile client application
+    - serviceinstance
+        - create serviceinstance <serviceName> # this command will likely prompt for needed imputs
     - serviceconfig
         - create serviceconfig # this command will likely prompt for needed imputs    
     - integration
@@ -149,6 +155,8 @@ delete
 
     - client
         - delete client <clientID> # removes the configmap or mobileclient object if we go with CRD
+    - serviceinstance
+        - delete serviceinstance <serviceInstanceID> # deletes a service instance and other objects created when provisioning the services instance such as pod presets
     - serviceconfig
         - delete serviceconfig <configName> # remove the configur        
     - integration
