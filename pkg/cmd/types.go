@@ -62,8 +62,8 @@ type SecretConvertor interface {
 }
 
 type ServiceConfigs struct {
-	Services []*ServiceConfig `json:"services"`
-	Namespace     string           `json:"namespace"`
+	Services  []*ServiceConfig `json:"services"`
+	Namespace string           `json:"namespace"`
 }
 
 type ServiceConfig struct {

@@ -74,8 +74,8 @@ kubectl plugin mobile get clientconfig`,
 			}
 
 			outputJSON := ServiceConfigs{
-				Services: ret,
-				Namespace:     namespace,
+				Services:  ret,
+				Namespace: namespace,
 			}
 
 			encoder := json.NewEncoder(os.Stdout)
