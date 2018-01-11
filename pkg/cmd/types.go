@@ -61,6 +61,11 @@ type SecretConvertor interface {
 	Convert(s *Service) (*ServiceConfig, error)
 }
 
+type ServiceConfigs struct {
+	Services []*ServiceConfig `json:"services"`
+	Name     string           `json:"name"`
+}
+
 type ServiceConfig struct {
 	Config map[string]interface{} `json:"config"`
 	Name   string                 `json:"name"`

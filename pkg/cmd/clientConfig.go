@@ -43,6 +43,7 @@ mobile --namespace=myproject get clientconfig
 kubectl plugin mobile get clientconfig`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ret := []*ServiceConfig{}
+
 			convertors := map[string]SecretConvertor{
 				"fh-sync-server": &syncSecretConvertor{},
 				"keycloak":       &keycloakSecretConvertor{},
@@ -71,8 +72,15 @@ kubectl plugin mobile get clientconfig`,
 				}
 				ret = append(ret, svcConifg)
 			}
+
+			outputJSON := ServiceConfigs{
+				Services: ret,
+				Name:     namespace,
+			}
+
 			encoder := json.NewEncoder(os.Stdout)
-			if err := encoder.Encode(ret); err != nil {
+			encoder.SetIndent("", "  ")
+			if err := encoder.Encode(outputJSON); err != nil {
 				log.Fatal("failed to encode sdk config ", err)
 			}
 
