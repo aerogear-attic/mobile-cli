@@ -110,7 +110,7 @@ This is used to provide a mobile client context for various actions such as crea
 
 The available client types are android, cordova and iOS. 
 
-A namespace must be specified by providing the --namespace flag or by setting the KUBECTL_PLUGINS_CURRENT_NAMESPACE environment variable.`,
+When used standalone, a namespace must be specified by providing the --namespace flag.`,
 		Example: `  mobile create client <name> <clientType> --namespace=myproject 
   kubectl plugin mobile create client <name> <clientType>
   oc plugin mobile create client <name> <clientType>`,
