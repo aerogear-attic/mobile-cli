@@ -105,15 +105,18 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "client <name> <clientType iOS|cordova|android>",
 		Short: "create a mobile client representation in your namespace",
-		Long: `Sets up the representation of a mobile application in your namespace. This used to provide a mobile client context for various
-actions such as doing mobile client builds,
-mobile --namespace=myproject create client <name> <clientType>
-kubectl plugin mobile create client <name> <clientType>
-oc plugin mobile create client <name> <clientType>
-`,
+		Long: `Sets up the representation of a mobile application of the specified type in your namespace.
+This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
+
+The available client types are android, cordova and iOS. 
+
+When used standalone, a namespace must be specified by providing the --namespace flag.`,
+		Example: `  mobile create client <name> <clientType> --namespace=myproject 
+  kubectl plugin mobile create client <name> <clientType>
+  oc plugin mobile create client <name> <clientType>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 2 {
-				return errors.New("expected a name and clientType " + cmd.Use)
+				return errors.New("expected a name and a clientType")
 			}
 			name := args[0]
 			clientType := args[1]

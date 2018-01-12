@@ -384,40 +384,6 @@ func TestCreateClient(t *testing.T) {
 			},
 		},
 		{
-			Name: "test create cordova mobile client succeeds without error",
-			Args: []string{"test", "cordova"},
-			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					ca := action.(kt.CreateAction)
-					return true, ca.GetObject(), nil
-				})
-				return mc
-			},
-			Flags: []string{"--namespace=myproject", "-o=json"},
-			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
-				if nil == c {
-					t.Fatal("expected a mobile client but got nil")
-				}
-				if c.Spec.ClientType != "cordova" {
-					t.Fatal("expected the clientType to be cordova but got ", c.Spec.ClientType)
-				}
-				if c.Spec.Name != "test" {
-					t.Fatal("expected the client name to be test but got ", c.Spec.Name)
-				}
-				if c.Spec.ApiKey == "" {
-					t.Fatal("expected an apiKey to be generated but it was empty")
-				}
-				icon, ok := c.Labels["icon"]
-				if !ok {
-					t.Fatal("expected an icon to be set but there was none")
-				}
-				if icon != "icon-cordova" {
-					t.Fatal("expected the icon to be icon-cordova but got ", icon)
-				}
-			},
-		},
-		{
 			Name:         "test create mobile client fails with unknown client type",
 			Args:         []string{"test", "firefox"},
 			ExpectError:  true,
@@ -432,9 +398,10 @@ func TestCreateClient(t *testing.T) {
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
 		{
-			Name:        "test create mobile client fails when missing required arguments",
-			Args:        []string{"test"},
-			ExpectError: true,
+			Name:         "test create mobile client fails when missing required arguments",
+			Args:         []string{"test"},
+			ExpectError:  true,
+			ErrorPattern: "^expected a name and a clientType",
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
@@ -448,7 +415,7 @@ func TestCreateClient(t *testing.T) {
 			Name:         "test create mobile client fails with clear error message",
 			Args:         []string{"test", "cordova"},
 			ExpectError:  true,
-			ErrorPattern: "^failed to create mobile client:.*",
+			ErrorPattern: "^failed to create mobile client: something went wrong",
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
