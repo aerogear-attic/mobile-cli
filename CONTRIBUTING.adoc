@@ -14,8 +14,8 @@ Before anything else, https://help.github.com/articles/fork-a-repo/[fork] the Mo
 
 The Mobile CLI targets Kubernetes and is intended to be developed against a running Kubernetes cluster,
 we use OpenShift as our Kuberentes distribution. The Mobile CLI is intended to help you work with Mobile Services running ontop of OpenShift.
-To provision these services, we levarage the Service Catalog and the ansible service broker. To help get this infrastructure set up there is a
-https://github.com/aerogear/mobile-core#installing-from-a-development-release[ansible based installer] provided.
+To provision these services, we levarage the https://github.com/kubernetes-incubator/service-catalog[Service Catalog] and the https://github.com/openshift/ansible-service-broker[Ansible Service Broker].
+To help get this infrastructure set up there is a https://github.com/aerogear/mobile-core#installing-from-a-development-release[ansible based installer] provided.
 
 == Clone the repositiory
 
@@ -23,13 +23,15 @@ As we are using Go, the path you clone this repo into is important.
 
 * create the directory `mkdir -p $GOPATH/src/github.com/aerogear`
 * clone the repo `cd $GOPATH/src/github.com/aerogear &amp;&amp; git clone git@github.com:aerogear/mobile-cli.git`
-* add your own fork as the upstream `git add remote upstream &lt;your fork&gt;`
+* add your own fork as the upstream target `git add remote upstream &lt;your fork&gt;`
 
 == Building the Mobile CLI
 
 To build the cli locally you can run `make build` this command will run a set of checks and the unit tests before compiling the binary and outputting it into the current directory,
 if you only want to build the binary itself you can simply run `make build_binary`.
 Once built, you can access this binary and use it from the command line `./mobile`
+Remember however that the CLI is intended as a Kubernetes plugin so expects to kind kube configuration in `~/.kube/config`. If you have setup OpenShift this should
+already be in place.
 
 == Submitting changes to the Mobile CLI
 
@@ -37,21 +39,23 @@ Once built, you can access this binary and use it from the command line `./mobil
 
 There are a few things you should keep in mind before creating a PR.
 
-* New code should have corresponding unit tests. An example of how we approach unit testing can be found in the https://github.com/aerogear/mobile-cli/blob/master/pkg/cmd/clients_test.go[clients_test.go].
+* New code should have corresponding unit tests. An example of how we approach unit testing can be found in https://github.com/aerogear/mobile-cli/blob/master/pkg/cmd/clients_test.go[clients_test.go].
 
-* Ensure for new commands to read the ./doc/adding_new_cmd.md before hand.
+* Ensure for new commands to read the https://github.com/aerogear/mobile-cli/doc/adding_new_cmd.md[adding a new command] doc before hand.
 
-* Must run ```make build``` before creating the PR and it must execute with no errors.
+* You Must run ```make build``` before creating the PR and ensure it must execute with no errors.
 
 * When needed provide an explanation of the command and the expected output to help others that may review and test the change.
 
 === Making a pull request
 
-Make a https://help.github.com/articles/using-pull-requests[pull request (PR)].
+Make a https://help.github.com/articles/using-pull-requests[pull request (PR)] in the standard way.
 
 Use [WIP] at the beginning of the title (ie. [WIP] Add feature to the CLI) to mark a PR as a Work in Progress.
 
-Upon successful review, someone will approve the PR in the review thread. Normally we wait for 2 LGTM from reviewers before merging.
+Your PR will then be reviewed, questions may be asked and changes asked for.
+
+Upon successful review, someone will approve the PR in the review thread. Depending on the size of the change, we may wait for 2 LGTM from reviewers before merging.
 
 
 === Major features
@@ -67,4 +71,4 @@ The proposal process also requires two approvals from the community before mergi
 == Stay in touch
 
 * IRC: Join the conversation on Freenode: #aerogear
-* Email: Subscribe to the aerogear mailing list
+* Email: Subscribe to the https://github.com/aerogear/mobile-cli/doc/adding_new_cmd.md[aerogear mailing list]
