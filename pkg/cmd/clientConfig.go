@@ -15,8 +15,6 @@
 package cmd
 
 import (
-	"log"
-
 	"encoding/json"
 	"os"
 
@@ -41,49 +39,49 @@ func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
 		Long: `get clientconfig
 mobile --namespace=myproject get clientconfig
 kubectl plugin mobile get clientconfig`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var ns string
+			var err error
 			ret := []*ServiceConfig{}
 
 			convertors := map[string]SecretConvertor{
 				"fh-sync-server": &syncSecretConvertor{},
 				"keycloak":       &keycloakSecretConvertor{},
 			}
-			namespace := currentNamespace(cmd.Flags())
-			ms := listServices(namespace, ccc.k8Client)
+			if ns, err = currentNamespace(cmd.Flags()); err != nil {
+				return err
+			}
+			ms := listServices(ns, ccc.k8Client)
 			for _, svc := range ms {
-				var svcConifg *ServiceConfig
+				var svcConfig *ServiceConfig
 				var err error
 				if _, ok := convertors[svc.Name]; !ok {
 
 					convertor := defaultSecretConvertor{}
-					svcConifg, err = convertor.Convert(svc)
-					if err != nil {
-						//bail out here as now our config may not be compelete?
-						log.Fatal("failed to convert to sdk config ", err)
+					if svcConfig, err = convertor.Convert(svc); err != nil {
+						return err
 					}
 				} else {
 					// we can only convert what is available
 					convertor := convertors[svc.Name]
-					svcConifg, err = convertor.Convert(svc)
-					if err != nil {
-						//bail out here as now our config may not be compelete?
-						log.Fatal("failed to convert to sdkconfig ", err)
+					if svcConfig, err = convertor.Convert(svc); err != nil {
+						return err
 					}
 				}
-				ret = append(ret, svcConifg)
+				ret = append(ret, svcConfig)
 			}
 
 			outputJSON := ServiceConfigs{
 				Services:  ret,
-				Namespace: namespace,
+				Namespace: ns,
 			}
 
 			encoder := json.NewEncoder(os.Stdout)
 			encoder.SetIndent("", "  ")
 			if err := encoder.Encode(outputJSON); err != nil {
-				log.Fatal("failed to encode sdk config ", err)
+				return err
 			}
-
+			return err
 		},
 	}
 }

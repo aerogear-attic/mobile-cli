@@ -20,6 +20,7 @@ import (
 
 	"log"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -84,15 +85,19 @@ func (scc *ServiceConfigCmd) ListServiceConfigCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceconfigs",
 		Short: "get a list of deployed mobile enabled services",
-		Run: func(cmd *cobra.Command, args []string) {
-			out := listServices(currentNamespace(cmd.Flags()), scc.k8client)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			namespace, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+			out := listServices(namespace, scc.k8client)
 			enc := json.NewEncoder(os.Stdout)
 			for _, s := range out {
 				s.Capabilities = capabilities[s.Name]
 				//non external services are part of the current namespace //TODO maybe should be added to the apbs
 				if s.External == false {
 					if s.Namespace == "" {
-						s.Namespace = currentNamespace(cmd.Flags())
+						s.Namespace = namespace
 					}
 					s.Writable = true
 				}
@@ -107,6 +112,7 @@ func (scc *ServiceConfigCmd) ListServiceConfigCmd() *cobra.Command {
 			if err := enc.Encode(out); err != nil {
 				log.Fatal("failed to json encode output ", err)
 			}
+			return nil
 		},
 	}
 }
@@ -115,22 +121,26 @@ func (scc *ServiceConfigCmd) GetServiceConfigCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceconfig",
 		Short: "get a mobile aware service definition",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				log.Println("service name is required", cmd.Usage())
-				return
+				//log.Println(")
+				return errors.Errorf("%v\n%v", "service name is required", cmd.Usage())
 			}
 			serviceName := args[0]
 			if serviceName == "" {
 				log.Fatal("service name is required and cannot be empty")
 			}
-			svc := getService(currentNamespace(cmd.Flags()), serviceName, scc.k8client)
+			namespace, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+			svc := getService(namespace, serviceName, scc.k8client)
 			enc := json.NewEncoder(os.Stdout)
 			svc.Capabilities = capabilities[svc.Type]
 			if svc.Capabilities != nil {
 				integrations := svc.Capabilities["integrations"]
 				for _, v := range integrations {
-					isvs := listServices(currentNamespace(cmd.Flags()), scc.k8client)
+					isvs := listServices(namespace, scc.k8client)
 					if len(isvs) > 0 {
 						is := isvs[0]
 						enabled := svc.Labels[is.Name] == "true"
@@ -138,7 +148,7 @@ func (scc *ServiceConfigCmd) GetServiceConfigCmd() *cobra.Command {
 							ComponentSecret: svc.ID,
 							Component:       svc.Type,
 							DisplayName:     is.DisplayName,
-							Namespace:       currentNamespace(cmd.Flags()),
+							Namespace:       namespace,
 							Service:         is.ID,
 							Enabled:         enabled,
 						}
@@ -156,6 +166,7 @@ func (scc *ServiceConfigCmd) GetServiceConfigCmd() *cobra.Command {
 			if err := enc.Encode(svc); err != nil {
 				log.Fatal("failed to json encode output ", err)
 			}
+			return nil
 		},
 	}
 }

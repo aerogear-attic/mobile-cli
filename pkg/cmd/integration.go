@@ -101,7 +101,11 @@ oc plugin mobile create integration <consuming_service_instance_id> <providing_s
 			if len(args) < 2 {
 				return errors.New("missing arguments: " + cmd.Use)
 			}
-			namespace := currentNamespace(cmd.Flags())
+			namespace, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+
 			consumerSvcInstName := args[0]
 			providerSvcInstName := args[1]
 			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, meta_v1.GetOptions{})
@@ -169,7 +173,10 @@ oc plugin mobile delete integration <consuming_service_instance_id> <providing_s
 			if len(args) < 2 {
 				return errors.New("missing arguments.")
 			}
-			namespace := currentNamespace(cmd.Flags())
+			namespace, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
 			consumerSvcInstName := args[0]
 			providerSvcInstName := args[1]
 
@@ -231,7 +238,10 @@ func (bc *IntegrationCmd) ListIntegrationsCmd() *cobra.Command {
 		Short: "get a list of the current integrations between services",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// list services bincinbx show their annotation values
-			namespace := currentNamespace(cmd.Flags())
+			namespace, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
 			sbList, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).List(meta_v1.ListOptions{})
 			if err != nil {
 				return err
