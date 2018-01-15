@@ -1,4 +1,4 @@
-# Adding a new cli command
+# Adding a new CLI command
 
 
 The mobile CLI uses the [cobra](https://github.com/spf13/cobra) library to provide a consistent framework for building out the CLI tool.
@@ -15,7 +15,7 @@ Once this is done, then you should follow the patterns in the other base command
 - Create a new type  ```<resourceName>Cmd```
 - Create new constructor ```New<resourceName>Cmd``` 
 - Dependencies such as the kubernetes clients should be passed to this constructor as their interface types to allow for simpler testing
-- The cobra commands should then be made methods from this the base type:
+- The cobra commands should then be returned from methods from this the base type. See below:
 
 ```
 type MyResourceCMD struct{}
@@ -30,7 +30,7 @@ If it is being added to an existing verb command then add this command in the sa
 
 If it is a new verb command then you will want to create a new block of it and its sub commands
 
-Eample of adding a new resource command:
+Example of adding a new resource command:
 
 ```
 var (
