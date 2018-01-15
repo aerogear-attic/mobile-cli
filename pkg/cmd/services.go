@@ -89,7 +89,7 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 				return err
 			}
 
-			params := &instanceCreateParams{}
+			params := &InstanceCreateParams{}
 			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceInstanceCreateParameterSchema.Raw, &params); err != nil {
 				return err
 			}
@@ -124,7 +124,7 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 		return nil, err
 	}
 	if mobileServices == nil || len(mobileServices.Items) == 0 {
-		return nil, errors.New("failed to find and service classes for " + name)
+		return nil, errors.New("failed to find serviceclass with name: " + name)
 	}
 
 	for _, item := range mobileServices.Items {
@@ -137,11 +137,12 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 			return &item, nil
 		}
 	}
-	return nil, nil
+	return nil, errors.New("failed to find serviceclass with name: " + name)
 
 }
 
 func findServicePlanByNameAndClass(scClient versioned.Interface, planName, serviceClassName string) (*v1beta1.ClusterServicePlan, error) {
+
 	plans, err := scClient.ServicecatalogV1beta1().ClusterServicePlans().List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -152,10 +153,31 @@ func findServicePlanByNameAndClass(scClient versioned.Interface, planName, servi
 		}
 	}
 
-	return nil, nil
+	return nil, errors.New("failed to find serviceplan with associated with the serviceclass " + serviceClassName)
 }
 
-type instanceCreateParams struct {
+func requiredParam(instParams InstanceCreateParams, key string) bool {
+	for _, r := range instParams.Required {
+		if r == key {
+			return true
+		}
+	}
+	return false
+}
+
+func parseParams(keyVals []string) (map[string]string, error) {
+	params := map[string]string{}
+	for _, p := range keyVals {
+		kv := strings.Split(p, "=")
+		if len(kv) != 2 {
+			return nil, NewIncorrectParameterFormat("key value pairs are needed failed to find one: " + p)
+		}
+		params[strings.TrimSpace(kv[0])] = kv[1]
+	}
+	return params, nil
+}
+
+type InstanceCreateParams struct {
 	AdditionalProperties bool                              `json:"additionalProperties"`
 	Properties           map[string]map[string]interface{} `json:"properties"`
 	Required             []string                          `json:"required"`
@@ -166,10 +188,16 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstance <serviceName>",
 		Short: `create a running instance of the given service`,
+		Long: `Create service instance, allows you to provison an availble service to your namespace. 
+To see which services are available, first list them using the "get services" command from this tool. 
+Once you have selected a service, take note of its name then run:
+
+create serviceinstance <selectedService>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected the name of a service to provision")
 			}
+			// find our serviceclass and plan
 			serviceName := args[0]
 
 			ns, err := currentNamespace(cmd.Flags())
@@ -178,39 +206,58 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 			}
 
 			clusterServiceClass, err := findServiceClassByName(sc.scClient, serviceName)
-			if err != nil || clusterServiceClass == nil {
-				msg := "failed to find a service class associated with that name "
-				if err != nil {
-					msg += err.Error()
-				}
-				return errors.New(msg)
+			if err != nil {
+				return errors.WithStack(err)
 			}
 			clusterServicePlan, err := findServicePlanByNameAndClass(sc.scClient, "default", clusterServiceClass.Name)
 			if err != nil {
-				return err
+				return errors.WithStack(err)
+			}
+			// handle the params
+			params, err := cmd.Flags().GetStringArray("params")
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			parsedParams, err := parseParams(params)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			instParams := &InstanceCreateParams{}
+			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceInstanceCreateParameterSchema.Raw, instParams); err != nil {
+				return errors.WithStack(err)
 			}
 
-			if clusterServicePlan == nil {
-				return errors.New("failed to find service plan with name default for service " + serviceName)
-			}
-
-			params := &instanceCreateParams{}
-
-			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceInstanceCreateParameterSchema.Raw, params); err != nil {
-				return err
-			}
-			scanner := bufio.NewScanner(os.Stdin)
-			for k, v := range params.Properties {
-				fmt.Printf("Set value for %v, default value: %v", k, v["default"])
-				scanner.Scan()
-				//
-				val := scanner.Text()
-				if val == "" {
-					val = v["default"].(string)
+			if len(parsedParams) > 0 {
+				for k, v := range instParams.Properties {
+					defaultVal := v["default"]
+					if pVal, ok := parsedParams[k]; !ok && requiredParam(*instParams, k) || requiredParam(*instParams, k) && pVal == "" {
+						if defaultVal != nil {
+							//use default
+							v["value"] = defaultVal
+							continue
+						}
+						return errors.New(fmt.Sprintf("missing required parameter %s", k))
+					}
+					v["value"] = parsedParams[k]
+					instParams.Properties[k] = v
 				}
-				v["value"] = val
-				params.Properties[k] = v
-				fmt.Println("set value for " + k + " to : " + val)
+			} else {
+
+				scanner := bufio.NewScanner(os.Stdin)
+				for k, v := range instParams.Properties {
+					questionFormat := "Set value for %s [default value: %s required: %v]"
+
+					fmt.Println(fmt.Sprintf(questionFormat, k, v["default"], requiredParam(*instParams, k)))
+					scanner.Scan()
+					//
+					val := scanner.Text()
+					if val == "" {
+						val = v["default"].(string)
+					}
+					v["value"] = val
+					instParams.Properties[k] = v
+					fmt.Println("set value for " + k + " to : " + val)
+				}
 			}
 
 			validServiceName := clusterServiceClass.Spec.ExternalName
@@ -218,7 +265,7 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 			extMeta := clusterServiceClass.Spec.ExternalMetadata.Raw
 			var extServiceClass ExternalServiceMetaData
 			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 			si := v1beta1.ServiceInstance{
@@ -251,7 +298,7 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 				},
 			}
 			if _, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Create(&si); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 
 			pSecret := v1.Secret{
@@ -262,38 +309,45 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 			pSecret.Data = map[string][]byte{}
 			parameters := map[string]string{}
 
-			for k, v := range params.Properties {
-				parameters[k] = v["value"].(string)
+			for k, v := range instParams.Properties {
+				if v, ok := v["value"]; ok && v != nil {
+					parameters[k] = v.(string)
+				}
 			}
 			secretData, err := json.Marshal(parameters)
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			pSecret.Data["parameters"] = secretData
 			if _, err := sc.k8Client.CoreV1().Secrets(ns).Create(&pSecret); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
+
 			noWait, err := cmd.PersistentFlags().GetBool("no-wait")
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			if noWait {
 				return nil
 			}
 			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{LabelSelector: "id=" + sid})
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			for u := range w.ResultChan() {
+				o := u.Object.(*v1beta1.ServiceInstance)
 				switch u.Type {
+				case watch.Error:
+					w.Stop()
+					return errors.New("unexpected error watching ServiceInstance " + err.Error())
 				case watch.Modified:
-					o := u.Object.(*v1beta1.ServiceInstance)
+
 					lastOp := o.Status.LastOperation
 					if nil != lastOp {
-						//fmt.Println("last operation " + *lastOp)
+						fmt.Println("last operation: " + *lastOp)
 					}
 					for _, c := range o.Status.Conditions {
-						fmt.Println(c.Message)
+						fmt.Println("status: " + c.Message)
 						if c.Type == "Ready" && c.Status == "True" {
 							w.Stop()
 						}
@@ -305,6 +359,7 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 		},
 	}
 	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately instead of waiting for the service to be provisioned")
+	cmd.PersistentFlags().StringArrayP("params", "p", []string{}, "set the parameters needed by the template: -p PARAM1=val -p PARAM2=val2")
 	return cmd
 }
 
