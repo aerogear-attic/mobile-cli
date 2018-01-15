@@ -55,7 +55,6 @@ func main() {
 		createCmd.AddCommand(serviceConfigCmd.CreateServiceConfigCmd())
 		createCmd.AddCommand(clientBuilds.CreateClientBuildsCmd())
 		rootCmd.AddCommand(createCmd)
-
 	}
 	//get
 	{
@@ -99,7 +98,6 @@ func main() {
 	}
 
 	if err := rootCmd.Execute(); err != nil {
-
 		os.Exit(1)
 	}
 }
