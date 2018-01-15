@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"os"
-
 	"fmt"
+	"os"
+	"strings"
 
 	"io"
 
@@ -69,6 +69,7 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 			return nil
 		},
 	}
+
 	// add our table output renderer
 	sc.Out.AddRenderer("list"+cmd.Name(), "table", func(writer io.Writer, serviceClasses interface{}) error {
 		scL := serviceClasses.(*v1beta1.ClusterServiceClassList)
@@ -81,17 +82,33 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 			}
 			serviceName := ""
 			integrations := ""
+
+			clusterServicePlan, err := findServicePlanByNameAndClass(sc.scClient, "default", item.Name)
+			if err != nil {
+				return err
+			}
+
+			params := &instanceCreateParams{}
+			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceInstanceCreateParameterSchema.Raw, &params); err != nil {
+				return err
+			}
+			var createParams []string
+			for k := range params.Properties {
+				createParams = append(createParams, k)
+			}
+
 			if v, ok := extServiceClass["serviceName"].(string); ok {
 				serviceName = v
 			}
 			if v, ok := extServiceClass["integrations"].(string); ok {
 				integrations = v
 			}
-			data = append(data, []string{item.Spec.ExternalName, serviceName, integrations, item.Name})
+
+			data = append(data, []string{item.Spec.ExternalName, serviceName, integrations, strings.Join(createParams, ",\n"), item.Name})
 		}
 		table := tablewriter.NewWriter(writer)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Name", "Integrations", "Class"})
+		table.SetHeader([]string{"ID", "Name", "Integrations", "Parameters", "Class"})
 		table.Render()
 		return nil
 	})
@@ -137,10 +154,10 @@ func findServicePlanByNameAndClass(scClient versioned.Interface, planName, servi
 }
 
 type instanceCreateParams struct {
-	AdditionalProperties bool                         `json:"additionalProperties"`
-	Properties           map[string]map[string]string `json:"properties"`
-	Required             []string                     `json:"required"`
-	Type                 string                       `json:"type"`
+	AdditionalProperties bool                              `json:"additionalProperties"`
+	Properties           map[string]map[string]interface{} `json:"properties"`
+	Required             []string                          `json:"required"`
+	Type                 string                            `json:"type"`
 }
 
 func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
@@ -177,12 +194,12 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 			}
 			scanner := bufio.NewScanner(os.Stdin)
 			for k, v := range params.Properties {
-				fmt.Println("Set value for " + k + " default value: " + v["default"])
+				fmt.Printf("Set value for %v, default value: %v", k, v["default"])
 				scanner.Scan()
 				//
 				val := scanner.Text()
 				if val == "" {
-					val = v["default"]
+					val = v["default"].(string)
 				}
 				v["value"] = val
 				params.Properties[k] = v
@@ -239,7 +256,7 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 			parameters := map[string]string{}
 
 			for k, v := range params.Properties {
-				parameters[k] = v["value"]
+				parameters[k] = v["value"].(string)
 			}
 			secretData, err := json.Marshal(parameters)
 			if err != nil {
