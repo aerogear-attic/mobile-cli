@@ -41,7 +41,6 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 		Short: "get mobile aware services that can be provisioned to your namespace",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			scList, err := sc.scClient.ServicecatalogV1beta1().ClusterServiceClasses().List(metav1.ListOptions{})
-			fmt.Println("sclist", scList, err)
 			if err != nil {
 				return errors.Wrap(err, "failed to list service classes")
 			}
@@ -76,11 +75,19 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 		var data [][]string
 		for _, item := range scL.Items {
 			extMeta := item.Spec.ExternalMetadata.Raw
-			extServiceClass := map[string]string{}
+			extServiceClass := map[string]interface{}{}
 			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
 				return err
 			}
-			data = append(data, []string{item.Spec.ExternalName, extServiceClass["serviceName"], extServiceClass["integrations"], item.Name})
+			serviceName := ""
+			integrations := ""
+			if v, ok := extServiceClass["serviceName"].(string); ok {
+				serviceName = v
+			}
+			if v, ok := extServiceClass["integrations"].(string); ok {
+				integrations = v
+			}
+			data = append(data, []string{item.Spec.ExternalName, serviceName, integrations, item.Name})
 		}
 		table := tablewriter.NewWriter(writer)
 		table.AppendBulk(data)
