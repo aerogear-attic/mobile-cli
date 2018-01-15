@@ -45,13 +45,16 @@ There are a few things you should keep in mind before creating a PR.
 
 * You Must run ```make build``` before creating the PR and ensure it must execute with no errors.
 
-* When needed provide an explanation of the command and the expected output to help others that may review and test the change.
+* When needed, provide an explanation of the command and the expected output to help others that may review and test the change.
 
 === Making a pull request
 
 Make a https://help.github.com/articles/using-pull-requests[pull request (PR)] in the standard way.
 
 Use [WIP] at the beginning of the title (ie. [WIP] Add feature to the CLI) to mark a PR as a Work in Progress.
+
+If you are not a member of the https://github.com/aerogear[aerogear org], the build job will pause for approval from a trusted approver.
+Anyone who can login to Jenkins can approve.
 
 Your PR will then be reviewed, questions may be asked and changes requested.
 
