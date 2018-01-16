@@ -141,7 +141,7 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 		{
 			Name: "should fail when no service plan found",
 			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "failed to find serviceplan with associated with the serviceclass test"
+				expectedErr := "failed to find serviceplan associated with the serviceclass test"
 				if err == nil {
 					t.Fatal("expected an error but got none")
 				}

@@ -106,11 +106,11 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 				integrations = v
 			}
 
-			data = append(data, []string{item.Spec.ExternalName, serviceName, integrations, strings.Join(createParams, ",\n"), item.Name})
+			data = append(data, []string{serviceName, integrations, strings.Join(createParams, ",\n")})
 		}
 		table := tablewriter.NewWriter(writer)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Name", "Integrations", "Parameters", "Class"})
+		table.SetHeader([]string{"Name", "Integrations", "Parameters"})
 		table.Render()
 		return nil
 	})
@@ -153,7 +153,7 @@ func findServicePlanByNameAndClass(scClient versioned.Interface, planName, servi
 		}
 	}
 
-	return nil, errors.New("failed to find serviceplan with associated with the serviceclass " + serviceClassName)
+	return nil, errors.New("failed to find serviceplan associated with the serviceclass " + serviceClassName)
 }
 
 func requiredParam(instParams InstanceCreateParams, key string) bool {
@@ -188,11 +188,11 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstance <serviceName>",
 		Short: `create a running instance of the given service`,
-		Long: `Create service instance, allows you to provison an availble service to your namespace. 
-To see which services are available, first list them using the "get services" command from this tool. 
+		Long: `Create service instance, allows you to create a running instance of a service in your namespace. 
+To see which services are available, first list them using the "mobile get services" command from this tool. 
 Once you have selected a service, take note of its name then run:
 
-create serviceinstance <selectedService>`,
+create serviceinstance <selectedServiceName>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected the name of a service to provision")
@@ -341,11 +341,6 @@ create serviceinstance <selectedService>`,
 					w.Stop()
 					return errors.New("unexpected error watching ServiceInstance " + err.Error())
 				case watch.Modified:
-
-					lastOp := o.Status.LastOperation
-					if nil != lastOp {
-						fmt.Println("last operation: " + *lastOp)
-					}
 					for _, c := range o.Status.Conditions {
 						fmt.Println("status: " + c.Message)
 						if c.Type == "Ready" && c.Status == "True" {
@@ -358,8 +353,8 @@ create serviceinstance <selectedService>`,
 			return nil
 		},
 	}
-	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately instead of waiting for the service to be provisioned")
-	cmd.PersistentFlags().StringArrayP("params", "p", []string{}, "set the parameters needed by the template: -p PARAM1=val -p PARAM2=val2")
+	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately after a successful response instead of waiting until the service is fully provisioned")
+	cmd.PersistentFlags().StringArrayP("params", "p", []string{}, "set the parameters  needed to set up the service programatically rather than being prompted for them: -p PARAM1=val -p PARAM2=val2")
 	return cmd
 }
 
