@@ -24,7 +24,7 @@ func Test(t *testing.T) {
 		fixture string
 	}{
 		{"no arguments", []string{"get", "services"}, "no-args.golden"},
-		{"json output", []string{"get", "services", "-o=table"}, "json-output.golden"},
+		{"json output", []string{"get", "services", "-o=json"}, "json-output.golden"},
 		{"table output", []string{"get", "services", "-o=table"}, "table-output.golden"},
 	}
 
