@@ -3,11 +3,9 @@ package integration
 import (
 	"flag"
 	"fmt"
-	util "github.com/aerogear/mobile-cli/integration"
 	"os"
 	"os/exec"
 	"path"
-	"reflect"
 	"testing"
 )
 
@@ -15,9 +13,9 @@ var namespace = flag.String("namespace", "myproject", "Openshift namespace (most
 var executable = flag.String("executable", "mobile", "Executable under test")
 var update = flag.Bool("update", false, "update golden files")
 
-const testPath = "getServices/testdata/"
+const testPath = "getServicesTestData/"
 
-func Test(t *testing.T) {
+func TestGetServices(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    []string
@@ -34,7 +32,6 @@ func Test(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			fmt.Print(dir)
 			cmd := exec.Command(path.Join(dir, *executable), test.args...)
 
 			output, err := cmd.CombinedOutput()
@@ -42,14 +39,14 @@ func Test(t *testing.T) {
 				t.Fatal(err)
 			}
 			if *update {
-				util.WriteSnapshot(t, testPath+test.fixture, output)
+				WriteSnapshot(t, testPath+test.fixture, output)
 			}
 
 			actual := string(output)
 
-			expected := util.LoadSnapshot(t, testPath+test.fixture)
+			expected := LoadSnapshot(t, testPath+test.fixture)
 
-			if !reflect.DeepEqual(actual, expected) {
+			if actual != expected {
 				t.Fatalf("actual = \n%s, expected = \n%s", actual, expected)
 			}
 		})
@@ -58,17 +55,10 @@ func Test(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	err := os.Chdir("../..")
+	err := os.Chdir("..")
 	if err != nil {
 		fmt.Printf("could not change dir: %v", err)
 		os.Exit(1)
 	}
-	make := exec.Command("make")
-	err = make.Run()
-	if err != nil {
-		fmt.Printf("could not make binary for %s: %v", *executable, err)
-		os.Exit(1)
-	}
-
 	os.Exit(m.Run())
 }

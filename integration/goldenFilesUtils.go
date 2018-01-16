@@ -18,9 +18,8 @@ func snapshotPath(t *testing.T, snapshot string) string {
 
 func WriteSnapshot(t *testing.T, snapshot string, content []byte) {
 	snapshotPath := snapshotPath(t, snapshot)
-	err := ioutil.WriteFile(snapshotPath, content, 0644)
-	if err != nil {
-		t.Fatal(err)
+	if err := ioutil.WriteFile(snapshotPath, content, 0644); err != nil {
+		t.Fatalf("Unexpected error writing snapshot %v", err)
 	}
 }
 
@@ -28,7 +27,7 @@ func LoadSnapshot(t *testing.T, snapshot string) string {
 	snapshotPath := snapshotPath(t, snapshot)
 	content, err := ioutil.ReadFile(snapshotPath)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Unexpected error loading snapshot %v", err)
 	}
 
 	return string(content)
