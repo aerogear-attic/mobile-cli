@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"reflect"
 	"testing"
 
 	"regexp"
@@ -10,33 +9,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	kFake "k8s.io/client-go/kubernetes/fake"
 )
-
-func TestNewClientConfigCmd(t *testing.T) {
-	getFakeK8Client := func() kubernetes.Interface {
-		return &kFake.Clientset{}
-	}
-	fakeK8Client := getFakeK8Client()
-	tests := []struct {
-		name     string
-		k8Client kubernetes.Interface
-		want     *ClientConfigCmd
-	}{
-		{
-			name:     "new client config command",
-			k8Client: fakeK8Client,
-			want: &ClientConfigCmd{
-				k8Client: fakeK8Client,
-			},
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := NewClientConfigCmd(tc.k8Client); !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("NewClientConfigCmd() = %v, want %v", got, tc.want)
-			}
-		})
-	}
-}
 
 func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	getFakeCbrCmd := func() *cobra.Command {
