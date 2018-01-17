@@ -4,11 +4,13 @@ TEST_DIRS     ?= $(shell sh -c "find $(TOP_SRC_DIRS) -name \\*_test.go \
                    -exec dirname {} \\; | sort | uniq")
 BIN_DIR := $(GOPATH)/bin
 SHELL = /bin/bash
+
 LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
 
 
 setup:
 	@go get github.com/kisielk/errcheck
+	@go get github.com/goreleaser/goreleaser
 
 build: setup check build_binary
 	go build -o mobile ./cmd/mobile
@@ -48,3 +50,7 @@ check: errcheck vet fmt test-unit
 integration:
 	go build -o mobile ./cmd/mobile
 	go test ./integration
+
+.PHONY: release
+release: setup
+	goreleaser --rm-dist
