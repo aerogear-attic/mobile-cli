@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -58,19 +59,15 @@ func mustGetStrFlag(flags *pflag.FlagSet, name string) string {
 	return val
 }
 
-func currentNamespace(flags *pflag.FlagSet) string {
-	var ns = os.Getenv("KUBECTL_PLUGINS_CURRENT_NAMESPACE")
+func currentNamespace(flags *pflag.FlagSet) (string, error) {
 	var err error
+	var ns = os.Getenv("KUBECTL_PLUGINS_CURRENT_NAMESPACE")
 	if ns == "" {
-		ns, err = flags.GetString("namespace")
-		if err != nil {
-			log.Fatal("failed to get flag namespace", err)
+		if ns, err = flags.GetString("namespace"); ns == "" {
+			err = errors.New("no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var")
 		}
 	}
-	if ns == "" {
-		log.Fatal("no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var")
-	}
-	return ns
+	return ns, err
 }
 
 func outputType(flags *pflag.FlagSet) string {

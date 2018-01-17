@@ -36,7 +36,11 @@ mobile --namespace=myproject get clients
 kubectl plugin mobile get clients
 oc plugin mobile get clients`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			apps, err := cc.mobileClient.MobileV1alpha1().MobileClients(currentNamespace(cmd.Flags())).List(metav1.ListOptions{})
+			ns, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+			apps, err := cc.mobileClient.MobileV1alpha1().MobileClients(ns).List(metav1.ListOptions{})
 			if err != nil {
 				return errors.Wrap(err, "failed to list mobile clients")
 			}
@@ -76,7 +80,11 @@ oc plugin mobile get client <clientID>`,
 				return errors.New("missing argument <clientID>")
 			}
 			clientID := args[0]
-			client, err := cc.mobileClient.MobileV1alpha1().MobileClients(currentNamespace(cmd.Flags())).Get(clientID, metav1.GetOptions{})
+			ns, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+			client, err := cc.mobileClient.MobileV1alpha1().MobileClients(ns).Get(clientID, metav1.GetOptions{})
 			if err != nil {
 				return errors.Wrap(err, "failed to get mobile client with clientID "+clientID)
 			}
@@ -121,7 +129,11 @@ When used standalone, a namespace must be specified by providing the --namespace
 			name := args[0]
 			clientType := args[1]
 			appKey := uuid.NewV4().String()
-			namespace := currentNamespace(cmd.Flags())
+
+			namespace, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
 			app := &v1alpha1.MobileClient{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "MobileClient",
@@ -182,11 +194,20 @@ func (cc *ClientCmd) DeleteClientCmd() *cobra.Command {
 kubectl plugin mobile delete client <clientID>
 oc plugin mobile delete client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+			var ns string
+
 			if len(args) != 1 {
 				return errors.New("expected a clientID argument to be passed " + cmd.Use)
 			}
 			clientID := args[0]
-			err := cc.mobileClient.MobileV1alpha1().MobileClients(currentNamespace(cmd.Flags())).Delete(clientID, &metav1.DeleteOptions{})
+
+			ns, err = currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+
+			err = cc.mobileClient.MobileV1alpha1().MobileClients(ns).Delete(clientID, &metav1.DeleteOptions{})
 			if err != nil {
 				return errors.Wrap(err, "failed to get mobile client with clientID "+clientID)
 			}

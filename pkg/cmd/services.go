@@ -171,7 +171,12 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 				return errors.New("expected the name of a service to provision")
 			}
 			serviceName := args[0]
-			ns := currentNamespace(cmd.Flags())
+
+			ns, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+
 			clusterServiceClass, err := findServiceClassByName(sc.scClient, serviceName)
 			if err != nil || clusterServiceClass == nil {
 				msg := "failed to find a service class associated with that name "
@@ -313,7 +318,10 @@ func (sc *ServicesCmd) DeleteServiceInstanceCmd() *cobra.Command {
 			if len(args) != 1 {
 				return errors.New("expected a serviceInstanceID")
 			}
-			ns := currentNamespace(cmd.Flags())
+			ns, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
 			sid := args[0]
 			// Retrieve the service instance in full so we can build the secret name
 			serviceInstance, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Get(sid, metav1.GetOptions{})
@@ -338,7 +346,10 @@ func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 				return errors.New("no service name passed")
 			}
 			serviceName := args[0]
-			ns := currentNamespace(cmd.Flags())
+			ns, err := currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
 			si, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).List(metav1.ListOptions{LabelSelector: "serviceName=" + serviceName})
 			if err != nil {
 				return err
