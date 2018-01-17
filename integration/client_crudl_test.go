@@ -5,12 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strings"
 	"testing"
 )
-
-var namespace = flag.String("namespace", "", "Openshift namespace (most often Project) to run our integration tests in")
-var name = flag.String("name", "", "Client name to be created")
-var executable = flag.String("executable", "", "Executable under test")
 
 type MobileClientSpec struct {
 	Name       string
@@ -22,55 +20,96 @@ type MobileClientJson struct {
 	Spec MobileClientSpec
 }
 
-func TestPositive(t *testing.T) {
+var namespace = flag.String("namespace", "", "Openshift namespace (most often Project) to run our integration tests in")
+var name = flag.String("name", "", "Client name to be created")
+var executable = flag.String("executable", "", "Executable under test")
 
-	actions := []struct {
-		Name     string
-		Args     func(clientType string) []string
-		Validate func(clientType string, output []byte)
-	}{
-		{
-			Name: "Create",
-			Args: func(clientType string) []string {
-				return []string{"create", "client", *name, clientType}
-			},
-			Validate: func(clientType string, output []byte) {
-				var parsed MobileClientJson
-				errJson := json.Unmarshal([]byte(output), &parsed)
-				if errJson != nil {
-					t.Fatal(errJson)
-				}
-				if parsed.Spec.ClientType != clientType {
-					t.Fatal(fmt.Sprintf("Expected the ClientType to be %s, but got %s", clientType, parsed.Spec.ClientType))
-				}
-				if parsed.Spec.Name != *name {
-					t.Fatal(fmt.Sprintf("Expected the Name to be %s, but got %s", *name, parsed.Spec.Name))
-				}
-			},
-		},
-		/*{
-			Name: "Get",
-			Args: func(clientType string) []string {
-				return []string{"get", "client", fmt.Sprintf("%s-%s", *name, clientType)}
-			},
-			Validate: func(clientType string, output []byte) {
-				var parsed MobileClientJson
-				errJson := json.Unmarshal([]byte(output), &parsed)
-				if errJson != nil {
-					t.Fatal(errJson)
-				}
-				if parsed.Spec.ClientType != clientType {
-					t.Fatal(fmt.Sprintf("Expected the ClientType to be %s, but got %s", clientType, parsed.Spec.ClientType))
-				}
-				if parsed.Spec.Name != *name {
-					t.Fatal(fmt.Sprintf("Expected the Name to be %s, but got %s", *name, parsed.Spec.Name))
-				}
-			},
-		},
-		{
-			Name: "Delete",
-		},*/
+type ValidationFunction = func(output []byte, err error) (bool, []string)
+
+func EmptyValidation(output []byte, err error) (bool, []string) {
+	return true, []string{}
+}
+
+func VNoErr(output []byte, err error) (bool, []string) {
+	return err == nil, []string{fmt.Sprintf("%s", err)}
+}
+
+func VIsErr(output []byte, err error) (bool, []string) {
+	return err != nil, []string{fmt.Sprintf("%s", err)}
+}
+
+func VRegex(pattern string) func(output []byte, err error) (bool, []string) {
+	return func(output []byte, err error) (bool, []string) {
+		matched, errMatch := regexp.MatchString(pattern, fmt.Sprintf("%s", output))
+		if errMatch != nil {
+			return false, []string{fmt.Sprintf("Error in regexp %s when trying to match %s", errMatch, pattern)}
+		}
+		if !matched {
+			return false, []string{fmt.Sprintf("Expected combined output matching %s", pattern)}
+		}
+		return true, []string{}
 	}
+}
+func VMobileClientJson(name string, clientType string) func(output []byte, err error) (bool, []string) {
+	return func(output []byte, err error) (bool, []string) {
+		var parsed MobileClientJson
+		errJson := json.Unmarshal([]byte(output), &parsed)
+		if errJson != nil {
+			return false, []string{fmt.Sprintf("%s", err)}
+		}
+		if parsed.Spec.ClientType != clientType {
+			return false, []string{fmt.Sprintf("Expected the ClientType to be %s, but got %s", clientType, parsed.Spec.ClientType)}
+		}
+		if parsed.Spec.Name != name {
+			return false, []string{fmt.Sprintf("Expected the Name to be %s, but got %s", name, parsed.Spec.Name)}
+		}
+		return true, []string{}
+	}
+}
+
+func All(vs ...ValidationFunction) ValidationFunction {
+	return func(output []byte, err error) (bool, []string) {
+		for _, v := range vs {
+			r, o := v(output, err)
+			if !r {
+				return r, o
+			}
+		}
+		return true, []string{}
+	}
+}
+
+type CmdDesc struct {
+	executable string
+	Arg        []string
+	Validator  ValidationFunction
+}
+
+func (c CmdDesc) Add(arg ...string) CmdDesc {
+	return CmdDesc{c.executable, append(c.Arg, arg...), c.Validator}
+}
+
+func (c CmdDesc) Complying(validator ValidationFunction) CmdDesc {
+	return CmdDesc{c.executable, c.Arg, All(c.Validator, validator)}
+}
+
+func (c CmdDesc) Run(t *testing.T) ([]byte, error) {
+	t.Log(c.Arg)
+	cmd := exec.Command(c.executable, c.Arg...)
+	output, err := cmd.CombinedOutput()
+	t.Log(fmt.Sprintf("%s\n", output))
+	v, errs := c.Validator(output, err)
+	if !v {
+		t.Fatal(errs)
+	}
+	return output, err
+}
+
+func ValidatedCmd(executable string, arg ...string) CmdDesc {
+	return CmdDesc{executable, arg, EmptyValidation}
+}
+
+func TestPositive(t *testing.T) {
 
 	clientTypes := []string{
 		"cordova",
@@ -78,18 +117,18 @@ func TestPositive(t *testing.T) {
 		"android",
 	}
 
+	m := ValidatedCmd(*executable, fmt.Sprintf("--namespace=%s", *namespace), "-o=json")
 	for _, clientType := range clientTypes {
-		for _, action := range actions {
-			t.Run(fmt.Sprintf("%s/%s", clientType, action.Name), func(t *testing.T) {
-				args := append(action.Args(clientType), fmt.Sprintf("--namespace=%s", *namespace), "-o=json")
-				cmd := exec.Command(*executable, args...)
-				output, errCommand := cmd.CombinedOutput()
-				t.Log(fmt.Sprintf("%s\n", output))
-				if errCommand != nil {
-					t.Fatal(errCommand)
-				}
-				action.Validate(clientType, output)
-			})
-		}
+		t.Run(clientType, func(t *testing.T) {
+			expectedId := strings.ToLower(fmt.Sprintf("%s-%s", *name, clientType))
+			notExists := All(VIsErr, VRegex(".*Error: failed to get.*"))
+			exists := All(VNoErr, VMobileClientJson(*name, clientType))
+			m.Add("get", "client", expectedId).Complying(notExists).Run(t)
+			m.Add("create", "client", *name, clientType).Complying(exists).Run(t)
+			m.Add("get", "client", expectedId).Complying(exists).Run(t)
+			m.Add("delete", "client", expectedId).Complying(VNoErr).Run(t)
+			m.Add("get", "client", expectedId).Complying(notExists).Run(t)
+
+		})
 	}
 }
