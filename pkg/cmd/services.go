@@ -20,10 +20,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 
+	"sort"
+
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/satori/go.uuid"
 	"k8s.io/apimachinery/pkg/watch"
-	"sort"
 )
 
 type ServicesCmd struct {
