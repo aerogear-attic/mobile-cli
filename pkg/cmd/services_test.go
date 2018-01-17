@@ -6,6 +6,8 @@ import (
 
 	"encoding/json"
 
+	"fmt"
+
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	scFake "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/fake"
@@ -17,6 +19,170 @@ import (
 	kFake "k8s.io/client-go/kubernetes/fake"
 	ktesting "k8s.io/client-go/testing"
 )
+
+func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
+	cases := []struct {
+		Name             string
+		SvcCatalogClient func() versioned.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ValidateOutput   func(t *testing.T, output []byte)
+		ValidateErr      func(t *testing.T, err error)
+		Flags            []string
+		Args             []string
+	}{
+
+		{
+			Name: "test if no service instance id passed that error returned",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "expected a serviceInstanceID" {
+					t.Fatalf("expected error to be %s but got %v", "expected a serviceInstanceID", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{},
+		},
+
+		{
+			Name: "test if error occurs getting service instance that an error is returned",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, fmt.Errorf("error in get")
+				})
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "error in get" {
+					t.Fatalf("expected error to be %s but got %v", "error in get", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{"someid"},
+		},
+		{
+			Name: "test if error occurs deleting service instance that an error is returned",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				fake.AddReactor("delete", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, fmt.Errorf("error in delete")
+				})
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "error in delete" {
+					t.Fatalf("expected error to be %s but got %v", "error in delete", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{"someid"},
+		},
+		{
+			Name: "test successful delete",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{GenerateName: "test"},
+					}, nil
+				})
+				fake.AddReactor("delete", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: false,
+			ValidateErr: func(t *testing.T, err error) {
+				if err != nil {
+					t.Fatalf("expected no error but got %v", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{"someid"},
+		},
+
+		{
+			Name: "test error on missing namespace",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but didn't got one")
+				}
+				if err.Error() != "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var" {
+					t.Fatalf("Expected error 'failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var' but got %v", err)
+				}
+			},
+			Flags: []string{"-o=json"},
+			Args:  []string{"someid"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var out bytes.Buffer
+			root := cmd.NewRootCmd()
+			deleteClient := cmd.NewDeleteComand()
+			serviceCmd := cmd.NewServicesCmd(tc.SvcCatalogClient(), tc.K8Client(), &out)
+			deleteServiceInstCmd := serviceCmd.DeleteServiceInstanceCmd()
+			deleteClient.AddCommand(deleteServiceInstCmd)
+			root.AddCommand(deleteClient)
+			if err := deleteServiceInstCmd.ParseFlags(tc.Flags); err != nil {
+				t.Fatal("failed to parse flags ", err)
+			}
+			err := deleteServiceInstCmd.RunE(deleteServiceInstCmd, tc.Args)
+			if err != nil && !tc.ExpectError {
+				t.Fatal("did not expect an error but gone one ", err)
+			}
+			if err == nil && tc.ExpectError {
+				t.Fatal("expected an error but got none")
+			}
+			if tc.ValidateOutput != nil {
+				tc.ValidateOutput(t, out.Bytes())
+			}
+			if tc.ValidateErr != nil {
+				tc.ValidateErr(t, err)
+			}
+		})
+	}
+}
 
 func TestServicesCmd_ListServicesCmd(t *testing.T) {
 	cases := []struct {
