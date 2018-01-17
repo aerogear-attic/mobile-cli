@@ -75,7 +75,6 @@ func (cc *ClientCmd) GetClientCmd() *cobra.Command {
 kubectl plugin mobile get client <clientID>
 oc plugin mobile get client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println(args, len(args))
 			if len(args) != 1 {
 				return errors.New("missing argument <clientID>")
 			}

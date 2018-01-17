@@ -158,3 +158,22 @@ type ExternalHTTPRequester interface {
 	Do(req *http.Request) (*http.Response, error)
 	Get(url string) (*http.Response, error)
 }
+
+type IncorrectParameterFormat struct {
+	context string
+}
+
+func (ip IncorrectParameterFormat) Error() string {
+	return "param was incorrect format context: " + ip.context
+}
+
+// NewIncorrectParameterFormat returns an error type for incorrectly formatted parameters
+func NewIncorrectParameterFormat(context string) IncorrectParameterFormat {
+	return IncorrectParameterFormat{context: context}
+}
+
+// IsIncorrectParameterFormatErr checks the err to see is it a IncorrectParameterFormat error
+func IsIncorrectParameterFormatErr(err error) bool {
+	_, ok := err.(IncorrectParameterFormat)
+	return ok
+}
