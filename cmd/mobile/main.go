@@ -23,6 +23,8 @@ import (
 
 	"path/filepath"
 
+	"log"
+
 	m "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
@@ -98,6 +100,10 @@ func main() {
 	}
 
 	if err := rootCmd.Execute(); err != nil {
+		// as using pkg/errors lets allow the full stack to be seen if needed
+		if os.Getenv("MCP_DEBUG") == "true" {
+			log.Fatalf("error: %+v", err)
+		}
 		os.Exit(1)
 	}
 }
