@@ -17,7 +17,7 @@ type MobileClientJson struct {
 	Spec MobileClientSpec
 }
 
-func VMobileClientJson(name string, clientType string) func(output []byte, err error) (bool, []string) {
+func ValidMobileClientJson(name string, clientType string) func(output []byte, err error) (bool, []string) {
 	return func(output []byte, err error) (bool, []string) {
 		var parsed MobileClientJson
 		errJson := json.Unmarshal([]byte(output), &parsed)
@@ -44,22 +44,22 @@ func TestClientJson(t *testing.T) {
 
 	name := fmt.Sprintf("%s-mobile-crud-test-entity", *prefix)
 	m := ValidatedCmd(*executable, fmt.Sprintf("--namespace=%s", *namespace), "-o=json")
-	oc := ValidatedCmd("oc", fmt.Sprintf("--namespace=%s", *namespace), "-o=json")
+	o := ValidatedCmd("oc", fmt.Sprintf("--namespace=%s", *namespace), "-o=json")
 	for _, clientType := range clientTypes {
 		t.Run(clientType, func(t *testing.T) {
 			expectedId := strings.ToLower(fmt.Sprintf("%s-%s", name, clientType))
 
-			notExists := All(VIsErr, VRegex(fmt.Sprintf(".*\"%s\" not found.*", expectedId)))
-			exists := All(VNoErr, VMobileClientJson(name, clientType))
+			notExists := All(IsErr, ValidRegex(fmt.Sprintf(".*\"%s\" not found.*", expectedId)))
+			exists := All(NoErr, ValidMobileClientJson(name, clientType))
 
-			m.Add("get", "client", expectedId).Complying(notExists).Run(t)
-			oc.Add("get", "mobileclient", expectedId).Complying(notExists).Run(t)
-			m.Add("create", "client", name, clientType).Complying(exists).Run(t)
-			m.Add("get", "client", expectedId).Complying(exists).Run(t)
-			oc.Add("get", "mobileclient", expectedId).Complying(exists).Run(t)
-			m.Add("delete", "client", expectedId).Complying(VNoErr).Run(t)
-			m.Add("get", "client", expectedId).Complying(notExists).Run(t)
-			oc.Add("get", "mobileclient", expectedId).Complying(notExists).Run(t)
+			m.Args("get", "client", expectedId).Should(notExists).Run(t)
+			o.Args("get", "mobileclient", expectedId).Should(notExists).Run(t)
+			m.Args("create", "client", name, clientType).Should(exists).Run(t)
+			m.Args("get", "client", expectedId).Should(exists).Run(t)
+			o.Args("get", "mobileclient", expectedId).Should(exists).Run(t)
+			m.Args("delete", "client", expectedId).Should(NoErr).Run(t)
+			m.Args("get", "client", expectedId).Should(notExists).Run(t)
+			o.Args("get", "mobileclient", expectedId).Should(notExists).Run(t)
 		})
 	}
 }

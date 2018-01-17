@@ -13,15 +13,15 @@ func EmptyValidation(output []byte, err error) (bool, []string) {
 	return true, []string{}
 }
 
-func VNoErr(output []byte, err error) (bool, []string) {
+func NoErr(output []byte, err error) (bool, []string) {
 	return err == nil, []string{fmt.Sprintf("%s", err)}
 }
 
-func VIsErr(output []byte, err error) (bool, []string) {
+func IsErr(output []byte, err error) (bool, []string) {
 	return err != nil, []string{fmt.Sprintf("%s", err)}
 }
 
-func VRegex(pattern string) func(output []byte, err error) (bool, []string) {
+func ValidRegex(pattern string) func(output []byte, err error) (bool, []string) {
 	return func(output []byte, err error) (bool, []string) {
 		matched, errMatch := regexp.MatchString(pattern, fmt.Sprintf("%s", output))
 		if errMatch != nil {
@@ -52,11 +52,11 @@ type CmdDesc struct {
 	Validator  ValidationFunction
 }
 
-func (c CmdDesc) Add(arg ...string) CmdDesc {
+func (c CmdDesc) Args(arg ...string) CmdDesc {
 	return CmdDesc{c.executable, append(c.Arg, arg...), c.Validator}
 }
 
-func (c CmdDesc) Complying(validator ValidationFunction) CmdDesc {
+func (c CmdDesc) Should(validator ValidationFunction) CmdDesc {
 	return CmdDesc{c.executable, c.Arg, All(c.Validator, validator)}
 }
 
