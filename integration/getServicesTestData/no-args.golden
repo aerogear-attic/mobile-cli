@@ -1,19 +1,19 @@
-+------------------------+---------------------+------------------+--------------------------------+----------------------------------+
-|           ID           |        NAME         |   INTEGRATIONS   |           PARAMETERS           |              CLASS               |
-+------------------------+---------------------+------------------+--------------------------------+----------------------------------+
-| dh-unifiedpush-apb     | ups                 |                  | MYSQL_DATABASE,                | 1522a4d0e2fbf86a26cbe096eb1b6b2d |
-|                        |                     |                  | MYSQL_PASSWORD,                |                                  |
-|                        |                     |                  | MYSQL_ROOT_PASSWORD,           |                                  |
-|                        |                     |                  | MYSQL_USER, MYSQL_VERSION      |                                  |
-| dh-3scale-apb          | 3scale              |                  | THREESCALE_ACCESS_TOKEN,       | 2b825339e8d685a78476621a252beea8 |
-|                        |                     |                  | THREESCALE_DOMAIN,             |                                  |
-|                        |                     |                  | THREESCALE_ENABLE_CORS,        |                                  |
-|                        |                     |                  | THREESCALE_SERVICE_ID          |                                  |
-| dh-metrics-apb         | prometheus          |                  | GRAFANA_STORAGE_SIZE,          | 9623d53183cc78619f888ea8499c678e |
-|                        |                     |                  | PROMETHEUS_STORAGE_SIZE        |                                  |
-| dh-aerogear-digger-apb | aerogear-digger-apb |                  | ANDROID_LICENSE_AGREEMENT      | a0c0c2478554458d5c77abc95f0473a3 |
-| dh-keycloak-apb        | keycloak            |                  | ADMIN_NAME, ADMIN_PASSWORD     | b95513950bb3f132de25d58fb75f8dca |
-| dh-fh-sync-server-apb  | fh-sync-server      | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        | c57e94c36c1e7f6bb41cf7c589d9eb08 |
-|                        |                     |                  | MONGODB_USER_NAME,             |                                  |
-|                        |                     |                  | MONGODB_USER_PASSWORD          |                                  |
-+------------------------+---------------------+------------------+--------------------------------+----------------------------------+
++---------------------+------------------+--------------------------------+
+|        NAME         |   INTEGRATIONS   |           PARAMETERS           |
++---------------------+------------------+--------------------------------+
+| ups                 |                  | MYSQL_DATABASE,                |
+|                     |                  | MYSQL_PASSWORD,                |
+|                     |                  | MYSQL_ROOT_PASSWORD,           |
+|                     |                  | MYSQL_USER, MYSQL_VERSION      |
+| 3scale              |                  | THREESCALE_ACCESS_TOKEN,       |
+|                     |                  | THREESCALE_DOMAIN,             |
+|                     |                  | THREESCALE_ENABLE_CORS,        |
+|                     |                  | THREESCALE_SERVICE_ID          |
+| prometheus          |                  | GRAFANA_STORAGE_SIZE,          |
+|                     |                  | PROMETHEUS_STORAGE_SIZE        |
+| aerogear-digger-apb |                  | ANDROID_LICENSE_AGREEMENT      |
+| keycloak            |                  | ADMIN_NAME, ADMIN_PASSWORD     |
+| fh-sync-server      | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        |
+|                     |                  | MONGODB_USER_NAME,             |
+|                     |                  | MONGODB_USER_PASSWORD          |
++---------------------+------------------+--------------------------------+
