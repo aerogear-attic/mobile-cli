@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"k8s.io/client-go/kubernetes"
@@ -108,10 +109,13 @@ func main() {
 	}
 }
 
+// NewClientsOrDie creates a new set of clients for Kubernetes, Service Catalog and Mobile Services
+// if any of these clients fails to create then the process wil die.
 func NewClientsOrDie(configLoc string) (kubernetes.Interface, m.Interface, sc.Interface) {
 	config, err := clientcmd.BuildConfigFromFlags("", configLoc)
 	if err != nil {
-		panic(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 
 	// create the K8client
