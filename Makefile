@@ -43,3 +43,8 @@ fmt:
 
 .PHONY: check
 check: errcheck vet fmt test-unit
+
+.PHONY: integration
+integration:
+	go build -o mobile ./cmd/mobile
+	go test ./integration

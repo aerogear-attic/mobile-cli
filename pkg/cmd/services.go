@@ -23,6 +23,7 @@ import (
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/satori/go.uuid"
 	"k8s.io/apimachinery/pkg/watch"
+	"sort"
 )
 
 type ServicesCmd struct {
@@ -97,6 +98,7 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 				createParams = append(createParams, k)
 			}
 
+			sort.Strings(createParams)
 			if v, ok := extServiceClass["serviceName"].(string); ok {
 				serviceName = v
 			}
