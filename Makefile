@@ -11,7 +11,6 @@ setup:
 	@go get github.com/kisielk/errcheck
 
 build: setup check build_binary
-	go build -o mobile ./cmd/mobile
 
 build_binary_linux:
 	env GOOS=linux GOARCH=amd64 go build -o mobile ./cmd/mobile
