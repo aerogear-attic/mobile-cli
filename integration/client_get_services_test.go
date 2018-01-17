@@ -1,18 +1,10 @@
 package integration
 
 import (
-	"flag"
-	"fmt"
-	"os"
 	"os/exec"
-	"path"
 	"regexp"
 	"testing"
 )
-
-var namespace = flag.String("namespace", "myproject", "Openshift namespace (most often Project) to run our integration tests in")
-var executable = flag.String("executable", "mobile", "Executable under test")
-var update = flag.Bool("update", false, "update golden files")
 
 const testPath = "getServicesTestData/"
 
@@ -36,17 +28,12 @@ func TestGetServices(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			dir, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
-			}
-			cmd := exec.Command(path.Join(dir, *executable), test.args...)
+			cmd := exec.Command(*executable, test.args...)
 
 			output, err := cmd.CombinedOutput()
 			if err != nil {
 				t.Fatal(err)
 			}
-
 			if *update {
 				WriteSnapshot(t, testPath+test.fixture, output)
 			}
@@ -73,13 +60,4 @@ func cleanStringByRegex(input string, regexes []*regexp.Regexp) string {
 		input = regex.ReplaceAllString(input, "")
 	}
 	return input
-}
-
-func TestMain(m *testing.M) {
-	err := os.Chdir("..")
-	if err != nil {
-		fmt.Printf("could not change dir: %v", err)
-		os.Exit(1)
-	}
-	os.Exit(m.Run())
 }
