@@ -15,7 +15,7 @@ type ValidationResult struct {
 }
 
 func (v ValidationResult) Test(t *testing.T) (output []byte, err error) {
-	t.Log(fmt.Sprintf("%s\n", output))
+	t.Log(fmt.Sprintf("%s\n", v.Output))
 	if !v.Success {
 		t.Fatal(v.Message)
 	}
@@ -84,21 +84,21 @@ func All(vs ...ValidationFunction) ValidationFunction {
 }
 
 type CmdDesc struct {
-	executable string
+	Executable string
 	Arg        []string
 	Validator  ValidationFunction
 }
 
 func (c CmdDesc) Args(arg ...string) CmdDesc {
-	return CmdDesc{c.executable, append(c.Arg, arg...), c.Validator}
+	return CmdDesc{c.Executable, append(c.Arg, arg...), c.Validator}
 }
 
 func (c CmdDesc) Should(validator ValidationFunction) CmdDesc {
-	return CmdDesc{c.executable, c.Arg, All(c.Validator, validator)}
+	return CmdDesc{c.Executable, c.Arg, All(c.Validator, validator)}
 }
 
 func (c CmdDesc) Run() ValidationResult {
-	cmd := exec.Command(c.executable, c.Arg...)
+	cmd := exec.Command(c.Executable, c.Arg...)
 	output, err := cmd.CombinedOutput()
 	return c.Validator(output, err)
 }
