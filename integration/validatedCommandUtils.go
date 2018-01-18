@@ -7,42 +7,79 @@ import (
 	"testing"
 )
 
-type ValidationFunction = func(output []byte, err error) (bool, []string)
-
-func EmptyValidation(output []byte, err error) (bool, []string) {
-	return true, []string{}
+type ValidationResult struct {
+	Error   error
+	Output  []byte
+	Message []string
+	Success bool
 }
 
-func NoErr(output []byte, err error) (bool, []string) {
-	return err == nil, []string{fmt.Sprintf("%s", err)}
+func (v ValidationResult) Test(t *testing.T) (output []byte, err error) {
+	t.Log(fmt.Sprintf("%s\n", output))
+	if !v.Success {
+		t.Fatal(v.Message)
+	}
+	return v.Output, v.Error
 }
 
-func IsErr(output []byte, err error) (bool, []string) {
-	return err != nil, []string{fmt.Sprintf("%s", err)}
+type ValidationFunction = func(output []byte, err error) ValidationResult
+
+func SuccessValidation(output []byte, err error) ValidationResult {
+	return ValidationResult{nil, output, []string{}, true}
 }
 
-func ValidRegex(pattern string) func(output []byte, err error) (bool, []string) {
-	return func(output []byte, err error) (bool, []string) {
+func FailureValidation(output []byte, err error) ValidationResult {
+	return ValidationResult{err, output, []string{fmt.Sprintf("%s", err)}, false}
+}
+
+func NoErr(output []byte, err error) ValidationResult {
+	if err == nil {
+		return SuccessValidation(output, err)
+	}
+	return FailureValidation(output, err)
+}
+
+func IsErr(output []byte, err error) ValidationResult {
+	if err != nil {
+		return SuccessValidation(output, err)
+	}
+	return ValidationResult{nil, output, []string{"Expected error to occur"}, false}
+}
+
+func ValidRegex(pattern string) func(output []byte, err error) ValidationResult {
+	return func(output []byte, err error) ValidationResult {
 		matched, errMatch := regexp.MatchString(pattern, fmt.Sprintf("%s", output))
 		if errMatch != nil {
-			return false, []string{fmt.Sprintf("Error in regexp %s when trying to match %s", errMatch, pattern)}
+			return ValidationResult{
+				Success: false,
+				Message: []string{fmt.Sprintf("Error in regexp %s when trying to match %s", errMatch, pattern)},
+				Error:   err,
+				Output:  output,
+			}
+
 		}
 		if !matched {
-			return false, []string{fmt.Sprintf("Expected combined output matching %s", pattern)}
+			return ValidationResult{
+				Success: false,
+				Message: []string{fmt.Sprintf("Expected combined output matching %s", pattern)},
+				Error:   nil,
+				Output:  output,
+			}
+
 		}
-		return true, []string{}
+		return SuccessValidation(output, err)
 	}
 }
 
 func All(vs ...ValidationFunction) ValidationFunction {
-	return func(output []byte, err error) (bool, []string) {
+	return func(output []byte, err error) ValidationResult {
 		for _, v := range vs {
-			r, o := v(output, err)
-			if !r {
-				return r, o
+			r := v(output, err)
+			if !r.Success {
+				return r
 			}
 		}
-		return true, []string{}
+		return ValidationResult{nil, output, []string{}, true}
 	}
 }
 
@@ -60,18 +97,12 @@ func (c CmdDesc) Should(validator ValidationFunction) CmdDesc {
 	return CmdDesc{c.executable, c.Arg, All(c.Validator, validator)}
 }
 
-func (c CmdDesc) Run(t *testing.T) ([]byte, error) {
-	t.Log(c.Arg)
+func (c CmdDesc) Run() ValidationResult {
 	cmd := exec.Command(c.executable, c.Arg...)
 	output, err := cmd.CombinedOutput()
-	t.Log(fmt.Sprintf("%s\n", output))
-	v, errs := c.Validator(output, err)
-	if !v {
-		t.Fatal(errs)
-	}
-	return output, err
+	return c.Validator(output, err)
 }
 
 func ValidatedCmd(executable string, arg ...string) CmdDesc {
-	return CmdDesc{executable, arg, EmptyValidation}
+	return CmdDesc{executable, arg, SuccessValidation}
 }

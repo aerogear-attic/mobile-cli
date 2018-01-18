@@ -17,20 +17,29 @@ type MobileClientJson struct {
 	Spec MobileClientSpec
 }
 
-func ValidMobileClientJson(name string, clientType string) func(output []byte, err error) (bool, []string) {
-	return func(output []byte, err error) (bool, []string) {
+func ValidMobileClientJson(name string, clientType string) func(output []byte, err error) ValidationResult {
+	return func(output []byte, err error) ValidationResult {
 		var parsed MobileClientJson
-		errJson := json.Unmarshal([]byte(output), &parsed)
-		if errJson != nil {
-			return false, []string{fmt.Sprintf("%s", err)}
+		if err := json.Unmarshal([]byte(output), &parsed); err != nil {
+			return FailureValidation(output, err)
 		}
 		if parsed.Spec.ClientType != clientType {
-			return false, []string{fmt.Sprintf("Expected the ClientType to be %s, but got %s", clientType, parsed.Spec.ClientType)}
+			return ValidationResult{
+				Success: false,
+				Message: []string{fmt.Sprintf("Expected the ClientType to be %s, but got %s", clientType, parsed.Spec.ClientType)},
+				Error:   err,
+				Output:  output,
+			}
 		}
 		if parsed.Spec.Name != name {
-			return false, []string{fmt.Sprintf("Expected the Name to be %s, but got %s", name, parsed.Spec.Name)}
+			return ValidationResult{
+				Success: false,
+				Message: []string{fmt.Sprintf("Expected the Name to be %s, but got %s", name, parsed.Spec.Name)},
+				Error:   err,
+				Output:  output,
+			}
 		}
-		return true, []string{}
+		return SuccessValidation(output, err)
 	}
 }
 
@@ -52,14 +61,14 @@ func TestClientJson(t *testing.T) {
 			notExists := All(IsErr, ValidRegex(fmt.Sprintf(".*\"%s\" not found.*", expectedId)))
 			exists := All(NoErr, ValidMobileClientJson(name, clientType))
 
-			m.Args("get", "client", expectedId).Should(notExists).Run(t)
-			o.Args("get", "mobileclient", expectedId).Should(notExists).Run(t)
-			m.Args("create", "client", name, clientType).Should(exists).Run(t)
-			m.Args("get", "client", expectedId).Should(exists).Run(t)
-			o.Args("get", "mobileclient", expectedId).Should(exists).Run(t)
-			m.Args("delete", "client", expectedId).Should(NoErr).Run(t)
-			m.Args("get", "client", expectedId).Should(notExists).Run(t)
-			o.Args("get", "mobileclient", expectedId).Should(notExists).Run(t)
+			m.Args("get", "client", expectedId).Should(notExists).Run().Test(t)
+			o.Args("get", "mobileclient", expectedId).Should(notExists).Run().Test(t)
+			m.Args("create", "client", name, clientType).Should(exists).Run().Test(t)
+			m.Args("get", "client", expectedId).Should(exists).Run(t).Run().Test(t)
+			o.Args("get", "mobileclient", expectedId).Should(exists).Run().Test(t)
+			m.Args("delete", "client", expectedId).Should(NoErr).Run().Test(t)
+			m.Args("get", "client", expectedId).Should(notExists).Run().Test(t)
+			o.Args("get", "mobileclient", expectedId).Should(notExists).Run().Test(t)
 		})
 	}
 }
