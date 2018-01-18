@@ -1,8 +1,8 @@
-## The Mobile Cli is a standalone cli that can also be used a kubectl / oc plugin
+## The Mobile CLI is a standalone CLI that can also be used a kubectl / oc plugin
 
 ## Note this is still under construction and not yet fit for use
 
-The mobile cli focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite
+The mobile CLI focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite
 of services ontop of Kubernetes / OpenShift. 
 
 It uses a language familiar to mobile developers and abstracts away some of the complexity of dealing with Kubernetes / OpenShift which can be 
@@ -10,8 +10,8 @@ initially daunting and overwhelming.
 
 ### Examples
 Note not all of these commands currently exist but are present below to show the general concept
-```
 
+```
 mobile get services
 
 mobile provision fh-sync
@@ -23,8 +23,8 @@ mobile create integration fh-sync keycloak
 mobile create clientbuild <MobileClientID> <Git_Source_Url> [buildName]
 
 mobile get buildartifact <clientBuildID> 
-
 ``` 
+
 ### Checkout 
 
 ```
@@ -39,7 +39,8 @@ git clone https://github.com/aerogear/mobile-cli
 glide install
 make build
 ```
-To test run
+
+To test, run:
 
 ```
 ./mobile
@@ -47,7 +48,7 @@ To test run
 
 ### Build for APB usage
 
-To use the mobile-cli inside an APB container it needs to be compiled for the linux/amd64 platform:
+To use the mobile CLI inside an APB container it needs to be compiled for the linux/amd64 platform:
 
 ```
 make build_linux
@@ -57,7 +58,7 @@ make build_linux
 
 ### Pre req
 
-- have a local kubernetes or oc cluster via something like minikube or oc cluster up
+- Have a local kubernetes or oc cluster via something like minikube or oc cluster up
 - Install glide (https://github.com/Masterminds/glide), e.g. `brew install glide`
 
 ### Setup the Custom Resource Definition
@@ -65,12 +66,11 @@ make build_linux
 ```
 oc login -u system:admin
 oc create -f artifacts/mobileclient_crd.yaml
-
 ```
 
-In OpenShift, add the following to the edit and admin roles
+In OpenShift, add the following to the edit and admin roles:
 
-``` 
+```yml
 - apiGroups:
   - mobile.k8s.io
   attributeRestrictions: null
@@ -85,8 +85,10 @@ In OpenShift, add the following to the edit and admin roles
   - update
   - watch
 ```
-You can do this via the edit command in oc
-```
+
+You can do this via the edit command in oc:
+
+```bash 
 oc edit clusterrole admin # add the above and save
 oc edit clusterrole edit # add the above and save
 ```
@@ -94,10 +96,10 @@ oc edit clusterrole edit # add the above and save
 ### Setup the plugin
 
 - have the [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) command line tool or the [oc command line tool](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#installing-the-cli) already installed
-- It should be version k8s version 1.8 or OpenShift 3.7 or later
+- it should be version k8s version 1.8 or OpenShift 3.7 or later
 - create a new dir ```mkdir -p ~/.kube/plugins/mobile```  
 - copy the plugin.yaml to the dir ```cp ./artifacts/cli_plugin.yaml ~/.kube/plugins/mobile```
-- install the mobile cli binary onto your $PATH
+- install the mobile CLI binary onto your $PATH
 
 ### Basic usage
 
@@ -105,18 +107,17 @@ To access the plugin you can use the following command:
 ```kubectl plugin mobile <command>```
 
 You can also use it standalone as it will pick up on your kube configuration:
-
 ```mobile --namespace=mine <command>``` notice we pass the namespace here.
 
 **Passing flags**
 
-To pass flags when using the plugin ensure to use the ```--``` option 
-
+To pass flags when using the plugin ensure to use the ```--``` option:
 ```kubectl plugin mobile -- create client --<someflag> ```
 
 
 ## Design
-The design of the cli API attempts to give a familiar feel to users familiar wil the kubectl and oc CLIs. 
+
+The design of the CLI API attempts to give a familiar feel to users familiar wil the kubectl and oc CLIs. 
 It is also intended to use parlance familiar to mobile developers in order to help them become more productive
 and avoid needing to know the innards of various kubernetes resources.
 
@@ -134,7 +135,7 @@ required in order to consume your mobile aware services from your mobile client.
 -  **ServiceConfig:** the Service Config stores information about a mobile aware service and is backed by a secret. This information is then used to populate your mobile client's config.
 This information could be anything but often is made up of values such as the URI of the service and perhaps some headers and configuration particular to that service.
 
-- **ClientBuild** the ClientBuild is backed by a regular BuildConfig however the cli will help you create this BuildConfig with as little effort as possible. Allowing you to focus on
+- **ClientBuild** the ClientBuild is backed by a regular BuildConfig however the CLI will help you create this BuildConfig with as little effort as possible. Allowing you to focus on
 just the mobile parts rather than needing to understand how to setup and manage a buildconfig and builds. For example, it will help you manage build credentials, and keys and ensure the build integrates
 seamlessly with the areogear mobile build farm .
 
@@ -209,3 +210,7 @@ stop
 
     - clientbuild <buildName>
                     
+
+## Contributing 
+
+Check the [`CONTRIBUTING.md`](https://github.com/aerogear/mobile-cli/blob/master/.github/CONTRIBUTING.md) file. 
