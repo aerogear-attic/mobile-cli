@@ -39,7 +39,7 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			SvcCatalogClient: func() versioned.Interface {
 				fake := &scFake.Clientset{}
 				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					return true, nil, fmt.Errorf("something went wrong")
+					return true, nil, fmt.Errorf("error in get")
 				})
 				return fake
 			},
@@ -51,16 +51,40 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 				if err == nil {
 					t.Fatalf("expected an error but did not get one")
 				}
-				if err.Error() != "something went wrong" {
-					t.Fatalf("expected error to be %s but got %v", "something went wrong", err)
+				if err.Error() != "error in get" {
+					t.Fatalf("expected error to be %s but got %v", "error in get", err)
 				}
 			},
 			Flags: []string{"--namespace=test", "-o=json"},
 			Args:  []string{"someid"},
 		},
-		//{
-		//	Name: "test if error occurs deleting service instance that an error is returned",
-		//},
+		{
+			Name: "test if error occurs deleting service instance that an error is returned",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				fake.AddReactor("delete", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, fmt.Errorf("error in delete")
+				})
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "error in delete" {
+					t.Fatalf("expected error to be %s but got %v", "error in delete", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{"someid"},
+		},
 		//{
 		//	Name: "test successful delete",
 		//},
