@@ -31,9 +31,29 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 		Flags            []string
 		Args             []string
 	}{
-		//{
-		//	Name: "test if no service instance id passed that error returned",
-		//},
+
+		{
+			Name: "test if no service instance id passed that error returned",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "expected a serviceInstanceID" {
+					t.Fatalf("expected error to be %s but got %v", "expected a serviceInstanceID", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{},
+		},
+
 		{
 			Name: "test if error occurs getting service instance that an error is returned",
 			SvcCatalogClient: func() versioned.Interface {
