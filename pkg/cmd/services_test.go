@@ -105,9 +105,32 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			Flags: []string{"--namespace=test", "-o=json"},
 			Args:  []string{"someid"},
 		},
-		//{
-		//	Name: "test successful delete",
-		//},
+		{
+			Name: "test successful delete",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{GenerateName: "test"},
+					}, nil
+				})
+				fake.AddReactor("delete", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: false,
+			ValidateErr: func(t *testing.T, err error) {
+				if err != nil {
+					t.Fatalf("expected no error but got %v", err)
+				}
+			},
+			Flags: []string{"--namespace=test", "-o=json"},
+			Args:  []string{"someid"},
+		},
 	}
 
 	for _, tc := range cases {
