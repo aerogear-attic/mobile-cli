@@ -20,10 +20,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 
+	"sort"
+
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/satori/go.uuid"
 	"k8s.io/apimachinery/pkg/watch"
-	"sort"
 )
 
 type ServicesCmd struct {
@@ -188,7 +189,7 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstance <serviceName>",
 		Short: `create a running instance of the given service`,
-		Long: `Create service instance, allows you to create a running instance of a service in your namespace. 
+		Long: `Create service instance allows you to create a running instance of a service in your namespace. 
 To see which services are available, first list them using the "mobile get services" command from this tool. 
 Once you have selected a service, take note of its name then run:
 
@@ -362,6 +363,12 @@ func (sc *ServicesCmd) DeleteServiceInstanceCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceinstance <serviceInstanceID>",
 		Short: "deletes a service instance and other objects created when provisioning the services instance such as pod presets",
+		Long: `Delete service instance allows you to delete a service instance and other objects created when provisioning the services instance such as pod presets. 
+To see which service instances are available for deleting, first list them using the "mobile get serviceinstances" command from this tool. 
+Once you have identified a service instance to delete, take note of its name and then run:
+
+delete serviceinstance <selectedServiceInstanceName>`,
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//delete service instance
 			//delete params secret
@@ -391,6 +398,10 @@ func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstances <serviceName>",
 		Short: "get a list of provisioned serviceInstances based on the service name.",
+		Long: `get services allows you to get a list of services that can be provisioned in your namespace. 
+To list all available services, run:
+
+mobile get services`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("no service name passed")
