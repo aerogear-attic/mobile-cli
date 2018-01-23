@@ -450,3 +450,123 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
+	cases := []struct {
+		Name             string
+		SvcCatalogClient func() versioned.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ValidateErr      func(t *testing.T, err error)
+		ValidateOut      func(t *testing.T, output []byte)
+		Args             []string
+		Flags            []string
+	}{
+		{
+			Name: "test list service instances as expected",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("list", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstanceList{
+						Items: []v1beta1.ServiceInstance{
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									GenerateName: "keycloak",
+									Name:         "keycloak",
+									Labels: map[string]string{
+										"serviceName": "keycloak",
+									},
+								},
+							},
+						},
+					}, nil
+				})
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ValidateOut: func(t *testing.T, data []byte) {
+				var list = &v1beta1.ServiceInstanceList{}
+
+				if err := json.Unmarshal(data, list); err != nil {
+					t.Fatal("failed to unmarshal data", err)
+				}
+				if nil == list {
+					t.Fatal("expected a list but got nil")
+				}
+				if len(list.Items) != 1 {
+					t.Fatalf("expected only one item in the list but got %v", len(list.Items))
+				}
+			},
+			Flags: []string{"--namespace=myproject", "-o=json"},
+			Args:  []string{"keycloak"},
+		},
+		{
+			Name: "error is returned when no service name is passed",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "no service name passed" {
+					t.Fatalf("expected error to be '%s' but got '%v'", "no service name passed", err)
+				}
+			},
+		},
+		{
+			Name: "error is returned when no namespace is set",
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				if err == nil {
+					t.Fatalf("expected an error but did not get one")
+				}
+				if err.Error() != "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var" {
+					t.Fatalf("expected error to be '%s' but got '%v'", "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var", err)
+				}
+			},
+			Flags: []string{"-o=json"},
+			Args:  []string{"keycloak"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var out bytes.Buffer
+			root := cmd.NewRootCmd()
+			serviceCmd := cmd.NewServicesCmd(tc.SvcCatalogClient(), tc.K8Client(), &out)
+			listInstCmd := serviceCmd.ListServiceInstCmd()
+			root.AddCommand(listInstCmd)
+			if err := listInstCmd.ParseFlags(tc.Flags); err != nil {
+				t.Fatal("failed to parse command flags", err)
+			}
+			err := listInstCmd.RunE(listInstCmd, tc.Args)
+			if err != nil && !tc.ExpectError {
+				t.Fatal("did not expect an error but gone one ", err)
+			}
+			if err == nil && tc.ExpectError {
+				t.Fatal("expected an error but got none")
+			}
+			if tc.ValidateOut != nil {
+				tc.ValidateOut(t, out.Bytes())
+			}
+			if tc.ValidateErr != nil {
+				tc.ValidateErr(t, err)
+			}
+		})
+	}
+}
