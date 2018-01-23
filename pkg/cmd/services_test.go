@@ -1,3 +1,17 @@
+// Copyright Red Hat, Inc., and individual contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd_test
 
 import (
@@ -30,7 +44,6 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 		Flags            []string
 		Args             []string
 	}{
-
 		{
 			Name: "test if no service instance id passed that error returned",
 			SvcCatalogClient: func() versioned.Interface {
@@ -42,17 +55,17 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "expected a serviceInstanceID"
 				if err == nil {
 					t.Fatalf("expected an error but did not get one")
 				}
-				if err.Error() != "expected a serviceInstanceID" {
-					t.Fatalf("expected error to be %s but got %v", "expected a serviceInstanceID", err)
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
 				}
 			},
 			Flags: []string{"--namespace=test", "-o=json"},
 			Args:  []string{},
 		},
-
 		{
 			Name: "test if error occurs getting service instance that an error is returned",
 			SvcCatalogClient: func() versioned.Interface {
@@ -67,11 +80,12 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "error in get"
 				if err == nil {
 					t.Fatalf("expected an error but did not get one")
 				}
-				if err.Error() != "error in get" {
-					t.Fatalf("expected error to be %s but got %v", "error in get", err)
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
 				}
 			},
 			Flags: []string{"--namespace=test", "-o=json"},
@@ -94,11 +108,12 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "error in delete"
 				if err == nil {
 					t.Fatalf("expected an error but did not get one")
 				}
-				if err.Error() != "error in delete" {
-					t.Fatalf("expected error to be %s but got %v", "error in delete", err)
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
 				}
 			},
 			Flags: []string{"--namespace=test", "-o=json"},
@@ -141,11 +156,12 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var"
 				if err == nil {
 					t.Fatalf("expected an error but didn't got one")
 				}
-				if err.Error() != "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var" {
-					t.Fatalf("Expected error 'failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var' but got %v", err)
+				if err.Error() != expectedErr {
+					t.Fatalf("Expected error to be '%s' but got '%v'", expectedErr, err)
 				}
 			},
 			Flags: []string{"-o=json"},
@@ -220,10 +236,6 @@ func TestServicesCmd_ListServicesCmd(t *testing.T) {
 				if err := json.Unmarshal(data, list); err != nil {
 					t.Fatal("failed to unmarshal data", err)
 				}
-
-				if nil == list {
-					t.Fatal("expected a list but got nil")
-				}
 				if len(list.Items) != 1 {
 					t.Fatalf("expected only one item in the list but got %v", len(list.Items))
 				}
@@ -262,7 +274,6 @@ func TestServicesCmd_ListServicesCmd(t *testing.T) {
 			if tc.Validate != nil {
 				tc.Validate(t, out.Bytes())
 			}
-
 		})
 	}
 }
@@ -273,7 +284,6 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 		SvcCatalogClient func() versioned.Interface
 		K8Client         func() kubernetes.Interface
 		ValidateErr      func(t *testing.T, err error)
-		ValidateOut      func(t *testing.T, output []byte)
 		Args             []string
 		Flags            []string
 	}{
@@ -442,11 +452,6 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 			if tc.ValidateErr != nil {
 				tc.ValidateErr(t, err)
 			}
-
-			if tc.ValidateOut != nil {
-				tc.ValidateOut(t, out.Bytes())
-			}
-
 		})
 	}
 }
@@ -488,12 +493,8 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 			},
 			ValidateOut: func(t *testing.T, data []byte) {
 				var list = &v1beta1.ServiceInstanceList{}
-
 				if err := json.Unmarshal(data, list); err != nil {
 					t.Fatal("failed to unmarshal data", err)
-				}
-				if nil == list {
-					t.Fatal("expected a list but got nil")
 				}
 				if len(list.Items) != 1 {
 					t.Fatalf("expected only one item in the list but got %v", len(list.Items))
@@ -513,11 +514,12 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "no service name passed"
 				if err == nil {
 					t.Fatalf("expected an error but did not get one")
 				}
-				if err.Error() != "no service name passed" {
-					t.Fatalf("expected error to be '%s' but got '%v'", "no service name passed", err)
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
 				}
 			},
 		},
@@ -532,11 +534,12 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var"
 				if err == nil {
 					t.Fatalf("expected an error but did not get one")
 				}
-				if err.Error() != "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var" {
-					t.Fatalf("expected error to be '%s' but got '%v'", "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var", err)
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
 				}
 			},
 			Flags: []string{"-o=json"},

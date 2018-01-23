@@ -1,3 +1,17 @@
+// Copyright Red Hat, Inc., and individual contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd
 
 import (
@@ -41,6 +55,10 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "services",
 		Short: "get mobile aware services that can be provisioned to your namespace",
+		Long:  `get services allows you to get a list of services that can be provisioned in your namespace.`,
+		Example: `  mobile get services --namespace=myproject 
+  kubectl plugin mobile get services
+  oc plugin mobile get services`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			scList, err := sc.scClient.ServicecatalogV1beta1().ClusterServiceClasses().List(metav1.ListOptions{})
 			if err != nil {
@@ -139,11 +157,9 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 		}
 	}
 	return nil, errors.New("failed to find serviceclass with name: " + name)
-
 }
 
 func findServicePlanByNameAndClass(scClient versioned.Interface, planName, serviceClassName string) (*v1beta1.ClusterServicePlan, error) {
-
 	plans, err := scClient.ServicecatalogV1beta1().ClusterServicePlans().List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -189,11 +205,11 @@ func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstance <serviceName>",
 		Short: `create a running instance of the given service`,
-		Long: `Create service instance allows you to create a running instance of a service in your namespace. 
-To see which services are available, first list them using the "mobile get services" command from this tool. 
-Once you have selected a service, take note of its name then run:
-
-create serviceinstance <selectedServiceName>`,
+		Long: `create service instance allows you to create a running instance of a service in your namespace. 
+Run the "mobile get services" command from this tool to see which services are available for provisioning.`,
+		Example: `  mobile create serviceinstance <serviceName> --namespace=myproject 
+  kubectl plugin mobile create serviceinstance <serviceName>
+  oc plugin mobile create serviceinstance <serviceName>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("expected the name of a service to provision")
@@ -243,7 +259,6 @@ create serviceinstance <selectedServiceName>`,
 					instParams.Properties[k] = v
 				}
 			} else {
-
 				scanner := bufio.NewScanner(os.Stdin)
 				for k, v := range instParams.Properties {
 					questionFormat := "Set value for %s [default value: %s required: %v]"
@@ -362,13 +377,12 @@ create serviceinstance <selectedServiceName>`,
 func (sc *ServicesCmd) DeleteServiceInstanceCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serviceinstance <serviceInstanceID>",
-		Short: "deletes a service instance and other objects created when provisioning the services instance such as pod presets",
-		Long: `Delete service instance allows you to delete a service instance and other objects created when provisioning the services instance such as pod presets. 
-To see which service instances are available for deleting, first list them using the "mobile get serviceinstances" command from this tool. 
-Once you have identified a service instance to delete, take note of its name and then run:
-
-delete serviceinstance <selectedServiceInstanceName>`,
-
+		Short: "deletes a service instance and other objects created when provisioning the services instance, such as pod presets",
+		Long: `delete serviceinstance allows you to delete a service instance and other objects created when provisioning the services instance, such as pod presets. 
+Run the "mobile get serviceinstances" command from this tool to see which service instances are available for deleting.`,
+		Example: `  mobile delete serviceinstance <serviceInstanceID> --namespace=myproject 
+  kubectl plugin mobile delete serviceinstance <serviceInstanceID>
+  oc plugin mobile delete serviceinstance <serviceInstanceID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//delete service instance
 			//delete params secret
@@ -397,11 +411,11 @@ delete serviceinstance <selectedServiceInstanceName>`,
 func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstances <serviceName>",
-		Short: "get a list of provisioned serviceInstances based on the service name.",
-		Long: `get services allows you to get a list of services that can be provisioned in your namespace. 
-To list all available services, run:
-
-mobile get services`,
+		Short: "get a list of provisioned service instances based on the service name.",
+		Long:  `get serviceinstances allows you to get a list of provisioned service instances in your namespace, based on the service name.`,
+		Example: `  mobile get serviceinstances <serviceName> --namespace=myproject 
+  kubectl plugin mobile get serviceinstances <serviceName>
+  oc plugin mobile get serviceinstances <serviceName>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("no service name passed")
@@ -427,7 +441,6 @@ mobile get services`,
 		scL := serviceInstances.(*v1beta1.ServiceInstanceList)
 		var data [][]string
 		for _, item := range scL.Items {
-
 			data = append(data, []string{item.Spec.ClusterServiceClassExternalName, item.Name})
 		}
 		table := tablewriter.NewWriter(writer)

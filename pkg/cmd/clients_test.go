@@ -1,3 +1,17 @@
+// Copyright Red Hat, Inc., and individual contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd_test
 
 import (
@@ -19,7 +33,7 @@ import (
 	kt "k8s.io/client-go/testing"
 )
 
-func TestListClients(t *testing.T) {
+func TestMobileClientsCmd_TestListClients(t *testing.T) {
 	cases := []struct {
 		Name         string
 		MobileClient func() mc.Interface
@@ -97,7 +111,7 @@ func TestListClients(t *testing.T) {
 	}
 }
 
-func TestGetClient(t *testing.T) {
+func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 	cases := []struct {
 		Name         string
 		ClientName   string
@@ -195,7 +209,7 @@ func TestGetClient(t *testing.T) {
 	}
 }
 
-func TestDeleteClient(t *testing.T) {
+func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 	cases := []struct {
 		Name         string
 		ClientName   string
@@ -203,7 +217,6 @@ func TestDeleteClient(t *testing.T) {
 		ExpectError  bool
 		ErrorPattern string
 		Flags        []string
-		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
 		{
 			Name: "test delete client succeeds with no errors",
@@ -220,7 +233,6 @@ func TestDeleteClient(t *testing.T) {
 				mc := &mcFake.Clientset{}
 				return mc
 			},
-
 			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: true,
 		},
@@ -233,7 +245,6 @@ func TestDeleteClient(t *testing.T) {
 				})
 				return mc
 			},
-
 			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: true,
 		},
@@ -254,7 +265,6 @@ func TestDeleteClient(t *testing.T) {
 				args = append(args, tc.ClientName)
 			}
 			err := deleteClient.RunE(deleteClient, args)
-
 			if tc.ExpectError && err == nil {
 				t.Fatal("expected an error but got none")
 			}
@@ -266,12 +276,11 @@ func TestDeleteClient(t *testing.T) {
 					t.Fatal("expected the error to match the pattern "+tc.ErrorPattern, err)
 				}
 			}
-
 		})
 	}
 }
 
-func TestCreateClient(t *testing.T) {
+func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 	cases := []struct {
 		Name         string
 		Args         []string
@@ -456,7 +465,6 @@ func TestCreateClient(t *testing.T) {
 				}
 				tc.Validate(t, mobileClient)
 			}
-
 		})
 	}
 }
