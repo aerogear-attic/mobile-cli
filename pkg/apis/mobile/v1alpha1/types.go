@@ -11,9 +11,10 @@ type MobileClientList struct {
 }
 
 type MobileClientSpec struct {
-	Name       string `json:"name"`
-	ApiKey     string `json:"apiKey"`
-	ClientType string `json:"clientType"`
+	Name          string `json:"name"`
+	ApiKey        string `json:"apiKey"`
+	ClientType    string `json:"clientType"`
+	AppIdentifier string `json:"appIdentifier"`
 }
 
 // +genclient

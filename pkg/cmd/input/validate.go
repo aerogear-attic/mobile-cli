@@ -25,6 +25,9 @@ func ValidateMobileClient(client *v1alpha1.MobileClient) error {
 	if !ValidClients.Contains(client.Spec.ClientType) {
 		return errors.New("invalid clientType " + client.Spec.ClientType + " valid clientTypes are " + strings.Join(ValidClients, ","))
 	}
+	if client.Spec.AppIdentifier == "" {
+		return errors.New("expected an appIdentifier to be passed. It should not be empty. This should be the same as your bundleID or package name")
+	}
 	return nil
 }
 

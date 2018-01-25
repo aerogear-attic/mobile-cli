@@ -11,9 +11,10 @@ type MobileClientList struct {
 }
 
 type MobileClientSpec struct {
-	Name       string
-	ApiKey     string
-	ClientType string
+	Name          string
+	ApiKey        string
+	ClientType    string
+	AppIdentifier string
 }
 
 // +genclient

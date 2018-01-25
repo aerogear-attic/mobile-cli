@@ -292,7 +292,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 	}{
 		{
 			Name: "test create cordova mobile client succeeds without error",
-			Args: []string{"test", "cordova"},
+			Args: []string{"test", "cordova", "my.app.org"},
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
@@ -308,6 +308,9 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				}
 				if c.Spec.ClientType != "cordova" {
 					t.Fatal("expected the clientType to be cordova but got ", c.Spec.ClientType)
+				}
+				if c.Spec.AppIdentifier != "my.app.org" {
+					t.Fatal("expected an appIdentifier to be set as my.app.org but was  ", c.Spec.AppIdentifier)
 				}
 				if c.Spec.Name != "test" {
 					t.Fatal("expected the client name to be test but got ", c.Spec.Name)
@@ -326,7 +329,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		},
 		{
 			Name: "test create android mobile client succeeds without error",
-			Args: []string{"test", "android"},
+			Args: []string{"test", "android", "my.app.org"},
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
@@ -346,6 +349,9 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.Name != "test" {
 					t.Fatal("expected the client name to be test but got ", c.Spec.Name)
 				}
+				if c.Spec.AppIdentifier != "my.app.org" {
+					t.Fatal("expected an appIdentifier to be set as my.app.org but was  ", c.Spec.AppIdentifier)
+				}
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
@@ -360,7 +366,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		},
 		{
 			Name: "test create iOS mobile client succeeds without error",
-			Args: []string{"test", "iOS"},
+			Args: []string{"test", "iOS", "my.app.org"},
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
@@ -373,6 +379,9 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
 				if nil == c {
 					t.Fatal("expected a mobile client but got nil")
+				}
+				if c.Spec.AppIdentifier != "my.app.org" {
+					t.Fatal("expected an appIdentifier to be set as my.app.org but was  ", c.Spec.AppIdentifier)
 				}
 				if c.Spec.ClientType != "iOS" {
 					t.Fatal("expected the clientType to be iOS but got ", c.Spec.ClientType)
@@ -394,7 +403,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		},
 		{
 			Name:         "test create mobile client fails with unknown client type",
-			Args:         []string{"test", "firefox"},
+			Args:         []string{"test", "firefox", "my.app.org"},
 			ExpectError:  true,
 			ErrorPattern: "^Failed validation while creating new mobile client: .*",
 			MobileClient: func() mc.Interface {
@@ -410,7 +419,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name:         "test create mobile client fails when missing required arguments",
 			Args:         []string{"test"},
 			ExpectError:  true,
-			ErrorPattern: "^expected a name and a clientType",
+			ErrorPattern: "^expected a name a clientType and a appIdentifier",
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
@@ -422,13 +431,27 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		},
 		{
 			Name:         "test create mobile client fails with clear error message",
-			Args:         []string{"test", "cordova"},
+			Args:         []string{"test", "cordova", "my.app.org"},
 			ExpectError:  true,
 			ErrorPattern: "^failed to create mobile client: something went wrong",
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("something went wrong")
+				})
+				return mc
+			},
+			Flags: []string{"--namespace=myproject", "-o=json"},
+		},
+		{
+			Name:         "test create mobile client fails when there is no appIdentifier",
+			Args:         []string{"test", "android", ""},
+			ExpectError:  true,
+			ErrorPattern: "^Failed validation while creating new mobile client: .*",
+			MobileClient: func() mc.Interface {
+				mc := &mcFake.Clientset{}
+				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("should not have been called")
 				})
 				return mc
 			},
