@@ -1,3 +1,17 @@
+// Copyright Red Hat, Inc., and individual contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd
 
 import (
@@ -31,10 +45,10 @@ func (cc *ClientCmd) ListClientsCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "clients",
 		Short: "gets a list of mobile clients represented in the namespace",
-		Long: `Example: mobile get clients
-mobile --namespace=myproject get clients
-kubectl plugin mobile get clients
-oc plugin mobile get clients`,
+		Long:  `get clients allows you to get a list of mobile clients that are represented in your namespace.`,
+		Example: `  mobile get clients --namespace=myproject 
+  kubectl plugin mobile get clients
+  oc plugin mobile get clients`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ns, err := currentNamespace(cmd.Flags())
 			if err != nil {
@@ -71,9 +85,11 @@ func (cc *ClientCmd) GetClientCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "client <clientID>",
 		Short: "gets a single mobile client in the namespace",
-		Long: `Example: mobile --namespace=myproject get client <clientID>
-kubectl plugin mobile get client <clientID>
-oc plugin mobile get client <clientID>`,
+		Long: `get client allows you to view client information for a specific mobile client in your namespace.
+Run the "mobile get clients" command from this tool to get the client ID.`,
+		Example: `  mobile get client <clientID> --namespace=myproject 
+  kubectl plugin mobile get client <clientID>
+  oc plugin mobile get client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("missing argument <clientID>")
@@ -112,7 +128,7 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "client <name> <clientType iOS|cordova|android> <appIdentifier bundleID|packageName >",
 		Short: "create a mobile client representation in your namespace",
-		Long: `Sets up the representation of a mobile application of the specified type in your namespace.
+		Long: `create client sets up the representation of a mobile application of the specified type in your namespace.
 This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
 
 The available client types are android, cordova and iOS. 
@@ -121,6 +137,7 @@ When used standalone, a namespace must be specified by providing the --namespace
 		Example: `  mobile create client <name> <clientType> <appIdentifier> --namespace=myproject 
   kubectl plugin mobile create client <name> <clientType> <appIdentifier>
   oc plugin mobile create client <name> <clientType> <appIdentifier>`,
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 3 {
 				return errors.New("expected a name a clientType and a appIdentifier")
@@ -190,9 +207,11 @@ func (cc *ClientCmd) DeleteClientCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "client <clientID>",
 		Short: "deletes a single mobile client in the namespace",
-		Long: `Example: mobile --namespace=myproject delete client <clientID>
-kubectl plugin mobile delete client <clientID>
-oc plugin mobile delete client <clientID>`,
+		Long: `delete client allows you to delete a single mobile client in your namespace.
+Run the "mobile get clients" command from this tool to get the client ID.`,
+		Example: `  mobile delete client <clientID> --namespace=myproject 
+  kubectl plugin mobile delete client <clientID>
+  oc plugin mobile delete client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var ns string
