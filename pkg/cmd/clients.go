@@ -55,11 +55,11 @@ oc plugin mobile get clients`,
 		mClients := mobileClientList.(*v1alpha1.MobileClientList)
 		var data [][]string
 		for _, mClient := range mClients.Items {
-			data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType})
+			data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier})
 		}
 		table := tablewriter.NewWriter(out)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Name", "ClientType"})
+		table.SetHeader([]string{"ID", "Name", "ClientType", "AppIdentifier"})
 		table.Render()
 		return nil
 	})
@@ -97,10 +97,10 @@ oc plugin mobile get client <clientID>`,
 	cc.Out.AddRenderer(command.Name(), "table", func(out io.Writer, mobileClient interface{}) error {
 		mClient := mobileClient.(*v1alpha1.MobileClient)
 		var data [][]string
-		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey})
+		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey, mClient.Spec.AppIdentifier})
 		table := tablewriter.NewWriter(out)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Namespace", "Name", "ClientType", "ApiKey"})
+		table.SetHeader([]string{"ID", "Namespace", "Name", "ClientType", "ApiKey", "AppIdentifier"})
 		table.Render()
 		return nil
 	})
@@ -110,7 +110,7 @@ oc plugin mobile get client <clientID>`,
 // CreateClientCmd builds the create mobileclient command
 func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "client <name> <clientType iOS|cordova|android>",
+		Use:   "client <name> <clientType iOS|cordova|android> <appIdentifier bundleID|packageName >",
 		Short: "create a mobile client representation in your namespace",
 		Long: `Sets up the representation of a mobile application of the specified type in your namespace.
 This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
@@ -118,15 +118,16 @@ This is used to provide a mobile client context for various actions such as crea
 The available client types are android, cordova and iOS. 
 
 When used standalone, a namespace must be specified by providing the --namespace flag.`,
-		Example: `  mobile create client <name> <clientType> --namespace=myproject 
-  kubectl plugin mobile create client <name> <clientType>
-  oc plugin mobile create client <name> <clientType>`,
+		Example: `  mobile create client <name> <clientType> <appIdentifier> --namespace=myproject 
+  kubectl plugin mobile create client <name> <clientType> <appIdentifier>
+  oc plugin mobile create client <name> <clientType> <appIdentifier>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 2 {
-				return errors.New("expected a name and a clientType")
+			if len(args) != 3 {
+				return errors.New("expected a name a clientType and a appIdentifier")
 			}
 			name := args[0]
 			clientType := args[1]
+			appIdentifier := args[2]
 			appKey := uuid.NewV4().String()
 
 			namespace, err := currentNamespace(cmd.Flags())
@@ -141,7 +142,7 @@ When used standalone, a namespace must be specified by providing the --namespace
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{},
 				},
-				Spec: v1alpha1.MobileClientSpec{Name: name, ApiKey: appKey, ClientType: clientType},
+				Spec: v1alpha1.MobileClientSpec{Name: name, ApiKey: appKey, ClientType: clientType, AppIdentifier: appIdentifier},
 			}
 			switch app.Spec.ClientType {
 			case "android":
@@ -173,10 +174,10 @@ When used standalone, a namespace must be specified by providing the --namespace
 	cc.Out.AddRenderer("create"+cmd.Name(), "table", func(writer io.Writer, mobileClient interface{}) error {
 		mClient := mobileClient.(*v1alpha1.MobileClient)
 		var data [][]string
-		data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType})
+		data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier})
 		table := tablewriter.NewWriter(writer)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Name", "ClientType"})
+		table.SetHeader([]string{"ID", "Name", "ClientType", "AppIdentifier"})
 		table.Render()
 		return nil
 	})
