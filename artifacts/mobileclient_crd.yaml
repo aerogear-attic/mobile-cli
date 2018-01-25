@@ -13,8 +13,12 @@ spec:
     shortNames:
     - mc
   validation:
-   # openAPIV3Schema is the schema for validating custom objects.
+   # openAPIV3Schema is the schema for validating custom objects. k8s 1.9
     openAPIV3Schema:
+      required:
+        - clientType
+        - name
+        - appIdentifier
       properties:
         spec:
           properties:
@@ -27,3 +31,5 @@ spec:
             name:
               type: string
               pattern: '(\w-)'
+            appIdentifier:
+              type: string
