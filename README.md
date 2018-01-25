@@ -98,7 +98,8 @@ oc edit clusterrole edit # add the above and save
 - have the [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) command line tool or the [oc command line tool](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#installing-the-cli) already installed
 - it should be version k8s version 1.8 or OpenShift 3.7 or later
 - create a new dir ```mkdir -p ~/.kube/plugins/mobile```  
-- copy the plugin.yaml to the dir ```cp ./artifacts/cli_plugin.yaml ~/.kube/plugins/mobile```
+- copy the cli_plugin.yaml file to the dir ```cp ./artifacts/cli_plugin.yaml ~/.kube/plugins/mobile```
+- rename the ```cli_plugin.yaml``` file to ```plugin.yaml```
 - install the mobile CLI binary onto your $PATH
 
 ### Basic usage
