@@ -171,7 +171,7 @@ get
 create 
     
     - client
-        - create client <clientName> <clientType> # will create a representation of the mobile client application
+        - create client <clientName> <clientType> <appIdentifier> # will create a representation of the mobile client application
     - serviceinstance
         - create serviceinstance <serviceName> # this command will likely prompt for needed imputs
     - serviceconfig
