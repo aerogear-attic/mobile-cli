@@ -46,7 +46,7 @@ fmt:
 check: errcheck vet fmt test-unit
 
 .PHONY: integration
-integration: build
+integration: build_binary
 	go test -v ./integration -args -namespace=`oc project -q` -executable=`pwd`/mobile
 
 .PHONY: release
