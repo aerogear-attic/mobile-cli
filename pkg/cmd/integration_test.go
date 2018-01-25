@@ -243,7 +243,7 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 			},
 			ExpectError: true,
 			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "missing arguments."
+				expectedErr := "missing arguments: integration <consuming_service_instance_id> <providing_service_instance_id>"
 				if err.Error() != expectedErr {
 					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
 				}
