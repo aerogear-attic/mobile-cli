@@ -362,6 +362,11 @@ Run the "mobile get services" command from this tool to see which services are a
 						if c.Type == "Ready" && c.Status == "True" {
 							w.Stop()
 						}
+
+						if c.Type == "Failed" {
+							w.Stop()
+							return errors.New("Failed to provision " + extServiceClass.ServiceName + ". " + c.Message)
+						}
 					}
 				}
 			}
