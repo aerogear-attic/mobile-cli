@@ -123,8 +123,7 @@ func (scc *ServiceConfigCmd) GetServiceConfigCmd() *cobra.Command {
 		Short: "get a mobile aware service definition",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				//log.Println(")
-				return errors.Errorf("%v\n%v", "service name is required", cmd.Usage())
+				return cmd.Usage()
 			}
 			serviceName := args[0]
 			if serviceName == "" {

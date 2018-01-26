@@ -100,6 +100,8 @@ func main() {
 		rootCmd.AddCommand(startCmd)
 	}
 
+	rootCmd.SilenceUsage = true
+
 	if err := rootCmd.Execute(); err != nil {
 		// as using pkg/errors lets allow the full stack to be seen if needed
 		if os.Getenv("MCP_DEBUG") == "true" {
