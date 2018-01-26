@@ -12,16 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package cmd_test
 
 import (
+	"bytes"
 	"testing"
 
 	"regexp"
 
+	"github.com/aerogear/mobile-cli/pkg/cmd"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	kFake "k8s.io/client-go/kubernetes/fake"
+	ktesting "k8s.io/client-go/testing"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
@@ -65,12 +72,52 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
 		},
+		{
+			name: "get client config command with services",
+			k8Client: func() kubernetes.Interface {
+				fakeclient := &kFake.Clientset{}
+				fakeclient.AddReactor("list", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					secrets := []v1.Secret{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "test-service",
+								Labels: map[string]string{
+									"mobile": "enabled",
+								},
+							},
+							Data: map[string][]byte{
+								"name": []byte("test-service"),
+							},
+						},
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "keycloak",
+								Labels: map[string]string{
+									"mobile": "enabled",
+								},
+							},
+							Data: map[string][]byte{
+								"name":                []byte("keycloak"),
+								"public_installation": []byte("{}"),
+							},
+						},
+					}
+					secretList := &v1.SecretList{
+						Items: secrets,
+					}
+					return true, secretList, nil
+				})
+				return fakeclient
+			},
+			namespace:   "testing-ns",
+			cobraCmd:    getFakeCbrCmd(),
+			ExpectError: false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			ccCmd := &ClientConfigCmd{
-				k8Client: tc.k8Client(),
-			}
+			var out bytes.Buffer
+			ccCmd := cmd.NewClientConfigCmd(tc.k8Client(), &out)
 
 			got := ccCmd.GetClientConfigCmd()
 			if use := got.Use; use != tc.cobraCmd.Use {
