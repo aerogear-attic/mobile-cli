@@ -92,7 +92,7 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
   oc plugin mobile get client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("missing argument <clientID>")
+				return cmd.Usage()
 			}
 			clientID := args[0]
 			ns, err := currentNamespace(cmd.Flags())
@@ -140,7 +140,7 @@ When used standalone, a namespace must be specified by providing the --namespace
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 3 {
-				return errors.New("expected a name a clientType and a appIdentifier")
+				return cmd.Usage()
 			}
 			name := args[0]
 			clientType := args[1]
@@ -217,7 +217,7 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
 			var ns string
 
 			if len(args) != 1 {
-				return errors.New("expected a clientID argument to be passed " + cmd.Use)
+				return cmd.Usage()
 			}
 			clientID := args[0]
 

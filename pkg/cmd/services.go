@@ -212,7 +212,7 @@ Run the "mobile get services" command from this tool to see which services are a
   oc plugin mobile create serviceinstance <serviceName>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("expected the name of a service to provision")
+				return cmd.Usage()
 			}
 			// find our serviceclass and plan
 			serviceName := args[0]
@@ -392,7 +392,7 @@ Run the "mobile get serviceinstances" command from this tool to see which servic
 			//delete service instance
 			//delete params secret
 			if len(args) != 1 {
-				return errors.New("expected a serviceInstanceID")
+				return cmd.Usage()
 			}
 			ns, err := currentNamespace(cmd.Flags())
 			if err != nil {
@@ -423,7 +423,7 @@ func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
   oc plugin mobile get serviceinstances <serviceName>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return errors.New("no service name passed")
+				return cmd.Usage()
 			}
 			serviceName := args[0]
 			ns, err := currentNamespace(cmd.Flags())

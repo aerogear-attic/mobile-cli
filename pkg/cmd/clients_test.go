@@ -118,6 +118,7 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 		MobileClient func() mc.Interface
 		ExpectError  bool
 		ErrorPattern string
+		ExpectUsage  bool
 		Flags        []string
 		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
@@ -134,8 +135,9 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 				})
 				return mc
 			},
-			ClientName: "myapp",
-			Flags:      []string{"--namespace=myproject", "-o=json"},
+			ClientName:  "myapp",
+			ExpectError: false,
+			Flags:       []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
 				if nil == c {
 					t.Fatal("expected a mobile client but got nil")
@@ -160,15 +162,15 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 			ErrorPattern: "^failed to get mobile client with clientID (\\w+)+:.*",
 		},
 		{
-			Name: "test get client fails when missing a required argument",
+			Name: "test get client fails and returns usage when missing a required argument",
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				return mc
 			},
-			ClientName:   "",
-			Flags:        []string{"--namespace=myproject", "-o=json"},
-			ExpectError:  true,
-			ErrorPattern: "^missing argument .*",
+			ClientName:  "",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
+			ExpectError: false,
+			ExpectUsage: true,
 		},
 	}
 	for _, tc := range cases {
@@ -205,18 +207,23 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 				}
 				tc.Validate(t, mobileClient)
 			}
+			if tc.ExpectUsage && err != getClients.Usage() {
+				t.Fatalf("Expected error to be '%s' but got '%v'", getClients.Usage(), err)
+			}
 		})
 	}
 }
 
 func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ClientName   string
-		MobileClient func() mc.Interface
-		ExpectError  bool
-		ErrorPattern string
-		Flags        []string
+		Name           string
+		ClientName     string
+		MobileClient   func() mc.Interface
+		ExpectError    bool
+		ExpectUsage    bool
+		ValidateOutput func(t *testing.T, out string)
+		ErrorPattern   string
+		Flags          []string
 	}{
 		{
 			Name: "test delete client succeeds with no errors",
@@ -228,13 +235,14 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 			Flags:      []string{"--namespace=myproject", "-o=json"},
 		},
 		{
-			Name: "test delete client fails when missing arguments",
+			Name: "test delete client fails and returns usage when missing arguments",
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
 				return mc
 			},
 			Flags:       []string{"--namespace=myproject", "-o=json"},
-			ExpectError: true,
+			ExpectError: false,
+			ExpectUsage: true,
 		},
 		{
 			Name: "test delete client returns a clear error when delete fails",
@@ -245,8 +253,11 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 				})
 				return mc
 			},
+			ExpectUsage: true,
 			Flags:       []string{"--namespace=myproject", "-o=json"},
-			ExpectError: true,
+			ValidateOutput: func(t *testing.T, out string) {
+				t.Log("output ", out)
+			},
 		},
 	}
 
@@ -256,6 +267,7 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 			root := cmd.NewRootCmd()
 			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
 			deleteClient := clientCmd.DeleteClientCmd()
+			deleteClient.SetOutput(&stdOut)
 			root.AddCommand(deleteClient)
 			if err := deleteClient.ParseFlags(tc.Flags); err != nil {
 				t.Fatal("failed to parse flags ", err)
@@ -276,6 +288,9 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 					t.Fatal("expected the error to match the pattern "+tc.ErrorPattern, err)
 				}
 			}
+			if tc.ExpectUsage && deleteClient.UsageString() != string(stdOut.Bytes()) {
+				t.Fatalf("expected usage to match %s but got %s ", deleteClient.UsageString(), string(stdOut.Bytes()))
+			}
 		})
 	}
 }
@@ -286,6 +301,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		Args         []string
 		MobileClient func() mc.Interface
 		ExpectError  bool
+		ExpectUsage  bool
 		ErrorPattern string
 		Flags        []string
 		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
@@ -416,15 +432,12 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
 		{
-			Name:         "test create mobile client fails when missing required arguments",
-			Args:         []string{"test"},
-			ExpectError:  true,
-			ErrorPattern: "^expected a name a clientType and a appIdentifier",
+			Name:        "test create mobile client fails and returns usage when missing required arguments",
+			Args:        []string{"test"},
+			ExpectError: false,
+			ExpectUsage: true,
 			MobileClient: func() mc.Interface {
 				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					return true, nil, errors.New("should not have been called")
-				})
 				return mc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
@@ -487,6 +500,9 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 					t.Fatal("failed to unmarshal mobile client")
 				}
 				tc.Validate(t, mobileClient)
+			}
+			if tc.ExpectUsage && err != createCmd.Usage() {
+				t.Fatalf("Expected error to be '%s' but got '%v'", createCmd.Usage(), err)
 			}
 		})
 	}

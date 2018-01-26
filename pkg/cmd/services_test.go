@@ -41,11 +41,12 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 		K8Client         func() kubernetes.Interface
 		ExpectError      bool
 		ValidateErr      func(t *testing.T, err error)
+		ExpectUsage      bool
 		Flags            []string
 		Args             []string
 	}{
 		{
-			Name: "test if no service instance id passed that error returned",
+			Name: "test if no service instance id passed that usage is returned",
 			SvcCatalogClient: func() versioned.Interface {
 				fake := &scFake.Clientset{}
 				return fake
@@ -53,18 +54,10 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			K8Client: func() kubernetes.Interface {
 				return &kFake.Clientset{}
 			},
-			ExpectError: true,
-			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "expected a serviceInstanceID"
-				if err == nil {
-					t.Fatalf("expected an error but did not get one")
-				}
-				if err.Error() != expectedErr {
-					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
-				}
-			},
-			Flags: []string{"--namespace=test", "-o=json"},
-			Args:  []string{},
+			ExpectError: false,
+			ExpectUsage: true,
+			Flags:       []string{"--namespace=test", "-o=json"},
+			Args:        []string{},
 		},
 		{
 			Name: "test if error occurs getting service instance that an error is returned",
@@ -190,6 +183,9 @@ func TestServicesCmd_DeleteServiceInstanceCmd(t *testing.T) {
 			}
 			if tc.ValidateErr != nil {
 				tc.ValidateErr(t, err)
+			}
+			if tc.ExpectUsage && err != deleteServiceInstCmd.Usage() {
+				t.Fatalf("Expected error to be '%s' but got '%v'", deleteServiceInstCmd.Usage(), err)
 			}
 		})
 	}
@@ -462,6 +458,7 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 		SvcCatalogClient func() versioned.Interface
 		K8Client         func() kubernetes.Interface
 		ExpectError      bool
+		ExpectUsage      bool
 		ValidateErr      func(t *testing.T, err error)
 		ValidateOut      func(t *testing.T, output []byte)
 		Args             []string
@@ -504,7 +501,7 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 			Args:  []string{"keycloak"},
 		},
 		{
-			Name: "error is returned when no service name is passed",
+			Name: "Usage is returned when no service name is passed",
 			SvcCatalogClient: func() versioned.Interface {
 				fake := &scFake.Clientset{}
 				return fake
@@ -512,16 +509,8 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 			K8Client: func() kubernetes.Interface {
 				return &kFake.Clientset{}
 			},
-			ExpectError: true,
-			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "no service name passed"
-				if err == nil {
-					t.Fatalf("expected an error but did not get one")
-				}
-				if err.Error() != expectedErr {
-					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
-				}
-			},
+			ExpectError: false,
+			ExpectUsage: true,
 		},
 		{
 			Name: "error is returned when no namespace is set",
@@ -570,6 +559,10 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 			if tc.ValidateErr != nil {
 				tc.ValidateErr(t, err)
 			}
+			if tc.ExpectUsage && err != listInstCmd.Usage() {
+				t.Fatalf("Expected error to be '%s' but got '%v'", listInstCmd.Usage(), err)
+			}
+
 		})
 	}
 }

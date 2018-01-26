@@ -113,7 +113,7 @@ oc plugin mobile create integration <consuming_service_instance_id> <providing_s
 	`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return errors.New("missing arguments: " + cmd.Use)
+				return cmd.Usage()
 			}
 			namespace, err := currentNamespace(cmd.Flags())
 			if err != nil {
@@ -185,7 +185,7 @@ oc plugin mobile delete integration <consuming_service_instance_id> <providing_s
 	`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
-				return errors.New("missing arguments.")
+				return cmd.Usage()
 			}
 			namespace, err := currentNamespace(cmd.Flags())
 			if err != nil {
