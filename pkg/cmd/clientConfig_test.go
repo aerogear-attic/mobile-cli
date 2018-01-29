@@ -16,11 +16,14 @@ package cmd_test
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 	"testing"
 
 	"regexp"
 
 	"github.com/aerogear/mobile-cli/pkg/cmd"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -34,11 +37,11 @@ import (
 func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	getFakeCbrCmd := func() *cobra.Command {
 		return &cobra.Command{
-			Use:   "clientconfig",
+			Use:   "clientconfig <clientID>",
 			Short: "get clientconfig returns a client ready filtered configuration of the available services.",
 			Long: `get clientconfig
-		mobile --namespace=myproject get clientconfig
-		kubectl plugin mobile get clientconfig`,
+	mobile --namespace=myproject get clientconfig
+	kubectl plugin mobile get clientconfig`,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				return nil
 			},
@@ -49,9 +52,11 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 		name         string
 		k8Client     func() kubernetes.Interface
 		namespace    string
+		args         []string
 		cobraCmd     *cobra.Command
 		ExpectError  bool
 		ErrorPattern string
+		ValidateOut  func(bytes.Buffer) error
 	}{
 		{
 			name: "get client config command with empty namespace",
@@ -59,18 +64,28 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 				return &kFake.Clientset{}
 			},
 			namespace:    "",
+			args:         []string{"client-id"},
 			cobraCmd:     getFakeCbrCmd(),
 			ExpectError:  true,
 			ErrorPattern: "no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var",
+			ValidateOut:  func(out bytes.Buffer) error { return nil },
 		},
 		{
-			name: "get client config command with testing-ns namespace",
+			name: "get client config command with no services",
 			k8Client: func() kubernetes.Interface {
 				return &kFake.Clientset{}
 			},
 			namespace:   "testing-ns",
+			args:        []string{"client-id"},
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
+			ValidateOut: func(out bytes.Buffer) error {
+				expected := `{"services":[],"namespace":"testing-ns","client_id":"client-id"}`
+				if strings.TrimSpace(out.String()) != expected {
+					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
+				}
+				return nil
+			},
 		},
 		{
 			name: "get client config command with services",
@@ -110,8 +125,16 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 				return fakeclient
 			},
 			namespace:   "testing-ns",
+			args:        []string{"client-id"},
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
+			ValidateOut: func(out bytes.Buffer) error {
+				expected := `{"services":[{"config":{"headers":{},"name":"test-service","uri":""},"name":"test-service"},{"config":{"headers":{}},"name":"keycloak"}],"namespace":"testing-ns","client_id":"client-id"}`
+				if strings.TrimSpace(out.String()) != expected {
+					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
+				}
+				return nil
+			},
 		},
 	}
 	for _, tc := range tests {
@@ -129,7 +152,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 
 			runE := got.RunE
 			tc.cobraCmd.Flags().String("namespace", tc.namespace, "Namespace for software installation")
-			err := runE(tc.cobraCmd, nil) // args are not used in RunE function
+			err := runE(tc.cobraCmd, tc.args) // args are not used in RunE function
 			if tc.ExpectError && err == nil {
 				t.Errorf("ClientConfigCmd.GetClientConfigCmd().RunE() expected an error but got none")
 			}
@@ -140,6 +163,9 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 				if m, err := regexp.Match(tc.ErrorPattern, []byte(err.Error())); !m {
 					t.Errorf("expected regex %v to match error %v", tc.ErrorPattern, err)
 				}
+			}
+			if err := tc.ValidateOut(out); err != nil {
+				t.Errorf("%v\n", err)
 			}
 		})
 	}
