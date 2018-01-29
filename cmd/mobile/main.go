@@ -44,7 +44,7 @@ func main() {
 		clientCmd        = cmd.NewClientCmd(mobileClient, out)
 		bindCmd          = cmd.NewIntegrationCmd(scClient, k8Client)
 		serviceConfigCmd = cmd.NewServiceConfigCommand(k8Client)
-		clientCfgCmd     = cmd.NewClientConfigCmd(k8Client)
+		clientCfgCmd     = cmd.NewClientConfigCmd(k8Client, out)
 		clientBuilds     = cmd.NewClientBuildsCmd()
 		svcCmd           = cmd.NewServicesCmd(scClient, k8Client, out)
 	)

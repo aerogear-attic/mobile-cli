@@ -16,25 +16,34 @@ package cmd
 
 import (
 	"encoding/json"
-	"os"
+	"fmt"
+	"io"
 
+	"github.com/aerogear/mobile-cli/pkg/cmd/output"
+	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
 )
 
+// ClientConfigCmd executes the retrieval and display of the client config
 type ClientConfigCmd struct {
+	*BaseCmd
 	k8Client kubernetes.Interface
 }
 
-func NewClientConfigCmd(k8Client kubernetes.Interface) *ClientConfigCmd {
+// NewClientConfigCmd creates and returns a ClientConfigCmd object
+func NewClientConfigCmd(k8Client kubernetes.Interface, out io.Writer) *ClientConfigCmd {
 	return &ClientConfigCmd{
 		k8Client: k8Client,
+		BaseCmd:  &BaseCmd{Out: output.NewRenderer(out)},
 	}
 }
 
+// GetClientConfigCmd returns a cobra command object for getting client configs
 func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "clientconfig",
+	cmd := &cobra.Command{
+		Use:   "clientconfig <clientID>",
 		Short: "get clientconfig returns a client ready filtered configuration of the available services.",
 		Long: `get clientconfig
 mobile --namespace=myproject get clientconfig
@@ -43,11 +52,14 @@ kubectl plugin mobile get clientconfig`,
 			var ns string
 			var err error
 			ret := []*ServiceConfig{}
-
 			convertors := map[string]SecretConvertor{
 				"fh-sync-server": &syncSecretConvertor{},
 				"keycloak":       &keycloakSecretConvertor{},
 			}
+			if len(args) != 1 {
+				return cmd.Usage()
+			}
+			clientID := args[0]
 			if ns, err = currentNamespace(cmd.Flags()); err != nil {
 				return err
 			}
@@ -70,18 +82,37 @@ kubectl plugin mobile get clientconfig`,
 				}
 				ret = append(ret, svcConfig)
 			}
-
 			outputJSON := ServiceConfigs{
 				Services:  ret,
 				Namespace: ns,
+				ClientID:  clientID,
 			}
-
-			encoder := json.NewEncoder(os.Stdout)
-			encoder.SetIndent("", "  ")
-			if err := encoder.Encode(outputJSON); err != nil {
-				return err
+			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
+				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "ServiceConfig", outputType(cmd.Flags())))
 			}
-			return err
+			return nil
 		},
 	}
+
+	ccc.Out.AddRenderer("get"+cmd.Name(), "table", func(writer io.Writer, serviceConfigs interface{}) error {
+		serviceConfigList := serviceConfigs.(ServiceConfigs)
+		var data [][]string
+		if serviceConfigList.ClientID != "" {
+			data = append(data, []string{"Client ID", serviceConfigList.ClientID})
+		}
+		for _, service := range serviceConfigList.Services {
+			config, err := json.Marshal(service.Config)
+			if err != nil {
+				return err
+			}
+			data = append(data, []string{service.Name, string(config)})
+		}
+		table := tablewriter.NewWriter(writer)
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		table.AppendBulk(data)
+		table.SetHeader([]string{"Name", "config"})
+		table.Render()
+		return nil
+	})
+	return cmd
 }
