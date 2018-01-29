@@ -16,7 +16,7 @@ mobile get services
 
 mobile provision fh-sync
 
-mobile --namespace=myproject get clientconfig
+mobile --namespace=myproject get clientconfig <MobileClientID>
 
 mobile create integration fh-sync keycloak
 
@@ -160,7 +160,7 @@ get
         - get serviceconfigs # returns a list of mobile aware service configurations (this is the full unfiltered configuration data)
         - get serviceconfig <serviceName> #returns a single mobile aware service configuration (this is the full unfiltered configuration data) 
     - clientconfig
-        - get clientconfig # returns the filtered configuration as should be consumed by mobile clients making use of the sdks 
+        - get clientconfig <clientID> # returns the filtered configuration as should be consumed by mobile clients making use of the sdks 
     - clientbuild
         - get clientbuilds #returns a list of mobile client builds
         - get clientbuild <clientBuildName> #returns a single mobile client build

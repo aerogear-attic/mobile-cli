@@ -43,7 +43,7 @@ func NewClientConfigCmd(k8Client kubernetes.Interface, out io.Writer) *ClientCon
 // GetClientConfigCmd returns a cobra command object for getting client configs
 func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "clientconfig",
+		Use:   "clientconfig <clientID>",
 		Short: "get clientconfig returns a client ready filtered configuration of the available services.",
 		Long: `get clientconfig
 mobile --namespace=myproject get clientconfig
@@ -56,6 +56,10 @@ kubectl plugin mobile get clientconfig`,
 				"fh-sync-server": &syncSecretConvertor{},
 				"keycloak":       &keycloakSecretConvertor{},
 			}
+			if len(args) != 1 {
+				return cmd.Usage()
+			}
+			clientID := args[0]
 			if ns, err = currentNamespace(cmd.Flags()); err != nil {
 				return err
 			}
@@ -81,9 +85,7 @@ kubectl plugin mobile get clientconfig`,
 			outputJSON := ServiceConfigs{
 				Services:  ret,
 				Namespace: ns,
-			}
-			if clientID, _ := cmd.Flags().GetString("client-id"); clientID != "" {
-				outputJSON.ClientID = clientID
+				ClientID:  clientID,
 			}
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "ServiceConfig", outputType(cmd.Flags())))
@@ -93,12 +95,12 @@ kubectl plugin mobile get clientconfig`,
 	}
 
 	ccc.Out.AddRenderer("get"+cmd.Name(), "table", func(writer io.Writer, serviceConfigs interface{}) error {
-		scL := serviceConfigs.(ServiceConfigs)
+		serviceConfigList := serviceConfigs.(ServiceConfigs)
 		var data [][]string
-		if scL.ClientID != "" {
-			data = append(data, []string{"Client ID", scL.ClientID})
+		if serviceConfigList.ClientID != "" {
+			data = append(data, []string{"Client ID", serviceConfigList.ClientID})
 		}
-		for _, service := range scL.Services {
+		for _, service := range serviceConfigList.Services {
 			config, err := json.Marshal(service.Config)
 			if err != nil {
 				return err
@@ -112,7 +114,5 @@ kubectl plugin mobile get clientconfig`,
 		table.Render()
 		return nil
 	})
-
-	cmd.PersistentFlags().StringP("client-id", "c", "", "--client-id=cfd0128d28e9f9d91238dbc")
 	return cmd
 }
