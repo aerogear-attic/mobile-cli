@@ -261,14 +261,32 @@ Run the "mobile get services" command from this tool to see which services are a
 			} else {
 				scanner := bufio.NewScanner(os.Stdin)
 				for k, v := range instParams.Properties {
-					questionFormat := "Set value for %s [default value: %s required: %v]"
+					validInput := false
+					val := ""
+					for validInput == false {
+						questionFormat := "Set value for %s [default value: %s required: %v]"
+						if v["default"] != nil {
+							fmt.Println(fmt.Sprintf(questionFormat, k, v["default"], requiredParam(*instParams, k)))
+						} else {
+							fmt.Println(fmt.Sprintf(questionFormat, k, "<no default value>", requiredParam(*instParams, k)))
+						}
+						scanner.Scan()
 
-					fmt.Println(fmt.Sprintf(questionFormat, k, v["default"], requiredParam(*instParams, k)))
-					scanner.Scan()
-					//
-					val := scanner.Text()
-					if val == "" {
-						val = v["default"].(string)
+						val = strings.TrimSpace(scanner.Text())
+
+						if len(val) > 0 {
+							validInput = true
+						}
+						if validInput == false && val == "" && v["default"] != nil {
+							val = v["default"].(string)
+							validInput = true
+						}
+						if validInput == false && val == "" && !requiredParam(*instParams, k) {
+							validInput = true
+						}
+						if validInput == false {
+							fmt.Println("Invalid option for required field.")
+						}
 					}
 					v["value"] = val
 					instParams.Properties[k] = v
