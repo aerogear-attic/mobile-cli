@@ -133,8 +133,7 @@ around your particular mobile runtime as well as allowing us setup the different
 - **ClientConfig** the client config, is a resource created by aggregating together all of the available service configs. This resource is configuration
 required in order to consume your mobile aware services from your mobile client. It is used by the client SDKs for the various mobile services.
 
--  **ServiceConfig:** the Service Config stores information about a mobile aware service and is backed by a secret. This information is then used to populate your mobile client's config.
-This information could be anything but often is made up of values such as the URI of the service and perhaps some headers and configuration particular to that service.
+-  **ServiceConfig:** Contains services' information that is used to configure the Mobile SDK. For more information see [here](./doc/service_config.md).
 
 - **ClientBuild** the ClientBuild is backed by a regular BuildConfig however the CLI will help you create this BuildConfig with as little effort as possible. Allowing you to focus on
 just the mobile parts rather than needing to understand how to setup and manage a buildconfig and builds. For example, it will help you manage build credentials, and keys and ensure the build integrates
