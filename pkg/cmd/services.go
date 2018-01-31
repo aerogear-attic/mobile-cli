@@ -37,7 +37,6 @@ import (
 	"sort"
 
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
-	"github.com/satori/go.uuid"
 	"k8s.io/apimachinery/pkg/watch"
 )
 
@@ -295,7 +294,6 @@ Run the "mobile get services" command from this tool to see which services are a
 			}
 
 			validServiceName := clusterServiceClass.Spec.ExternalName
-			sid := uuid.NewV4().String()
 			extMeta := clusterServiceClass.Spec.ExternalMetadata.Raw
 			var extServiceClass ExternalServiceMetaData
 			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
@@ -308,7 +306,6 @@ Run the "mobile get services" command from this tool to see which services are a
 					Kind:       "ServiceInstance",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:       map[string]string{"id": sid, "serviceName": extServiceClass.ServiceName},
 					Namespace:    ns,
 					GenerateName: validServiceName + "-",
 				},
@@ -364,7 +361,7 @@ Run the "mobile get services" command from this tool to see which services are a
 			if noWait {
 				return nil
 			}
-			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{LabelSelector: "id=" + sid})
+			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{LabelSelector: "serviceName=" + validServiceName})
 			if err != nil {
 				return errors.WithStack(err)
 			}
