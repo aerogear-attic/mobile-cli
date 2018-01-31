@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"fmt"
 	"os/exec"
 	"regexp"
 	"testing"
@@ -20,14 +21,15 @@ func TestGetClientConfig(t *testing.T) {
 	//regexes to match dynamic properties in the client config
 	regexes := []*regexp.Regexp{
 		regexp.MustCompile("\"cluster_name\".*?,"),
+		regexp.MustCompile("\"namespace\".*?,"),
 	}
 
 	client := &Client{
-		ID:        "test-client-cordova",
-		Name:      "test-client",
+		ID:        "myapp-cordova",
+		Name:      "myapp",
 		Type:      "cordova",
-		Namespace: "--namespace=myproject",
-		BundleID:  "test-bundle-id",
+		Namespace: fmt.Sprintf("--namespace=%s", *namespace),
+		BundleID:  "my.app.org",
 	}
 
 	createTestClient(t, client)
@@ -60,9 +62,9 @@ func TestGetClientConfig(t *testing.T) {
 
 			if test.name == "json output" {
 				actual = CleanStringByRegex(actual, regexes)
-				expected = CleanStringByRegex(expected, regexes)
 			}
 
+			fmt.Println(actual)
 			if actual != expected {
 				t.Fatalf("actual = \n%s, expected = \n%s", actual, expected)
 			}
@@ -76,9 +78,9 @@ func createTestClient(t *testing.T, client *Client) {
 	createClientCmdArgs := []string{"create", "client", client.Name, client.Type, client.BundleID, client.Namespace}
 	createClientCmd := exec.Command(*executable, createClientCmdArgs...)
 
-	_, err := createClientCmd.CombinedOutput()
+	output, err := createClientCmd.CombinedOutput()
 	if err != nil {
-		t.Fatal("Failed to create client: ", err)
+		t.Fatal("Failed to create client: ", string(output))
 	}
 }
 
@@ -86,8 +88,8 @@ func deleteTestClient(t *testing.T, client *Client) {
 	deleteClientCmdArgs := []string{"delete", "client", client.ID, client.Namespace}
 	deleteClientCmd := exec.Command(*executable, deleteClientCmdArgs...)
 
-	_, err := deleteClientCmd.CombinedOutput()
+	output, err := deleteClientCmd.CombinedOutput()
 	if err != nil {
-		t.Fatal("Failed to delete client: ", err)
+		t.Fatal("Failed to delete client: ", string(output))
 	}
 }
