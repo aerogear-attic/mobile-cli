@@ -361,12 +361,15 @@ Run the "mobile get services" command from this tool to see which services are a
 			if noWait {
 				return nil
 			}
-			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{LabelSelector: "serviceName=" + serviceName})
+			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{})
 			if err != nil {
 				return errors.WithStack(err)
 			}
 			for u := range w.ResultChan() {
 				o := u.Object.(*v1beta1.ServiceInstance)
+				if o.Labels["serviceName"] != serviceName {
+					continue
+				}
 				switch u.Type {
 				case watch.Error:
 					w.Stop()

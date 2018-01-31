@@ -137,6 +137,10 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			providerSvc := getService(namespace, providerSvcInst.Labels["serviceName"], bc.k8Client) // the provider service
 			bindParams := buildBindParams(providerSvc, consumerSvc)
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
+			preset := podPreset(objectName, objectName, providerSvcInst.Labels["serviceName"], consumerSvcInst.Labels["serviceName"])
+			if _, err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Create(preset); err != nil {
+				return errors.Wrap(err, "failed to create pod preset for service ")
+			}
 			binding, err := createBindingObject(consumerSvc.Name, providerSvc.Name, objectName, providerSvcInst.Name, bindParams, objectName)
 			if err != nil {
 				return errors.WithStack(err)
@@ -145,10 +149,7 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			preset := podPreset(objectName, objectName, providerSvc.Name, consumerSvc.Name)
-			if _, err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Create(preset); err != nil {
-				return errors.Wrap(err, "failed to create pod preset for service ")
-			}
+
 			redeploy, err := cmd.PersistentFlags().GetBool("auto-redeploy")
 			if err != nil {
 				return errors.WithStack(err)
