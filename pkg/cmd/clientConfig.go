@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -29,14 +28,16 @@ import (
 // ClientConfigCmd executes the retrieval and display of the client config
 type ClientConfigCmd struct {
 	*BaseCmd
-	k8Client kubernetes.Interface
+	k8Client    kubernetes.Interface
+	clusterHost string
 }
 
 // NewClientConfigCmd creates and returns a ClientConfigCmd object
-func NewClientConfigCmd(k8Client kubernetes.Interface, out io.Writer) *ClientConfigCmd {
+func NewClientConfigCmd(k8Client kubernetes.Interface, clusterHost string, out io.Writer) *ClientConfigCmd {
 	return &ClientConfigCmd{
-		k8Client: k8Client,
-		BaseCmd:  &BaseCmd{Out: output.NewRenderer(out)},
+		k8Client:    k8Client,
+		clusterHost: clusterHost,
+		BaseCmd:     &BaseCmd{Out: output.NewRenderer(out)},
 	}
 }
 
@@ -82,10 +83,13 @@ kubectl plugin mobile get clientconfig`,
 				}
 				ret = append(ret, svcConfig)
 			}
+
 			outputJSON := ServiceConfigs{
-				Services:  ret,
-				Namespace: ns,
-				ClientID:  clientID,
+				Version:     "1",
+				Services:    ret,
+				Namespace:   ns,
+				ClientID:    clientID,
+				ClusterName: ccc.clusterHost,
 			}
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "ServiceConfig", outputType(cmd.Flags())))
@@ -98,19 +102,15 @@ kubectl plugin mobile get clientconfig`,
 		serviceConfigList := serviceConfigs.(ServiceConfigs)
 		var data [][]string
 		if serviceConfigList.ClientID != "" {
-			data = append(data, []string{"Client ID", serviceConfigList.ClientID})
+			data = append(data, []string{"Client ID", serviceConfigList.ClientID, "", ""})
 		}
 		for _, service := range serviceConfigList.Services {
-			config, err := json.Marshal(service.Config)
-			if err != nil {
-				return err
-			}
-			data = append(data, []string{service.Name, string(config)})
+			data = append(data, []string{service.ID, service.Name, service.Type, service.URL})
 		}
 		table := tablewriter.NewWriter(writer)
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"Name", "config"})
+		table.SetHeader([]string{"ID", "Name", "Type", "URL"})
 		table.Render()
 		return nil
 	})

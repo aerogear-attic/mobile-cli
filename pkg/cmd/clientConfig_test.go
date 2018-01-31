@@ -51,6 +51,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	tests := []struct {
 		name         string
 		k8Client     func() kubernetes.Interface
+		ClusterHost  string
 		namespace    string
 		args         []string
 		cobraCmd     *cobra.Command
@@ -64,6 +65,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 				return &kFake.Clientset{}
 			},
 			namespace:    "",
+			ClusterHost:  "test",
 			args:         []string{"client-id"},
 			cobraCmd:     getFakeCbrCmd(),
 			ExpectError:  true,
@@ -73,14 +75,19 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 		{
 			name: "get client config command with no services",
 			k8Client: func() kubernetes.Interface {
-				return &kFake.Clientset{}
+				fakeclient := &kFake.Clientset{}
+				fakeclient.AddReactor("list", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.SecretList{Items: []v1.Secret{}}, nil
+				})
+				return fakeclient
 			},
 			namespace:   "testing-ns",
+			ClusterHost: "test",
 			args:        []string{"client-id"},
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
 			ValidateOut: func(out bytes.Buffer) error {
-				expected := `{"services":[],"namespace":"testing-ns","client_id":"client-id"}`
+				expected := `{"version":"1","cluster_name":"test","namespace":"testing-ns","client_id":"client-id","services":[]}`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
 				}
@@ -125,11 +132,12 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 				return fakeclient
 			},
 			namespace:   "testing-ns",
+			ClusterHost: "test",
 			args:        []string{"client-id"},
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
 			ValidateOut: func(out bytes.Buffer) error {
-				expected := `{"services":[{"config":{"headers":{},"name":"test-service","uri":""},"name":"test-service"},{"config":{"headers":{}},"name":"keycloak"}],"namespace":"testing-ns","client_id":"client-id"}`
+				expected := `{"version":"1","cluster_name":"test","namespace":"testing-ns","client_id":"client-id","services":[{"id":"test-service","name":"test-service","type":"","url":"","config":{}},{"id":"keycloak","name":"keycloak","type":"","url":"","config":{}}]}`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
 				}
@@ -140,7 +148,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			var out bytes.Buffer
-			ccCmd := cmd.NewClientConfigCmd(tc.k8Client(), &out)
+			ccCmd := cmd.NewClientConfigCmd(tc.k8Client(), tc.ClusterHost, &out)
 
 			got := ccCmd.GetClientConfigCmd()
 			if use := got.Use; use != tc.cobraCmd.Use {

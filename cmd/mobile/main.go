@@ -29,6 +29,7 @@ import (
 	m "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
+	restclient "k8s.io/client-go/rest"
 )
 
 func main() {
@@ -37,14 +38,19 @@ func main() {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	}
 
-	k8Client, mobileClient, scClient := NewClientsOrDie(*kubeconfig)
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+	k8Client, mobileClient, scClient := NewClientsOrDie(config)
 	var (
 		out              = os.Stdout
 		rootCmd          = cmd.NewRootCmd()
 		clientCmd        = cmd.NewClientCmd(mobileClient, out)
 		bindCmd          = cmd.NewIntegrationCmd(scClient, k8Client)
 		serviceConfigCmd = cmd.NewServiceConfigCommand(k8Client)
-		clientCfgCmd     = cmd.NewClientConfigCmd(k8Client, out)
+		clientCfgCmd     = cmd.NewClientConfigCmd(k8Client, config.Host, out)
 		clientBuilds     = cmd.NewClientBuildsCmd()
 		svcCmd           = cmd.NewServicesCmd(scClient, k8Client, out)
 	)
@@ -113,13 +119,7 @@ func main() {
 
 // NewClientsOrDie creates a new set of clients for Kubernetes, Service Catalog and Mobile Services
 // if any of these clients fails to create then the process wil die.
-func NewClientsOrDie(configLoc string) (kubernetes.Interface, m.Interface, sc.Interface) {
-	config, err := clientcmd.BuildConfigFromFlags("", configLoc)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
+func NewClientsOrDie(config *restclient.Config) (kubernetes.Interface, m.Interface, sc.Interface) {
 	// create the K8client
 	k8client, err := kubernetes.NewForConfig(config)
 	if err != nil {

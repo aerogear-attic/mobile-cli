@@ -20,10 +20,14 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
+func isClientConfigKey(key string) bool {
+	return key == "url" || key == "name" || key == "type" || key == "id"
+}
+
 func convertSecretToMobileService(s v1.Secret) *Service {
 	params := map[string]string{}
 	for key, value := range s.Data {
-		if key != "uri" && key != "name" {
+		if !isClientConfigKey(key) {
 			params[key] = string(value)
 		}
 	}
