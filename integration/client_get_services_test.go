@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const testPath = "getServicesTestData/"
+const getServicesTestPath = "getServicesTestData/"
 
 func TestGetServices(t *testing.T) {
 	//regexes to match dynamic properties in service json, UID resourceVersion and creationTimestamp
@@ -35,16 +35,16 @@ func TestGetServices(t *testing.T) {
 				t.Fatal(err)
 			}
 			if *update {
-				WriteSnapshot(t, testPath+test.fixture, output)
+				WriteSnapshot(t, getServicesTestPath+test.fixture, output)
 			}
 
 			actual := string(output)
 
-			expected := LoadSnapshot(t, testPath+test.fixture)
+			expected := LoadSnapshot(t, getServicesTestPath+test.fixture)
 
 			if test.name == "json output" {
-				actual = cleanStringByRegex(actual, regexes)
-				expected = cleanStringByRegex(expected, regexes)
+				actual = CleanStringByRegex(actual, regexes)
+				expected = CleanStringByRegex(expected, regexes)
 			}
 
 			if actual != expected {
@@ -52,12 +52,4 @@ func TestGetServices(t *testing.T) {
 			}
 		})
 	}
-
-}
-
-func cleanStringByRegex(input string, regexes []*regexp.Regexp) string {
-	for _, regex := range regexes {
-		input = regex.ReplaceAllString(input, "")
-	}
-	return input
 }
