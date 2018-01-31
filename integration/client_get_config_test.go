@@ -64,7 +64,6 @@ func TestGetClientConfig(t *testing.T) {
 				actual = CleanStringByRegex(actual, regexes)
 			}
 
-			fmt.Println(actual)
 			if actual != expected {
 				t.Fatalf("actual = \n%s, expected = \n%s", actual, expected)
 			}
