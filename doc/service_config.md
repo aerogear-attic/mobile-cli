@@ -13,14 +13,14 @@ mobile get clientconfig example_client_id --namespace=myproject
 
 Which will produce output like the following:
 ```sh
-+----------------+----------------+----------------+-------------------------------------------------------+
-|       ID       |      NAME      |      TYPE      |                          URL                          |
-+----------------+----------------+----------------+-------------------------------------------------------+
-| Client ID      | example_client_id         |                |                                                       |
-| fh-sync-server | fh-sync-server | fh-sync-server | https://fh-sync-server-myproject.192.168.64.74.nip.io |
-| keycloak       | keycloak       | keycloak       | https://keycloak-myproject.192.168.64.74.nip.io       |
-| prometheus     | prometheus     | prometheus     | https://prometheus-myproject.192.168.64.74.nip.io     |
-+----------------+----------------+----------------+-------------------------------------------------------+
++----------------+-------------------+----------------+-------------------------------------------------------+
+|       ID       |      NAME         |      TYPE      |                          URL                          |
++----------------+-------------------+----------------+-------------------------------------------------------+
+| Client ID      | example_client_id |                |                                                       |
+| fh-sync-server | fh-sync-server    | fh-sync-server | https://fh-sync-server-myproject.192.168.64.74.nip.io |
+| keycloak       | keycloak          | keycloak       | https://keycloak-myproject.192.168.64.74.nip.io       |
+| prometheus     | prometheus        | prometheus     | https://prometheus-myproject.192.168.64.74.nip.io     |
++----------------+-------------------+----------------+-------------------------------------------------------+
 ```
 
 For more verbose config details of each service, you can request the output in JSON format instead, with the following command:
