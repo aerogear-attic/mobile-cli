@@ -109,7 +109,9 @@ func (bc *IntegrationCmd) CreateIntegrationCmd() *cobra.Command {
 		Use:   "integration <consuming_service_instance_id> <providing_service_instance_id>",
 		Short: "integrate certain mobile services together",
 		Long: `create integration allows you to create a binding between mobile services in your namespace.
-To get the IDs of your consuming/providing service instances, run the "mobile get serviceinstances <serviceName>" command from this tool.`,
+To get the IDs of your consuming/providing service instances, run the "mobile get serviceinstances <serviceName>" command from this tool.
+
+If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy will override --no-wait.`,
 		Example: `  mobile create integration <consuming_service_instance_id> <providing_service_instance_id> --namespace=myproject
   kubectl plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
   oc plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>`,
@@ -153,52 +155,49 @@ To get the IDs of your consuming/providing service instances, run the "mobile ge
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			if !redeploy {
-				fmt.Println("you will need to redeploy your service/pod to pick up the changes")
-				return nil
-			}
-			// update the deployment with an annotation
-			dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvc.Name, metav1.GetOptions{})
-			if err != nil {
-				return errors.Wrap(err, "failed to get deployment for service "+consumerSvcInstName)
-			}
-			dep.Spec.Template.Labels[providerSvc.Name] = "enabled"
-			if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
-				return errors.Wrap(err, "failed to update deployment for service "+consumerSvcInstName)
-			}
-
-			// exit immediately
 			noWait, err := cmd.PersistentFlags().GetBool("no-wait")
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			if noWait {
+			if noWait && !redeploy {
+				fmt.Println("you will need to redeploy your service/pod to pick up the changes")
 				return nil
 			}
 
-			// else watch
-			id := sb.Spec.ExternalID
-			w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{LabelSelector: "id=" + id})
-			if err != nil {
-				return errors.WithStack(err)
-			}
-			for u := range w.ResultChan() {
-				o := u.Object.(*v1beta1.ServiceBinding)
-				switch u.Type {
-				case watch.Error:
-					w.Stop()
-					return errors.New("unexpected error watching service binding " + err.Error())
-				case watch.Modified:
-					for _, c := range o.Status.Conditions {
-						fmt.Println("status: " + c.Message)
-						if c.Type == "Ready" && c.Status == "True" {
-							w.Stop()
-						}
-						if c.Type == "Failed" {
-							w.Stop()
-							return errors.New("Failed to create integration: " + c.Message)
+			if redeploy {
+				id := sb.Spec.ExternalID
+				w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{LabelSelector: "id=" + id})
+				if err != nil {
+					return errors.WithStack(err)
+				}
+				for u := range w.ResultChan() {
+					o := u.Object.(*v1beta1.ServiceBinding)
+					switch u.Type {
+					case watch.Error:
+						w.Stop()
+						return errors.New("unexpected error watching service binding " + err.Error())
+					case watch.Modified:
+						for _, c := range o.Status.Conditions {
+							fmt.Println("status: " + c.Message)
+							if c.Type == "Ready" && c.Status == "True" {
+								w.Stop()
+							}
+							if c.Type == "Failed" {
+								w.Stop()
+								return errors.New("Failed to create integration: " + c.Message)
+							}
 						}
 					}
+				}
+
+				// update the deployment with an annotation
+				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvc.Name, metav1.GetOptions{})
+				if err != nil {
+					return errors.Wrap(err, "failed to get deployment for service "+consumerSvcInstName)
+				}
+				dep.Spec.Template.Labels[providerSvc.Name] = "enabled"
+				if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+					return errors.Wrap(err, "failed to update deployment for service "+consumerSvcInstName)
 				}
 			}
 
