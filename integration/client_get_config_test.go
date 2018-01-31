@@ -14,7 +14,6 @@ type Client struct {
 	BundleID  string
 }
 
-// Create struct for MobileClientConfig?
 const getClientTestPath = "getClientConfigTestData/"
 
 func TestGetClientConfig(t *testing.T) {
