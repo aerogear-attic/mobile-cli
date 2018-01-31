@@ -23,12 +23,13 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 		SvcCatalogClient func() versioned.Interface
 		K8Client         func() kubernetes.Interface
 		ExpectError      bool
+		ExpectUsage      bool
 		ValidateErr      func(t *testing.T, err error)
 		Args             []string
 		Flags            []string
 	}{
 		{
-			Name: "test returns error if missing arguments",
+			Name: "test returns usage if missing arguments",
 			SvcCatalogClient: func() versioned.Interface {
 				fake := &scFake.Clientset{}
 				return fake
@@ -36,15 +37,10 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 			K8Client: func() kubernetes.Interface {
 				return &kFake.Clientset{}
 			},
-			ExpectError: true,
-			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "missing arguments: integration <consuming_service_instance_id> <providing_service_instance_id>"
-				if err.Error() != expectedErr {
-					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
-				}
-			},
-			Args:  []string{},
-			Flags: []string{},
+			ExpectError: false,
+			ExpectUsage: true,
+			Args:        []string{},
+			Flags:       []string{},
 		},
 		{
 			Name: "test returns error if flags not set",
@@ -215,6 +211,9 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 			if err == nil && tc.ExpectError {
 				t.Fatal("expected an error but got none")
 			}
+			if err != createCmd.Usage() && tc.ExpectUsage {
+				t.Fatalf("Expected error to be '%s' but got '%v'", createCmd.Usage(), err)
+			}
 			if tc.ValidateErr != nil {
 				tc.ValidateErr(t, err)
 			}
@@ -228,12 +227,13 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 		SvcCatalogClient func() versioned.Interface
 		K8Client         func() kubernetes.Interface
 		ExpectError      bool
+		ExpectUsage      bool
 		ValidateErr      func(t *testing.T, err error)
 		Args             []string
 		Flags            []string
 	}{
 		{
-			Name: "test returns error if missing arguments",
+			Name: "test returns usage if missing arguments",
 			SvcCatalogClient: func() versioned.Interface {
 				fake := &scFake.Clientset{}
 				return fake
@@ -241,15 +241,10 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 			K8Client: func() kubernetes.Interface {
 				return &kFake.Clientset{}
 			},
-			ExpectError: true,
-			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "missing arguments: integration <consuming_service_instance_id> <providing_service_instance_id>"
-				if err.Error() != expectedErr {
-					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
-				}
-			},
-			Args:  []string{},
-			Flags: []string{},
+			ExpectError: false,
+			ExpectUsage: true,
+			Args:        []string{},
+			Flags:       []string{},
 		},
 		{
 			Name: "test returns error if flags not set",
@@ -420,22 +415,12 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 			if err == nil && tc.ExpectError {
 				t.Fatal("expected an error but got none")
 			}
+			if err != deleteCmd.Usage() && tc.ExpectUsage {
+				t.Fatalf("Expected error to be '%s' but got '%v'", deleteCmd.Usage(), err)
+			}
 			if tc.ValidateErr != nil {
 				tc.ValidateErr(t, err)
 			}
-		})
-	}
-}
-
-func TestIntegrationCmd_GetIntegrationCmd(t *testing.T) {
-	cases := []struct {
-		Name string
-	}{
-		{},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.Name, func(t *testing.T) {
 		})
 	}
 }
