@@ -19,8 +19,6 @@ import (
 
 	"fmt"
 
-	"os"
-
 	"io"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
@@ -44,8 +42,8 @@ type IntegrationCmd struct {
 	k8Client kubernetes.Interface
 }
 
-func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface) *IntegrationCmd {
-	return &IntegrationCmd{scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(os.Stdout)}}
+func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface, out io.Writer) *IntegrationCmd {
+	return &IntegrationCmd{scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(out)}}
 }
 
 func createBindingObject(consumer, provider, bindingName, instance string, params map[string]interface{}, secretName string) (*v1beta1.ServiceBinding, error) {
@@ -163,32 +161,31 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 				fmt.Println("you will need to redeploy your service/pod to pick up the changes")
 				return nil
 			}
-
-			if redeploy {
-				id := sb.Spec.ExternalID
-				w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{LabelSelector: "id=" + id})
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				for u := range w.ResultChan() {
-					o := u.Object.(*v1beta1.ServiceBinding)
-					switch u.Type {
-					case watch.Error:
-						w.Stop()
-						return errors.New("unexpected error watching service binding " + err.Error())
-					case watch.Modified:
-						for _, c := range o.Status.Conditions {
-							fmt.Println("status: " + c.Message)
-							if c.Type == "Ready" && c.Status == "True" {
-								w.Stop()
-							}
-							if c.Type == "Failed" {
-								w.Stop()
-								return errors.New("Failed to create integration: " + c.Message)
-							}
+			id := sb.Spec.ExternalID
+			w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{LabelSelector: "id=" + id})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			for u := range w.ResultChan() {
+				o := u.Object.(*v1beta1.ServiceBinding)
+				switch u.Type {
+				case watch.Error:
+					w.Stop()
+					return errors.New("unexpected error watching service binding " + err.Error())
+				case watch.Modified:
+					for _, c := range o.Status.Conditions {
+						fmt.Println("status: " + c.Message)
+						if c.Type == "Ready" && c.Status == "True" {
+							w.Stop()
+						}
+						if c.Type == "Failed" {
+							w.Stop()
+							return errors.New("Failed to create integration: " + c.Message)
 						}
 					}
 				}
+			}
+			if redeploy {
 
 				// update the deployment with an annotation
 				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvc.Name, metav1.GetOptions{})
