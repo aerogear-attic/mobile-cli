@@ -361,7 +361,7 @@ Run the "mobile get services" command from this tool to see which services are a
 			if noWait {
 				return nil
 			}
-			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{LabelSelector: "serviceName=" + validServiceName})
+			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{LabelSelector: "serviceName=" + serviceName})
 			if err != nil {
 				return errors.WithStack(err)
 			}
