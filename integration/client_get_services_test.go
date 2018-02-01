@@ -14,6 +14,7 @@ func TestGetServices(t *testing.T) {
 		regexp.MustCompile("\"uid\".*?,"),
 		regexp.MustCompile("\"resourceVersion\".*?,"),
 		regexp.MustCompile("\"creationTimestamp\".*?,"),
+		regexp.MustCompile("\"removedFromBrokerCatalog\".*?}"),
 	}
 
 	tests := []struct {
