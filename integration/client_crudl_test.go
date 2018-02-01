@@ -7,20 +7,9 @@ import (
 	"testing"
 )
 
-type MobileClientSpec struct {
-	Name          string
-	ApiKey        string
-	ClientType    string
-	AppIdentifier string
-}
-
-type MobileClientJson struct {
-	Spec MobileClientSpec
-}
-
 func ValidMobileClientJson(name, clientType, appIdentifier string) func(output []byte, err error) ValidationResult {
 	return func(output []byte, err error) ValidationResult {
-		var parsed MobileClientJson
+		var parsed MobileClientJSON
 		if err := json.Unmarshal([]byte(output), &parsed); err != nil {
 			return FailureValidation(output, err)
 		}

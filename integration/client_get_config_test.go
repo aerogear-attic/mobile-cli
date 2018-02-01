@@ -7,14 +7,6 @@ import (
 	"testing"
 )
 
-type Client struct {
-	ID        string
-	Name      string
-	Type      string
-	Namespace string
-	BundleID  string
-}
-
 const getClientTestPath = "getClientConfigTestData/"
 
 func TestGetClientConfig(t *testing.T) {
@@ -24,12 +16,12 @@ func TestGetClientConfig(t *testing.T) {
 		regexp.MustCompile("\"namespace\".*?,"),
 	}
 
-	client := &Client{
-		ID:        "myapp-cordova",
-		Name:      "myapp",
-		Type:      "cordova",
-		Namespace: fmt.Sprintf("--namespace=%s", *namespace),
-		BundleID:  "my.app.org",
+	client := &MobileClientSpec{
+		ID:            "myapp-cordova",
+		Name:          "myapp",
+		ClientType:    "cordova",
+		Namespace:     fmt.Sprintf("--namespace=%s", *namespace),
+		AppIdentifier: "my.app.org",
 	}
 
 	createTestClient(t, client)
@@ -73,8 +65,8 @@ func TestGetClientConfig(t *testing.T) {
 	deleteTestClient(t, client)
 }
 
-func createTestClient(t *testing.T, client *Client) {
-	createClientCmdArgs := []string{"create", "client", client.Name, client.Type, client.BundleID, client.Namespace}
+func createTestClient(t *testing.T, client *MobileClientSpec) {
+	createClientCmdArgs := []string{"create", "client", client.Name, client.ClientType, client.AppIdentifier, client.Namespace}
 	createClientCmd := exec.Command(*executable, createClientCmdArgs...)
 
 	output, err := createClientCmd.CombinedOutput()
@@ -83,7 +75,7 @@ func createTestClient(t *testing.T, client *Client) {
 	}
 }
 
-func deleteTestClient(t *testing.T, client *Client) {
+func deleteTestClient(t *testing.T, client *MobileClientSpec) {
 	deleteClientCmdArgs := []string{"delete", "client", client.ID, client.Namespace}
 	deleteClientCmd := exec.Command(*executable, deleteClientCmdArgs...)
 

@@ -7,3 +7,4 @@ Flags:
 Global Flags:
       --namespace string   --namespace=myproject
   -o, --output string      -o=json -o=template (default "table")
+  -q, --quiet              -q all non essential output will be stopped
