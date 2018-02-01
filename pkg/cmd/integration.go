@@ -105,8 +105,9 @@ func podPreset(objectName, secretName, providerSvcName, consumerSvcName string) 
 func (bc *IntegrationCmd) CreateIntegrationCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "integration <consuming_service_instance_id> <providing_service_instance_id>",
-		Short: "integrate certain mobile services together",
-		Long: `create integration allows you to create a binding between mobile services in your namespace.
+		Short: "integrate certain mobile services together. mobile get services will show you what can be integrated.",
+		Long: `create integration creates a ServiceBinding from one mobile services and injects it into the consuming service via a pod preset in your namespace and optionally
+redeploys the consuming service.
 To get the IDs of your consuming/providing service instances, run the "mobile get serviceinstances <serviceName>" command from this tool.
 
 If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy will override --no-wait.`,
@@ -117,11 +118,14 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if len(args) != 2 {
 				return cmd.Usage()
 			}
+			quiet, err := cmd.Flags().GetBool("quiet")
+			if err != nil {
+				return errors.Wrap(err, "failed to get quiet flag")
+			}
 			namespace, err := currentNamespace(cmd.Flags())
 			if err != nil {
 				return errors.Wrap(err, "failed to get namespace")
 			}
-
 			consumerSvcInstName := args[0]
 			providerSvcInstName := args[1]
 			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, metav1.GetOptions{})
@@ -132,15 +136,16 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			// todo remove the need for these by updating the apbs to read the secrets themselves (https://github.com/feedhenry/keycloak-apb/issues/37)
 			consumerSvc := getService(namespace, consumerSvcInst.Labels["serviceName"], bc.k8Client) // the consumer service
 			providerSvc := getService(namespace, providerSvcInst.Labels["serviceName"], bc.k8Client) // the provider service
+			//TODO review how we build the params
 			bindParams := buildBindParams(providerSvc, consumerSvc)
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
 			preset := podPreset(objectName, objectName, providerSvcInst.Labels["serviceName"], consumerSvcInst.Labels["serviceName"])
 			if _, err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Create(preset); err != nil {
 				return errors.Wrap(err, "failed to create pod preset for service ")
 			}
+			// prepare and create our binding
 			binding, err := createBindingObject(consumerSvc.Name, providerSvc.Name, objectName, providerSvcInst.Name, bindParams, objectName)
 			if err != nil {
 				return errors.WithStack(err)
@@ -150,6 +155,7 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 				return errors.WithStack(err)
 			}
 
+			// check if a redeploy was asked for
 			redeploy, err := cmd.PersistentFlags().GetBool("auto-redeploy")
 			if err != nil {
 				return errors.WithStack(err)
@@ -162,20 +168,24 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 				fmt.Println("you will need to redeploy your service/pod to pick up the changes")
 				return nil
 			}
-			id := sb.Spec.ExternalID
-			w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{LabelSelector: "id=" + id})
+			w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{})
 			if err != nil {
 				return errors.WithStack(err)
 			}
 			for u := range w.ResultChan() {
 				o := u.Object.(*v1beta1.ServiceBinding)
+				if o.Name != sb.Name {
+					continue
+				}
 				switch u.Type {
 				case watch.Error:
 					w.Stop()
 					return errors.New("unexpected error watching service binding " + err.Error())
 				case watch.Modified:
 					for _, c := range o.Status.Conditions {
-						fmt.Println("status: " + c.Message)
+						if !quiet {
+							fmt.Println("status: " + c.Message)
+						}
 						if c.Type == "Ready" && c.Status == "True" {
 							w.Stop()
 						}
@@ -184,8 +194,11 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 							return errors.New("Failed to create integration: " + c.Message)
 						}
 					}
+				case watch.Deleted:
+					w.Stop()
 				}
 			}
+			// once the binding is finished update the deployment to cause a redeploy
 			if redeploy {
 
 				// update the deployment with an annotation
@@ -339,7 +352,7 @@ func buildBindParams(from *Service, to *Service) map[string]interface{} {
 		p["app_key"] = uuid.NewV4().String()
 		p["service_secret"] = to.ID
 	} else if from.Name == ServiceNameKeycloak {
-		p["service_name"] = to.Name
+		p["service"] = to.Name
 	}
 	return p
 }
