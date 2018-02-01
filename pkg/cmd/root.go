@@ -33,6 +33,7 @@ func NewRootCmd() *cobra.Command {
 	}
 	root.PersistentFlags().String("namespace", "", "--namespace=myproject")
 	root.PersistentFlags().StringP("output", "o", "table", "-o=json -o=template")
+	root.PersistentFlags().BoolP("quiet", "q", false, "-q all non essential output will be stopped")
 	cobra.OnInitialize(initConfig)
 	return root
 }

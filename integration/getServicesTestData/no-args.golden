@@ -1,19 +1,19 @@
-+---------------------+------------------+--------------------------------+
-|        NAME         |   INTEGRATIONS   |           PARAMETERS           |
-+---------------------+------------------+--------------------------------+
-| ups                 |                  | MYSQL_DATABASE,                |
-|                     |                  | MYSQL_PASSWORD,                |
-|                     |                  | MYSQL_ROOT_PASSWORD,           |
-|                     |                  | MYSQL_USER, MYSQL_VERSION      |
-| 3scale              |                  | THREESCALE_ACCESS_TOKEN,       |
-|                     |                  | THREESCALE_DOMAIN,             |
-|                     |                  | THREESCALE_ENABLE_CORS,        |
-|                     |                  | THREESCALE_SERVICE_ID          |
-| prometheus          |                  | GRAFANA_STORAGE_SIZE,          |
-|                     |                  | PROMETHEUS_STORAGE_SIZE        |
-| aerogear-digger-apb |                  | ANDROID_LICENSE_AGREEMENT      |
-| keycloak            |                  | ADMIN_NAME, ADMIN_PASSWORD     |
-| fh-sync-server      | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        |
-|                     |                  | MONGODB_USER_NAME,             |
-|                     |                  | MONGODB_USER_PASSWORD          |
-+---------------------+------------------+--------------------------------+
++-----------------+------------------+--------------------------------+
+|      NAME       |   INTEGRATIONS   |           PARAMETERS           |
++-----------------+------------------+--------------------------------+
+| ups             |                  | MYSQL_DATABASE,                |
+|                 |                  | MYSQL_PASSWORD,                |
+|                 |                  | MYSQL_ROOT_PASSWORD,           |
+|                 |                  | MYSQL_USER, MYSQL_VERSION      |
+| 3scale          |                  | THREESCALE_ACCESS_TOKEN,       |
+|                 |                  | THREESCALE_DOMAIN,             |
+|                 |                  | THREESCALE_ENABLE_CORS,        |
+|                 |                  | THREESCALE_SERVICE_ID          |
+| metrics         |                  | GRAFANA_STORAGE_SIZE,          |
+|                 |                  | PROMETHEUS_STORAGE_SIZE        |
+| aerogear-digger |                  | ANDROID_LICENSE_AGREEMENT      |
+| keycloak        |                  | ADMIN_NAME, ADMIN_PASSWORD     |
+| fh-sync-server  | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        |
+|                 |                  | MONGODB_USER_NAME,             |
+|                 |                  | MONGODB_USER_PASSWORD          |
++-----------------+------------------+--------------------------------+

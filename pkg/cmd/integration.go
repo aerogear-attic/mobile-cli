@@ -19,8 +19,6 @@ import (
 
 	"fmt"
 
-	"os"
-
 	"io"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
@@ -30,8 +28,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	kalpha "k8s.io/client-go/pkg/apis/settings/v1alpha1"
@@ -43,8 +42,8 @@ type IntegrationCmd struct {
 	k8Client kubernetes.Interface
 }
 
-func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface) *IntegrationCmd {
-	return &IntegrationCmd{scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(os.Stdout)}}
+func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface, out io.Writer) *IntegrationCmd {
+	return &IntegrationCmd{scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(out)}}
 }
 
 func createBindingObject(consumer, provider, bindingName, instance string, params map[string]interface{}, secretName string) (*v1beta1.ServiceBinding, error) {
@@ -53,7 +52,7 @@ func createBindingObject(consumer, provider, bindingName, instance string, param
 		return nil, err
 	}
 	b := &v1beta1.ServiceBinding{
-		ObjectMeta: meta_v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:        bindingName,
 			Annotations: map[string]string{"consumer": consumer, "provider": provider},
 		},
@@ -66,25 +65,25 @@ func createBindingObject(consumer, provider, bindingName, instance string, param
 	return b, nil
 }
 
-func podPreset(objectName, secretName, producerSvcName, consumerSvcName string) *kalpha.PodPreset {
+func podPreset(objectName, secretName, providerSvcName, consumerSvcName string) *kalpha.PodPreset {
 	podPreset := kalpha.PodPreset{
-		ObjectMeta: meta_v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: objectName,
 			Labels: map[string]string{
 				"group":   "mobile",
-				"service": producerSvcName,
+				"service": providerSvcName,
 			},
 		},
 		Spec: kalpha.PodPresetSpec{
-			Selector: meta_v1.LabelSelector{
+			Selector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"run":           consumerSvcName,
-					producerSvcName: "enabled",
+					providerSvcName: "enabled",
 				},
 			},
 			Volumes: []v1.Volume{
 				{
-					Name: producerSvcName,
+					Name: providerSvcName,
 					VolumeSource: v1.VolumeSource{
 						Secret: &v1.SecretVolumeSource{
 							SecretName: secretName,
@@ -94,8 +93,8 @@ func podPreset(objectName, secretName, producerSvcName, consumerSvcName string) 
 			},
 			VolumeMounts: []v1.VolumeMount{
 				{
-					Name:      producerSvcName,
-					MountPath: "/etc/secrets/" + producerSvcName,
+					Name:      providerSvcName,
+					MountPath: "/etc/secrets/" + providerSvcName,
 				},
 			},
 		},
@@ -106,67 +105,117 @@ func podPreset(objectName, secretName, producerSvcName, consumerSvcName string) 
 func (bc *IntegrationCmd) CreateIntegrationCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "integration <consuming_service_instance_id> <providing_service_instance_id>",
-		Short: "integrate certain mobile services together",
-		Long: `example usage: kubectl plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
-mobile --namespace=myproject create integration <consuming_service_instance_id> <providing_service_instance_id>
-oc plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
-	`,
+		Short: "integrate certain mobile services together. mobile get services will show you what can be integrated.",
+		Long: `create integration creates a ServiceBinding from one mobile services and injects it into the consuming service via a pod preset in your namespace and optionally
+redeploys the consuming service.
+To get the IDs of your consuming/providing service instances, run the "mobile get serviceinstances <serviceName>" command from this tool.
+
+If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy will override --no-wait.`,
+		Example: `  mobile create integration <consuming_service_instance_id> <providing_service_instance_id> --namespace=myproject
+  kubectl plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
+  oc plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 2 {
+			if len(args) != 2 {
 				return cmd.Usage()
+			}
+			quiet, err := cmd.Flags().GetBool("quiet")
+			if err != nil {
+				return errors.Wrap(err, "failed to get quiet flag")
 			}
 			namespace, err := currentNamespace(cmd.Flags())
 			if err != nil {
 				return errors.Wrap(err, "failed to get namespace")
 			}
-
 			consumerSvcInstName := args[0]
 			providerSvcInstName := args[1]
-			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, meta_v1.GetOptions{})
+			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, metav1.GetOptions{})
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
-			consumerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(consumerSvcInstName, meta_v1.GetOptions{})
+			consumerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(consumerSvcInstName, metav1.GetOptions{})
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
-			//todo remove the need for these by updating the apbs to read the secrets themselves (https://github.com/feedhenry/keycloak-apb/issues/37)
 			consumerSvc := getService(namespace, consumerSvcInst.Labels["serviceName"], bc.k8Client) // the consumer service
 			providerSvc := getService(namespace, providerSvcInst.Labels["serviceName"], bc.k8Client) // the provider service
+			//TODO review how we build the params
 			bindParams := buildBindParams(providerSvc, consumerSvc)
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
-			binding, err := createBindingObject(consumerSvc.Name, providerSvc.Name, objectName, providerSvcInst.Name, bindParams, objectName)
-			if err != nil {
-				return err
-			}
-			if _, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Create(binding); err != nil {
-				return err
-			}
-			preset := podPreset(objectName, objectName, providerSvc.Name, consumerSvc.Name)
+			preset := podPreset(objectName, objectName, providerSvcInst.Labels["serviceName"], consumerSvcInst.Labels["serviceName"])
 			if _, err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Create(preset); err != nil {
 				return errors.Wrap(err, "failed to create pod preset for service ")
 			}
+			// prepare and create our binding
+			binding, err := createBindingObject(consumerSvc.Name, providerSvc.Name, objectName, providerSvcInst.Name, bindParams, objectName)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			sb, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Create(binding)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			// check if a redeploy was asked for
 			redeploy, err := cmd.PersistentFlags().GetBool("auto-redeploy")
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
-			if !redeploy {
+			noWait, err := cmd.PersistentFlags().GetBool("no-wait")
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			if noWait && !redeploy {
 				fmt.Println("you will need to redeploy your service/pod to pick up the changes")
 				return nil
 			}
-			//update the deployment with an annotation
-			dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvc.Name, meta_v1.GetOptions{})
+			w, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Watch(metav1.ListOptions{})
 			if err != nil {
-				return errors.Wrap(err, "failed to get deployment for service "+consumerSvcInstName)
+				return errors.WithStack(err)
 			}
-			dep.Spec.Template.Labels[providerSvc.Name] = "enabled"
-			if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
-				return errors.Wrap(err, "failed up update deployment for "+consumerSvcInstName)
+			for u := range w.ResultChan() {
+				o := u.Object.(*v1beta1.ServiceBinding)
+				if o.Name != sb.Name {
+					continue
+				}
+				switch u.Type {
+				case watch.Error:
+					w.Stop()
+					return errors.New("unexpected error watching service binding " + err.Error())
+				case watch.Modified:
+					for _, c := range o.Status.Conditions {
+						if !quiet {
+							fmt.Println("status: " + c.Message)
+						}
+						if c.Type == "Ready" && c.Status == "True" {
+							w.Stop()
+						}
+						if c.Type == "Failed" {
+							w.Stop()
+							return errors.New("Failed to create integration: " + c.Message)
+						}
+					}
+				case watch.Deleted:
+					w.Stop()
+				}
+			}
+			// once the binding is finished update the deployment to cause a redeploy
+			if redeploy {
+
+				// update the deployment with an annotation
+				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvc.Name, metav1.GetOptions{})
+				if err != nil {
+					return errors.Wrap(err, "failed to get deployment for service "+consumerSvcInstName)
+				}
+				dep.Spec.Template.Labels[providerSvc.Name] = "enabled"
+				if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+					return errors.Wrap(err, "failed to update deployment for service "+consumerSvcInstName)
+				}
 			}
 
 			return nil
 		},
 	}
+	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately after a successful response instead of waiting until the binding is complete")
 	cmd.PersistentFlags().Bool("auto-redeploy", false, "--auto-redeploy=true will cause a backing deployment to be rolled out")
 	return cmd
 }
@@ -184,7 +233,7 @@ mobile --namespace=myproject delete integration <consuming_service_instance_id> 
 oc plugin mobile delete integration <consuming_service_instance_id> <providing_service_instance_id>
 	`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 2 {
+			if len(args) != 2 {
 				return cmd.Usage()
 			}
 			namespace, err := currentNamespace(cmd.Flags())
@@ -194,39 +243,39 @@ oc plugin mobile delete integration <consuming_service_instance_id> <providing_s
 			consumerSvcInstName := args[0]
 			providerSvcInstName := args[1]
 
-			consumerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(consumerSvcInstName, meta_v1.GetOptions{})
+			consumerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(consumerSvcInstName, metav1.GetOptions{})
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
-			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, meta_v1.GetOptions{})
+			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, metav1.GetOptions{})
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			consumerSvcName := consumerSvcInst.Labels["serviceName"]
 			providerSvcName := providerSvcInst.Labels["serviceName"]
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
-			if err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
-				return err
+			if err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, metav1.NewDeleteOptions(0)); err != nil {
+				return errors.WithStack(err)
 			}
-			if err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
-				return err
+			if err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).Delete(objectName, metav1.NewDeleteOptions(0)); err != nil {
+				return errors.WithStack(err)
 			}
 			redeploy, err := cmd.PersistentFlags().GetBool("auto-redeploy")
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			if !redeploy {
 				fmt.Println("you will need to redeploy your service to pick up the changes")
 				return nil
 			}
 			//update the deployment with an annotation
-			dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvcName, meta_v1.GetOptions{})
+			dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvcName, metav1.GetOptions{})
 			if err != nil {
 				return errors.Wrap(err, "failed to get deployment for service "+consumerSvcInstName)
 			}
 			delete(dep.Spec.Template.Labels, providerSvcName)
 			if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
-				return errors.Wrap(err, "failed up update deployment for "+consumerSvcInstName)
+				return errors.Wrap(err, "failed to update deployment for service "+consumerSvcInstName)
 			}
 			return nil
 		},
@@ -256,13 +305,13 @@ func (bc *IntegrationCmd) ListIntegrationsCmd() *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "failed to get namespace")
 			}
-			sbList, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).List(meta_v1.ListOptions{})
+			sbList, err := bc.scClient.ServicecatalogV1beta1().ServiceBindings(namespace).List(metav1.ListOptions{})
 			if err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			outType := outputType(cmd.Flags())
 			if err := bc.Out.Render("list"+cmd.Name(), outType, sbList); err != nil {
-				return err
+				return errors.WithStack(err)
 			}
 			return nil
 		},
@@ -303,7 +352,7 @@ func buildBindParams(from *Service, to *Service) map[string]interface{} {
 		p["app_key"] = uuid.NewV4().String()
 		p["service_secret"] = to.ID
 	} else if from.Name == ServiceNameKeycloak {
-		p["service_name"] = to.Name
+		p["service"] = to.Name
 	}
 	return p
 }
