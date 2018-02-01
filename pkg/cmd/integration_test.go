@@ -318,3 +318,241 @@ func TestIntegrationCmd_ListIntegrationCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
+	var defaultServiceBinding = &v1beta1.ServiceBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "keycloak-fh-sync-server",
+		},
+		Status: v1beta1.ServiceBindingStatus{
+			Conditions: []v1beta1.ServiceBindingCondition{
+				{
+					Status: v1beta1.ConditionStatus("True"),
+					Type:   v1beta1.ServiceBindingConditionType("Ready"),
+				},
+			},
+		},
+	}
+
+	cases := []struct {
+		Name             string
+		SvcCatalogClient func() (versioned.Interface, *watch.FakeWatcher, []runtime.Object)
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ExpectUsage      bool
+		ValidateErr      func(t *testing.T, err error)
+		Args             []string
+		Flags            []string
+	}{
+		{
+			Name: "test returns usage if missing arguments",
+			SvcCatalogClient: func() (versioned.Interface, *watch.FakeWatcher, []runtime.Object) {
+				fake := &scFake.Clientset{}
+				return fake, nil, nil
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: false,
+			ExpectUsage: true,
+			Args:        []string{},
+			Flags:       []string{},
+		},
+		{
+			Name: "test returns error if flags not set",
+			SvcCatalogClient: func() (versioned.Interface, *watch.FakeWatcher, []runtime.Object) {
+				fake := &scFake.Clientset{}
+				return fake, nil, nil
+			},
+			K8Client: func() kubernetes.Interface {
+				return &kFake.Clientset{}
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "failed to get namespace: no namespace present. Cannot continue. Please set the --namespace flag or the KUBECTL_PLUGINS_CURRENT_NAMESPACE env var"
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
+				}
+			},
+			Args:  []string{"keycloak", "fh-sync-server"},
+			Flags: []string{},
+		},
+		{
+			Name: "returns error when deployment cannot be found",
+			SvcCatalogClient: func() (versioned.Interface, *watch.FakeWatcher, []runtime.Object) {
+				fake := &scFake.Clientset{}
+				fakeWatch := watch.NewFake()
+				fake.AddWatchReactor("servicebindings", ktesting.DefaultWatchReactor(fakeWatch, nil))
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "keycloak",
+							Labels: map[string]string{
+								"serviceName": "keycloak",
+							},
+						},
+					}, nil
+				})
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "fh-sync-server",
+							Labels: map[string]string{
+								"serviceName": "fh-sync-server",
+							},
+						},
+					}, nil
+				})
+				fake.AddReactor("delete", "podpreset", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				fake.AddReactor("delete", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				return fake, fakeWatch, []runtime.Object{
+					defaultServiceBinding,
+				}
+			},
+			K8Client: func() kubernetes.Interface {
+				fake := &kFake.Clientset{}
+				fake.AddReactor("get", "deployments", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to get deployment")
+				})
+				return fake
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "service keycloak: failed to get deployment"
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
+				}
+			},
+			Args:  []string{"keycloak", "fh-sync-server"},
+			Flags: []string{"--namespace=test", "--auto-redeploy=true", "--no-wait=true"},
+		},
+		{
+			Name: "returns error when deployment cannot be updated",
+			SvcCatalogClient: func() (versioned.Interface, *watch.FakeWatcher, []runtime.Object) {
+				fakeWatch := watch.NewFake()
+				fake := &scFake.Clientset{}
+				fake.AddWatchReactor("servicebindings", ktesting.DefaultWatchReactor(fakeWatch, nil))
+
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "keycloak",
+						},
+					}, nil
+				})
+				return fake, fakeWatch, []runtime.Object{
+					defaultServiceBinding,
+				}
+			},
+			K8Client: func() kubernetes.Interface {
+				fake := &kFake.Clientset{}
+				fake.AddReactor("get", "deployments", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &kbeta.Deployment{
+						Spec: kbeta.DeploymentSpec{
+							Template: corev1.PodTemplateSpec{
+								ObjectMeta: metav1.ObjectMeta{
+									Labels: map[string]string{},
+								},
+							},
+						},
+					}, nil
+				})
+				fake.AddReactor("update", "deployments", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to update deployment")
+				})
+				return fake
+			},
+			ExpectError: true,
+			ValidateErr: func(t *testing.T, err error) {
+				expectedErr := "failed to update deployment for service keycloak: failed to update deployment"
+				if err.Error() != expectedErr {
+					t.Fatalf("expected error to be '%s' but got '%v'", expectedErr, err)
+				}
+			},
+			Args:  []string{"keycloak", "fh-sync-server"},
+			Flags: []string{"--namespace=test", "--auto-redeploy=true", "--no-wait=true"},
+		},
+		{
+			Name: "should pass when serviceinstances exist and auto-redeploy is set",
+			SvcCatalogClient: func() (versioned.Interface, *watch.FakeWatcher, []runtime.Object) {
+				fake := &scFake.Clientset{}
+				fakeWatch := watch.NewFake()
+				fake.AddWatchReactor("servicebindings", ktesting.DefaultWatchReactor(fakeWatch, nil))
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "keycloak",
+						},
+					}, nil
+				})
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "fh-sync-server",
+						},
+					}, nil
+				})
+				return fake, fakeWatch, []runtime.Object{
+					defaultServiceBinding,
+				}
+			},
+			K8Client: func() kubernetes.Interface {
+				fake := &kFake.Clientset{}
+				fake.AddReactor("get", "deployments", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &kbeta.Deployment{
+						Spec: kbeta.DeploymentSpec{
+							Template: corev1.PodTemplateSpec{
+								ObjectMeta: metav1.ObjectMeta{
+									Labels: map[string]string{},
+								},
+							},
+						},
+					}, nil
+				})
+				return fake
+			},
+			Args:  []string{"keycloak", "fh-sync-server"},
+			Flags: []string{"--namespace=test", "--auto-redeploy=true", "--no-wait=true"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			root := cmd.NewRootCmd()
+			var out bytes.Buffer
+			scClient, fakeWatch, updates := tc.SvcCatalogClient()
+			if fakeWatch != nil {
+				go func() {
+					for _, u := range updates {
+						fakeWatch.Modify(u)
+					}
+				}()
+			}
+			integrationCmd := cmd.NewIntegrationCmd(scClient, tc.K8Client(), &out)
+			deleteCmd := integrationCmd.DeleteIntegrationCmd()
+			deleteCmd.SetOutput(&out)
+			root.AddCommand(deleteCmd)
+			if err := deleteCmd.ParseFlags(tc.Flags); err != nil {
+				t.Fatal("failed to parse command flags", err)
+			}
+			err := deleteCmd.RunE(deleteCmd, tc.Args)
+
+			if err != nil && !tc.ExpectError {
+				t.Fatal("did not expect an error but gone one:", err)
+			}
+			if err == nil && tc.ExpectError {
+				t.Fatal("expected an error but got none")
+			}
+			if tc.ExpectUsage && out.String() != deleteCmd.UsageString() {
+				t.Fatalf("Expected error to be '%s' but got '%v'", deleteCmd.UsageString(), err)
+			}
+			if tc.ValidateErr != nil {
+				tc.ValidateErr(t, err)
+			}
+		})
+	}
+}
