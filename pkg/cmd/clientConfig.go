@@ -22,6 +22,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -61,23 +62,28 @@ kubectl plugin mobile get clientconfig`,
 				return cmd.Usage()
 			}
 			clientID := args[0]
-			if ns, err = currentNamespace(cmd.Flags()); err != nil {
+			ns, err = currentNamespace(cmd.Flags())
+			if err != nil {
 				return err
 			}
 			ms := listServices(ns, ccc.k8Client)
 			for _, svc := range ms {
 				var svcConfig *ServiceConfig
 				var err error
+				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
+				if err != nil {
+					return errors.Wrap(err, "unable to create config. Failed to get service "+svc.Name+" configmap")
+				}
 				if _, ok := convertors[svc.Name]; !ok {
 
 					convertor := defaultSecretConvertor{}
-					if svcConfig, err = convertor.Convert(svc); err != nil {
+					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data); err != nil {
 						return err
 					}
 				} else {
 					// we can only convert what is available
 					convertor := convertors[svc.Name]
-					if svcConfig, err = convertor.Convert(svc); err != nil {
+					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data); err != nil {
 						return err
 					}
 				}

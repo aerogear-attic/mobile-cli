@@ -72,7 +72,7 @@ const (
 
 // SecretConvertor converts a kubernetes secret into a mobile.ServiceConfig
 type SecretConvertor interface {
-	Convert(s *Service) (*ServiceConfig, error)
+	Convert(id string, params map[string]string) (*ServiceConfig, error)
 }
 
 //ServiceConfigs are collection of configurations for services in a specific namespace
@@ -110,10 +110,10 @@ func (i ignoredFields) Contains(field string) bool {
 var defaultIgnored = ignoredFields{"password", "token", "url", "uri", "name", "type", "id"}
 
 //Convert a kubernetes secret to a mobile.ServiceConfig
-func (dsc defaultSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
+func (dsc defaultSecretConvertor) Convert(id string, params map[string]string) (*ServiceConfig, error) {
 	config := map[string]interface{}{}
 	headers := map[string]string{}
-	for k, v := range s.Params {
+	for k, v := range params {
 		if !defaultIgnored.Contains(k) {
 			config[k] = string(v)
 		}
@@ -122,10 +122,10 @@ func (dsc defaultSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
 		config["headers"] = headers
 	}
 	return &ServiceConfig{
-		ID:     string(s.ID),
-		Name:   string(s.Name),
-		URL:    string(s.Host),
-		Type:   string(s.Type),
+		ID:     id,
+		Name:   params["name"],
+		URL:    params["uri"],
+		Type:   params["type"],
 		Config: config,
 	}, nil
 }
@@ -133,10 +133,10 @@ func (dsc defaultSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
 type keycloakSecretConvertor struct{}
 
 //Convert a kubernetes keycloak secret into a keycloak mobile.ServiceConfig
-func (ksc keycloakSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
+func (ksc keycloakSecretConvertor) Convert(id string, params map[string]string) (*ServiceConfig, error) {
 	config := map[string]interface{}{}
 	headers := map[string]string{}
-	err := json.Unmarshal([]byte(s.Params["public_installation"]), &config)
+	err := json.Unmarshal([]byte(params["public_installation"]), &config)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall keycloak configuration ")
 	}
@@ -145,25 +145,25 @@ func (ksc keycloakSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
 	}
 	return &ServiceConfig{
 		Config: config,
-		Name:   string(s.Name),
-		URL:    string(s.Host),
-		Type:   string(s.Type),
-		ID:     string(s.ID),
+		ID:     id,
+		Name:   string(params["name"]),
+		URL:    string(params["uri"]),
+		Type:   string(params["type"]),
 	}, nil
 }
 
 type syncSecretConvertor struct{}
 
 //Convert a kubernetes Sync Server secret into a keycloak mobile.ServiceConfig
-func (scc syncSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
+func (scc syncSecretConvertor) Convert(id string, params map[string]string) (*ServiceConfig, error) {
 	config := map[string]interface{}{
-		"url": s.Host,
+		"url": params["host"],
 	}
 	headers := map[string]string{}
 
-	acAppID, acAppIDExists := s.Params["apicast_app_id"]
-	acAppKey, acAppKeyExists := s.Params["apicast_app_key"]
-	acRoute, acRouteExists := s.Params["apicast_route"]
+	acAppID, acAppIDExists := params["apicast_app_id"]
+	acAppKey, acAppKeyExists := params["apicast_app_key"]
+	acRoute, acRouteExists := params["apicast_route"]
 	if acAppIDExists && acAppKeyExists && acRouteExists {
 		headers["app_id"] = acAppID
 		headers["app_key"] = acAppKey
@@ -175,10 +175,10 @@ func (scc syncSecretConvertor) Convert(s *Service) (*ServiceConfig, error) {
 
 	return &ServiceConfig{
 		Config: config,
-		Name:   string(s.Name),
-		URL:    string(s.Host),
-		Type:   string(s.Type),
-		ID:     string(s.ID),
+		ID:     id,
+		Name:   params["name"],
+		URL:    params["uri"],
+		Type:   params["type"],
 	}, nil
 }
 

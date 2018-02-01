@@ -119,8 +119,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 								},
 							},
 							Data: map[string][]byte{
-								"name":                []byte("keycloak"),
-								"public_installation": []byte("{}"),
+								"name": []byte("keycloak"),
 							},
 						},
 					}
@@ -128,6 +127,26 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 						Items: secrets,
 					}
 					return true, secretList, nil
+				})
+				fakeclient.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					var config *v1.ConfigMap
+					name := action.(ktesting.GetAction).GetName()
+					if name == "keycloak" {
+						config = &v1.ConfigMap{
+							Data: map[string]string{
+								"public_installation": "{}",
+								"name":                "keycloak",
+							},
+						}
+					}
+					if name == "test-service" {
+						config = &v1.ConfigMap{
+							Data: map[string]string{
+								"name": "test-service",
+							},
+						}
+					}
+					return true, config, nil
 				})
 				return fakeclient
 			},
