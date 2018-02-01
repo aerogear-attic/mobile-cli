@@ -1,0 +1,10 @@
+Usage:
+  mobile get clientconfig <clientID> [flags]
+
+Flags:
+  -h, --help   help for clientconfig
+
+Global Flags:
+      --namespace string   --namespace=myproject
+  -o, --output string      -o=json -o=template (default "table")
+  -q, --quiet              -q all non essential output will be stopped
