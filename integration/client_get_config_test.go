@@ -42,14 +42,14 @@ func TestGetClientConfig(t *testing.T) {
 
 			output, err := cmd.CombinedOutput()
 			if err != nil {
-				t.Fatal(err)
+				t.Fatal(err, string(output))
 			}
 
 			actual := string(output)
 			expected := LoadSnapshot(t, getClientTestPath+test.fixture)
 
 			if *update {
-				WriteSnapshot(t, getClientTestPath+test.fixture, output)
+				WriteSnapshot(t, getClientTestPath+test.fixture, []byte(CleanStringByRegex(actual, regexes)))
 			}
 
 			if test.name == "json output" {
