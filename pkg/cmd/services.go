@@ -328,10 +328,11 @@ Run the "mobile get services" command from this tool to see which services are a
 					},
 				},
 			}
+
 			if _, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Create(&si); err != nil {
 				return errors.WithStack(err)
 			}
-
+			fmt.Println("creating service")
 			pSecret := v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: validServiceName + "-" + "params",
