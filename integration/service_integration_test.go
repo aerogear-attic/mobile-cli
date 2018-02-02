@@ -78,7 +78,7 @@ func TestCreateIntegration(t *testing.T) {
 			cmd := exec.Command(*executable, args...)
 			output, err := cmd.CombinedOutput()
 			if err != nil {
-				t.Fatalf("Failed to create binding: %v", err)
+				t.Fatalf("Failed to create binding: %s", output)
 			}
 			if *update {
 				WriteSnapshot(t, integrationTestPath+test.fixture, output)
@@ -107,7 +107,7 @@ func createInstance(t *testing.T, si *ProvisionServiceParams) {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to create service instance %s: %v", si.ServiceName, err)
+		t.Fatalf("Failed to create service instance %s: %s", si.ServiceName, output)
 	}
 
 	fmt.Println(string(output))
@@ -119,7 +119,7 @@ func getInstanceID(t *testing.T, si *ProvisionServiceParams) (id string) {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to get instances for %s: %v", si.ServiceName, err)
+		t.Fatalf("Failed to get instances for %s: %s", si.ServiceName, output)
 	}
 
 	siList := &v1beta1.ServiceInstanceList{}
@@ -136,7 +136,7 @@ func getBinding(t *testing.T) *v1beta1.ServiceBinding {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatal("Failed to get integrations:", err)
+		t.Fatalf("Failed to get integrations: %s", output)
 	}
 
 	sbList := &v1beta1.ServiceBindingList{}
