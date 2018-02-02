@@ -14,3 +14,9 @@ type MobileClientSpec struct {
 type MobileClientJSON struct {
 	Spec MobileClientSpec
 }
+
+type ProvisionServiceParams struct {
+	Name      string
+	Namespace string
+	Params    []string
+}
