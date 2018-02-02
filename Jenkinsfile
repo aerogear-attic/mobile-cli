@@ -56,8 +56,16 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
         }
 
         stage ("Integration") {
-          sh "oc project ${env.CHANGE_AUTHOR}-${env.BUILD_TAG}"
-          sh "go test -v ./integration -args -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
+          sh "oc project pr-integration-aerogear-org-mobile-cli-repo"
+          sh "go test -c ./integration"
+          sh "./integration.test -test.v -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
+        }
+
+        stage ("Archive") {
+          sh "mkdir out"
+          sh "cp mobile out/"
+          sh "cp integration.test out/"
+          archiveArtifacts artifacts: 'out/*'
         }
       }
     }
