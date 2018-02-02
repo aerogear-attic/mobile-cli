@@ -16,7 +16,7 @@ type MobileClientJSON struct {
 }
 
 type ProvisionServiceParams struct {
-	Name      string
-	Namespace string
-	Params    []string
+	ServiceName string
+	Namespace   string
+	Params      []string
 }

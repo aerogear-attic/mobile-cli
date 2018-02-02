@@ -13,8 +13,8 @@ const integrationTestPath = "createIntegrationTestData/"
 
 func TestCreateIntegration(t *testing.T) {
 	fhSyncServer := &ProvisionServiceParams{
-		Name:      "fh-sync-server",
-		Namespace: fmt.Sprintf("--namespace=%s", *namespace),
+		ServiceName: "fh-sync-server",
+		Namespace:   fmt.Sprintf("--namespace=%s", *namespace),
 		Params: []string{
 			"-p MONGODB_USER_NAME=fhsync",
 			"-p MONGODB_USER_PASSWORD=fhsyncpass",
@@ -23,8 +23,8 @@ func TestCreateIntegration(t *testing.T) {
 	}
 
 	keycloak := &ProvisionServiceParams{
-		Name:      "keycloak",
-		Namespace: fmt.Sprintf("--namespace=%s", *namespace),
+		ServiceName: "keycloak",
+		Namespace:   fmt.Sprintf("--namespace=%s", *namespace),
 		Params: []string{
 			"-p ADMIN_NAME=admin",
 			"-p ADMIN_PASSWORD=pass",
@@ -92,8 +92,8 @@ func TestCreateIntegration(t *testing.T) {
 				}
 			}
 
-			sb := getBinding(t)
 			if test.validate != nil {
+				sb := getBinding(t)
 				test.validate(t, sb)
 			}
 		})
@@ -101,25 +101,25 @@ func TestCreateIntegration(t *testing.T) {
 }
 
 func createInstance(t *testing.T, si *ProvisionServiceParams) {
-	args := []string{"create", "serviceinstance", si.Name, si.Namespace}
+	args := []string{"create", "serviceinstance", si.ServiceName, si.Namespace}
 	args = append(args, si.Params...)
 	cmd := exec.Command(*executable, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to create service instance %s: %v", si.Name, err)
+		t.Fatalf("Failed to create service instance %s: %v", si.ServiceName, err)
 	}
 
 	fmt.Println(string(output))
 }
 
 func getInstanceID(t *testing.T, si *ProvisionServiceParams) (id string) {
-	args := []string{"get", "serviceinstances", si.Name, si.Namespace, "-o=json"}
+	args := []string{"get", "serviceinstances", si.ServiceName, si.Namespace, "-o=json"}
 	cmd := exec.Command(*executable, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to get instances for %s: %v", si.Name, err)
+		t.Fatalf("Failed to get instances for %s: %v", si.ServiceName, err)
 	}
 
 	siList := &v1beta1.ServiceInstanceList{}
