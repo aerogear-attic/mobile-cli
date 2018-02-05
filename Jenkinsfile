@@ -49,13 +49,14 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
           sh "mkdir -p /home/jenkins/.kube"
           sh "rm /home/jenkins/.kube/config || true"
           sh "oc config view > /home/jenkins/.kube/config"
+          sh "oc new-project ${env.CHANGE_AUTHOR}-${env.BUILD_TAG}"
           //end of workaround
 
           sh "./mobile"
         }
 
         stage ("Integration") {
-          sh "oc project pr-integration-aerogear-org-mobile-cli-repo"
+          sh "oc project ${env.CHANGE_AUTHOR}-${env.BUILD_TAG}"
           sh "go test -v ./integration -args -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
         }
       }
