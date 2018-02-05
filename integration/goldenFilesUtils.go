@@ -12,8 +12,11 @@ func snapshotPath(t *testing.T, snapshot string) string {
 	if !ok {
 		t.Fatalf("problems recovering caller information")
 	}
-
-	return filepath.Join(filepath.Dir(filename), snapshot)
+	if *goldenFiles == "" {
+		return filepath.Join(filepath.Dir(filename), snapshot)
+	} else {
+		return filepath.Join(*goldenFiles, snapshot)
+	}
 }
 
 func WriteSnapshot(t *testing.T, snapshot string, content []byte) {

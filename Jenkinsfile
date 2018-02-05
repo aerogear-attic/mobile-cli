@@ -65,7 +65,8 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
           sh "mkdir out"
           sh "cp mobile out/"
           sh "cp integration.test out/"
-          archiveArtifacts artifacts: 'out/*'
+          sh "cp -R integration out/integration"
+          archiveArtifacts artifacts: 'out/**'
         }
       }
     }
