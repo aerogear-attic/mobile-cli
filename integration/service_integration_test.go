@@ -13,7 +13,7 @@ import (
 
 const integrationTestPath = "createIntegrationTestData/"
 
-func TestCreateIntegration(t *testing.T) {
+func TestIntegration(t *testing.T) {
 	fhSyncServer := &ProvisionServiceParams{
 		ServiceName: "fh-sync-server",
 		Namespace:   fmt.Sprintf("--namespace=%s", *namespace),
@@ -45,11 +45,11 @@ func TestCreateIntegration(t *testing.T) {
 		name          string
 		fixture       string
 		args          []string
-		validate      func(t *testing.T, sb *v1beta1.ServiceBinding)
+		validate      func(t *testing.T)
 		expectedError error
 	}{
 		{
-			name:          "missing arguments",
+			name:          "create integrations missing arguments",
 			fixture:       "missing-args.golden",
 			args:          []string{"create", "integration", "", "", "--namespace=" + *namespace},
 			expectedError: errors.New("exit status 1"),
@@ -58,7 +58,12 @@ func TestCreateIntegration(t *testing.T) {
 			name:          "create integration returns ready status",
 			expectedError: nil,
 			args:          []string{"create", "integration", fhSyncID, keycloakID, "--namespace=" + *namespace},
-			validate: func(t *testing.T, sb *v1beta1.ServiceBinding) {
+			validate: func(t *testing.T) {
+				sb, err := getBinding()
+				if err != nil {
+					t.Fatalf("error retrieving binding: %v\n", err)
+				}
+
 				expectedType := "Ready"
 				expectedStatus := "True"
 
@@ -69,6 +74,27 @@ func TestCreateIntegration(t *testing.T) {
 				if actualStatus := string(sb.Status.Conditions[0].Status); actualStatus != expectedStatus {
 					t.Fatalf("Expected condition status to be '%s' but got '%s'", expectedStatus, actualStatus)
 				}
+			},
+		},
+		{
+			name:          "delete integrations missing arguments",
+			fixture:       "missing-args.golden",
+			args:          []string{"delete", "integration", "", "", "--namespace=" + *namespace},
+			expectedError: errors.New("exit status 1"),
+		},
+		{
+			name:          "delete integration",
+			expectedError: nil,
+			args:          []string{"delete", "integration", fhSyncID, keycloakID, "--namespace=" + *namespace},
+			validate: func(t *testing.T) {
+				expectedError := "Could not find servicebindings"
+				_, err := getBinding()
+				if err == nil {
+					t.Fatalf("expected: '%v', got nil", expectedError)
+				} else if err.Error() != expectedError {
+					t.Fatalf("expected: '%v', got: '%v'", expectedError, err.Error())
+				}
+
 			},
 		},
 	}
@@ -100,8 +126,7 @@ func TestCreateIntegration(t *testing.T) {
 			}
 
 			if test.validate != nil {
-				sb := getBinding(t)
-				test.validate(t, sb)
+				test.validate(t)
 			}
 		})
 	}
@@ -137,19 +162,23 @@ func getInstanceID(t *testing.T, si *ProvisionServiceParams) (id string) {
 	return siList.Items[0].ObjectMeta.Name
 }
 
-func getBinding(t *testing.T) *v1beta1.ServiceBinding {
+func getBinding() (*v1beta1.ServiceBinding, error) {
 	args := []string{"get", "integrations", "--namespace=" + *namespace, "-o=json"}
 	cmd := exec.Command(*executable, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to get integrations: %s", output)
+		return nil, err
 	}
 
 	sbList := &v1beta1.ServiceBindingList{}
 	if err = json.Unmarshal(output, sbList); err != nil {
-		t.Fatal("Unexpected error unmarshalling service bindings list:", err)
+		return nil, err
 	}
 
-	return &sbList.Items[0]
+	if len(sbList.Items) == 0 {
+		return nil, errors.New("Could not find servicebindings")
+	}
+
+	return &sbList.Items[0], nil
 }
