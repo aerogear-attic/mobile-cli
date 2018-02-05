@@ -1,17 +1,1 @@
-Usage:
-  mobile create integration <consuming_service_instance_id> <providing_service_instance_id> [flags]
-
-Examples:
-  mobile create integration <consuming_service_instance_id> <providing_service_instance_id> --namespace=myproject
-  kubectl plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
-  oc plugin mobile create integration <consuming_service_instance_id> <providing_service_instance_id>
-
-Flags:
-      --auto-redeploy   --auto-redeploy=true will cause a backing deployment to be rolled out
-  -h, --help            help for integration
-      --no-wait         --no-wait will cause the command to exit immediately after a successful response instead of waiting until the binding is complete
-
-Global Flags:
-      --namespace string   --namespace=myproject
-  -o, --output string      -o=json -o=template (default "table")
-  -q, --quiet              -q all non essential output will be stopped
+Error: resource name may not be empty

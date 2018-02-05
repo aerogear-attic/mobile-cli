@@ -2,8 +2,10 @@ package integration
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
@@ -40,22 +42,22 @@ func TestCreateIntegration(t *testing.T) {
 	keycloakID := getInstanceID(t, keycloak)
 
 	tests := []struct {
-		name       string
-		fhSyncID   string
-		keycloakID string
-		fixture    string
-		validate   func(t *testing.T, sb *v1beta1.ServiceBinding)
+		name          string
+		fixture       string
+		args          []string
+		validate      func(t *testing.T, sb *v1beta1.ServiceBinding)
+		expectedError error
 	}{
 		{
-			name:       "missing/incorrect arguments",
-			fhSyncID:   "",
-			keycloakID: "",
-			fixture:    "missing-args.golden",
+			name:          "missing arguments",
+			fixture:       "missing-args.golden",
+			args:          []string{"create", "integration", "", "", "--namespace=" + *namespace},
+			expectedError: errors.New("exit status 1"),
 		},
 		{
-			name:       "create integration returns ready status",
-			fhSyncID:   fhSyncID,
-			keycloakID: keycloakID,
+			name:          "create integration returns ready status",
+			expectedError: nil,
+			args:          []string{"create", "integration", fhSyncID, keycloakID, "--namespace=" + *namespace},
 			validate: func(t *testing.T, sb *v1beta1.ServiceBinding) {
 				expectedType := "Ready"
 				expectedStatus := "True"
@@ -74,21 +76,26 @@ func TestCreateIntegration(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// create service binding
-			args := []string{"create", "integration", test.fhSyncID, test.keycloakID, "--namespace=" + *namespace}
-			cmd := exec.Command(*executable, args...)
+			cmd := exec.Command(*executable, test.args...)
 			output, err := cmd.CombinedOutput()
-			if err != nil {
-				t.Fatalf("Failed to create binding: %s", output)
+			if err != nil && test.expectedError == nil {
+				t.Fatalf("Failed to create binding: '%s', with error: '%s'", output, err.Error())
+			}
+			if err == nil && test.expectedError != nil {
+				t.Fatalf("expected error: '%s', got: nil, output: '%s'", test.expectedError.Error(), output)
+			}
+			if err != nil && err.Error() != test.expectedError.Error() {
+				t.Fatalf("expected error: '%s', got: '%s', output: '%s'", test.expectedError.Error(), err.Error(), output)
 			}
 			if *update {
 				WriteSnapshot(t, integrationTestPath+test.fixture, output)
 			}
 
 			if test.fixture != "" {
-				actual := string(output)
-				expected := LoadSnapshot(t, integrationTestPath+test.fixture)
+				actual := strings.TrimSpace(string(output))
+				expected := strings.TrimSpace(LoadSnapshot(t, integrationTestPath+test.fixture))
 				if actual != expected {
-					t.Fatalf("actual = \n%s, expected = \n%s", actual, expected)
+					t.Fatalf("actual = \n'%s', expected = \n'%s'", actual, expected)
 				}
 			}
 
@@ -107,7 +114,7 @@ func createInstance(t *testing.T, si *ProvisionServiceParams) {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to create service instance %s: %s", si.ServiceName, output)
+		t.Fatalf("Failed to create service instance '%s': '%s' with error: '%s'", si.ServiceName, output, err)
 	}
 
 	fmt.Println(string(output))
