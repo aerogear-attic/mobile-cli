@@ -74,4 +74,4 @@ The proposal process also requires two approvals from the community before mergi
 ## Stay in touch
 
 * IRC: Join the conversation on Freenode: #aerogear
-* Email: Subscribe to the [aerogear mailing list](https://lists.jboss.org/mailman/listinfo/aerogear-dev)
+* Email: Subscribe to the [aerogear mailing list](https://groups.google.com/forum/#!forum/aerogear)
