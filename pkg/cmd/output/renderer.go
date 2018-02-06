@@ -29,6 +29,7 @@ type Renderer struct {
 func (r *Renderer) Render(cmd, outputType string, data interface{}) error {
 	if strings.ToLower(outputType) == "json" {
 		encoder := json.NewEncoder(r.out)
+		encoder.SetIndent("", "	")
 		return encoder.Encode(data)
 	}
 

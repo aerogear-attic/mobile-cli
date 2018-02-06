@@ -1,1 +1,7 @@
-{"version":"1","client_id":"myapp-cordova","services":[]}
+{
+	"version": "1",
+	
+	
+	"client_id": "myapp-cordova",
+	"services": []
+}
