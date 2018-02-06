@@ -126,7 +126,7 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
 // CreateClientCmd builds the create mobileclient command
 func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "client <name> <clientType iOS|cordova|android> <appIdentifier bundleID|packageName >",
+		Use:   "client <name> <clientType iOS|cordova|android> <appIdentifier bundleID|packageName>",
 		Short: "create a mobile client representation in your namespace",
 		Long: `create client sets up the representation of a mobile application of the specified type in your namespace.
 This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
