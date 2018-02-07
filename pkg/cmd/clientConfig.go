@@ -120,6 +120,10 @@ kubectl plugin mobile get clientconfig`,
 					}
 				}
 				if includedService {
+					err = appendCertificatePinningInfoToService(svcConfig)
+					if err != nil {
+						return errors.Wrap(err, "unable to append certificate pinning information to service config")
+					}
 					ret = append(ret, svcConfig)
 				}
 			}

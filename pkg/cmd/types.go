@@ -80,11 +80,12 @@ type ServiceConfigs struct {
 
 //ServiceConfig is the configuration for a specific service
 type ServiceConfig struct {
-	ID     string                 `json:"id"`
-	Name   string                 `json:"name"`
-	Type   string                 `json:"type"`
-	URL    string                 `json:"url"`
-	Config map[string]interface{} `json:"config"`
+	ID                       string                 `json:"id"`
+	Name                     string                 `json:"name"`
+	Type                     string                 `json:"type"`
+	URL                      string                 `json:"url"`
+	Config                   map[string]interface{} `json:"config"`
+	CertificatePinningHashes []string               `json:"certificatePinningHashes"`
 }
 
 // defaultSecretConvertor will provide a default secret to config conversion
