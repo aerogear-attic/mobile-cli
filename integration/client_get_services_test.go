@@ -3,6 +3,7 @@ package integration
 import (
 	"os/exec"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -13,8 +14,8 @@ func TestGetServices(t *testing.T) {
 	regexes := []*regexp.Regexp{
 		regexp.MustCompile("\"uid\".*?,"),
 		regexp.MustCompile("\"resourceVersion\".*?,"),
-		regexp.MustCompile("\"creationTimestamp\".*?,"),
-		regexp.MustCompile("\"removedFromBrokerCatalog\".*?}"),
+		regexp.MustCompile("\"creationTimestamp\": \".*?\""),
+		regexp.MustCompile("\"removedFromBrokerCatalog\": (true|false)"),
 	}
 
 	tests := []struct {
@@ -44,12 +45,12 @@ func TestGetServices(t *testing.T) {
 			expected := LoadSnapshot(t, getServicesTestPath+test.fixture)
 
 			if test.name == "json output" {
-				actual = CleanStringByRegex(actual, regexes)
-				expected = CleanStringByRegex(expected, regexes)
+				actual = strings.TrimSpace(CleanStringByRegex(actual, regexes))
+				expected = strings.TrimSpace(CleanStringByRegex(expected, regexes))
 			}
 
 			if actual != expected {
-				t.Fatalf("actual = \n%s, expected = \n%s", actual, expected)
+				t.Fatalf("actual = \n'%s', expected = \n'%s'", actual, expected)
 			}
 		})
 	}

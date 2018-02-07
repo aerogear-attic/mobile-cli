@@ -87,7 +87,13 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
 			ValidateOut: func(out bytes.Buffer) error {
-				expected := `{"version":"1","cluster_name":"test","namespace":"testing-ns","client_id":"client-id","services":[]}`
+				expected := `{
+	"version": "1",
+	"cluster_name": "test",
+	"namespace": "testing-ns",
+	"client_id": "client-id",
+	"services": []
+}`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
 				}
@@ -156,7 +162,28 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			cobraCmd:    getFakeCbrCmd(),
 			ExpectError: false,
 			ValidateOut: func(out bytes.Buffer) error {
-				expected := `{"version":"1","cluster_name":"test","namespace":"testing-ns","client_id":"client-id","services":[{"id":"test-service","name":"test-service","type":"","url":"","config":{}},{"id":"keycloak","name":"keycloak","type":"","url":"","config":{}}]}`
+				expected := `{
+	"version": "1",
+	"cluster_name": "test",
+	"namespace": "testing-ns",
+	"client_id": "client-id",
+	"services": [
+		{
+			"id": "test-service",
+			"name": "test-service",
+			"type": "",
+			"url": "",
+			"config": {}
+		},
+		{
+			"id": "keycloak",
+			"name": "keycloak",
+			"type": "",
+			"url": "",
+			"config": {}
+		}
+	]
+}`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
 				}
