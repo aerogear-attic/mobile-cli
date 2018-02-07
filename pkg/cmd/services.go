@@ -36,8 +36,6 @@ import (
 
 	"sort"
 
-	"time"
-
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"k8s.io/apimachinery/pkg/watch"
 )
@@ -364,7 +362,7 @@ Run the "mobile get services" command from this tool to see which services are a
 			if noWait {
 				return nil
 			}
-			timeout := int64(10 * time.Minute) // ten minutes
+			timeout := int64(10 * 60) // ten minutes
 			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{TimeoutSeconds: &timeout})
 			if err != nil {
 				return errors.WithStack(err)
