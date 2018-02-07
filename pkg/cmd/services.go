@@ -36,6 +36,8 @@ import (
 
 	"sort"
 
+	"time"
+
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"k8s.io/apimachinery/pkg/watch"
 )
@@ -362,35 +364,42 @@ Run the "mobile get services" command from this tool to see which services are a
 			if noWait {
 				return nil
 			}
-			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{})
+			timeout := int64(10 * time.Minute) // ten minutes
+			w, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Watch(metav1.ListOptions{TimeoutSeconds: &timeout})
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			for u := range w.ResultChan() {
-				o := u.Object.(*v1beta1.ServiceInstance)
-				if o.Labels["serviceName"] != serviceName {
-					continue
-				}
-				switch u.Type {
-				case watch.Error:
-					w.Stop()
-					return errors.New("unexpected error watching ServiceInstance " + err.Error())
-				case watch.Modified:
-					for _, c := range o.Status.Conditions {
-						fmt.Println("status: " + c.Message)
-						if c.Type == "Ready" && c.Status == "True" {
-							w.Stop()
-						}
+			for {
+				select {
+				case msg, ok := <-w.ResultChan():
+					if !ok {
+						fmt.Println("Timedout waiting. It seems to be taking a long time for the service to provision. Your service may still be provisioning.")
+						return nil
+					}
+					o := msg.Object.(*v1beta1.ServiceInstance)
+					if o.Labels["serviceName"] != serviceName {
+						continue
+					}
+					switch msg.Type {
+					case watch.Error:
+						w.Stop()
+						return errors.New("unexpected error watching ServiceInstance " + err.Error())
+					case watch.Modified:
+						for _, c := range o.Status.Conditions {
+							fmt.Println("status: " + c.Message)
+							if c.Type == "Ready" && c.Status == "True" {
+								w.Stop()
+								return nil
+							}
 
-						if c.Type == "Failed" {
-							w.Stop()
-							return errors.New("Failed to provision " + extServiceClass.ServiceName + ". " + c.Message)
+							if c.Type == "Failed" {
+								w.Stop()
+								return errors.New("Failed to provision " + extServiceClass.ServiceName + ". " + c.Message)
+							}
 						}
 					}
 				}
 			}
-
-			return nil
 		},
 	}
 	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately after a successful response instead of waiting until the service is fully provisioned")
