@@ -263,7 +263,7 @@ Run the "mobile get services" command from this tool to see which services are a
 					validInput := false
 					val := ""
 					for validInput == false {
-						questionFormat := "Set value for %s [default value: %s required: %v]"
+						questionFormat := "Set value for %s [default value: %s, required: %v]"
 						if v["default"] != nil {
 							fmt.Println(fmt.Sprintf(questionFormat, k, v["default"], requiredParam(*instParams, k)))
 						} else {
@@ -289,7 +289,7 @@ Run the "mobile get services" command from this tool to see which services are a
 					}
 					v["value"] = val
 					instParams.Properties[k] = v
-					fmt.Println("set value for " + k + " to : " + val)
+					fmt.Println(fmt.Sprintf("Value for %s set to: %s", k, val))
 				}
 			}
 
