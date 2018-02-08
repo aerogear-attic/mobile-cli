@@ -34,12 +34,12 @@ func TestIntegration(t *testing.T) {
 	}
 
 	// create fh-sync-server service instance
-	createInstance(t, fhSyncServer)
-	fhSyncID := getInstanceID(t, fhSyncServer)
+	CreateInstance(t, fhSyncServer)
+	fhSyncID := GetInstanceID(t, fhSyncServer)
 
 	// create keycloak service instance
-	createInstance(t, keycloak)
-	keycloakID := getInstanceID(t, keycloak)
+	CreateInstance(t, keycloak)
+	keycloakID := GetInstanceID(t, keycloak)
 
 	tests := []struct {
 		name          string
@@ -59,7 +59,7 @@ func TestIntegration(t *testing.T) {
 			expectedError: nil,
 			args:          []string{"create", "integration", fhSyncID, keycloakID, "--namespace=" + *namespace},
 			validate: func(t *testing.T) {
-				sb, err := getBinding()
+				sb, err := GetBinding()
 				if err != nil {
 					t.Fatalf("error retrieving binding: %v\n", err)
 				}
@@ -88,7 +88,7 @@ func TestIntegration(t *testing.T) {
 			args:          []string{"delete", "integration", fhSyncID, keycloakID, "--namespace=" + *namespace},
 			validate: func(t *testing.T) {
 				expectedError := "Could not find servicebindings"
-				_, err := getBinding()
+				_, err := GetBinding()
 				if err == nil {
 					t.Fatalf("expected: '%v', got nil", expectedError)
 				} else if err.Error() != expectedError {
@@ -132,7 +132,7 @@ func TestIntegration(t *testing.T) {
 	}
 }
 
-func createInstance(t *testing.T, si *ProvisionServiceParams) {
+func CreateInstance(t *testing.T, si *ProvisionServiceParams) {
 	args := []string{"create", "serviceinstance", si.ServiceName, si.Namespace}
 	args = append(args, si.Params...)
 	cmd := exec.Command(*executable, args...)
@@ -145,7 +145,7 @@ func createInstance(t *testing.T, si *ProvisionServiceParams) {
 	fmt.Println(string(output))
 }
 
-func getInstanceID(t *testing.T, si *ProvisionServiceParams) (id string) {
+func GetInstanceID(t *testing.T, si *ProvisionServiceParams) (id string) {
 	args := []string{"get", "serviceinstances", si.ServiceName, si.Namespace, "-o=json"}
 	cmd := exec.Command(*executable, args...)
 
@@ -162,7 +162,7 @@ func getInstanceID(t *testing.T, si *ProvisionServiceParams) (id string) {
 	return siList.Items[0].ObjectMeta.Name
 }
 
-func getBinding() (*v1beta1.ServiceBinding, error) {
+func GetBinding() (*v1beta1.ServiceBinding, error) {
 	args := []string{"get", "integrations", "--namespace=" + *namespace, "-o=json"}
 	cmd := exec.Command(*executable, args...)
 
