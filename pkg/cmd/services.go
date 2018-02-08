@@ -147,6 +147,10 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 
 	for _, item := range mobileServices.Items {
 		var extData ExternalServiceMetaData
+		// skip services with no external metadata
+		if item.Spec.ExternalMetadata == nil {
+			continue
+		}
 		rawData := item.Spec.ExternalMetadata.Raw
 		if err := json.Unmarshal(rawData, &extData); err != nil {
 			return nil, err

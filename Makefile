@@ -7,26 +7,35 @@ SHELL = /bin/bash
 
 LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
 
-
+.PHONY: setup
 setup:
 	@go get github.com/kisielk/errcheck
 	@go get github.com/goreleaser/goreleaser
 
+.PHONY: build
 build: setup check build_binary
 
+.PHONY: build_binary_linux
 build_binary_linux:
 	env GOOS=linux GOARCH=amd64 go build -o mobile ./cmd/mobile
 
+.PHONY: build_binary
 build_binary:
 	go build -o mobile ./cmd/mobile
 
+.PHONY: generate
 generate:
 	./scripts/generate.sh
 
+.PHONY: test-unit
 test-unit:
 	@echo Running tests:
 	go test -v -race -cover $(UNIT_TEST_FLAGS) \
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
+
+.PHONY: integration
+integration: build_binary
+	go test -v ./integration -args -namespace=`oc project -q` -executable=`pwd`/mobile
 
 .PHONY: errcheck
 errcheck:
