@@ -88,10 +88,10 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			ExpectError: false,
 			ValidateOut: func(out bytes.Buffer) error {
 				expected := `{
-	"version": "1",
-	"cluster_name": "test",
+	"version": 1,
+	"clusterName": "test",
 	"namespace": "testing-ns",
-	"client_id": "client-id",
+	"clientId": "client-id",
 	"services": []
 }`
 				if strings.TrimSpace(out.String()) != expected {
@@ -163,10 +163,10 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			ExpectError: false,
 			ValidateOut: func(out bytes.Buffer) error {
 				expected := `{
-	"version": "1",
-	"cluster_name": "test",
+	"version": 1,
+	"clusterName": "test",
 	"namespace": "testing-ns",
-	"client_id": "client-id",
+	"clientId": "client-id",
 	"services": [
 		{
 			"id": "test-service",

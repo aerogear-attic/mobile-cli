@@ -77,10 +77,10 @@ type SecretConvertor interface {
 
 //ServiceConfigs are collection of configurations for services in a specific namespace
 type ServiceConfigs struct {
-	Version     string           `json:"version"`
-	ClusterName string           `json:"cluster_name"`
+	Version     int              `json:"version"`
+	ClusterName string           `json:"clusterName"`
 	Namespace   string           `json:"namespace"`
-	ClientID    string           `json:"client_id,omitempty"`
+	ClientID    string           `json:"clientId,omitempty"`
 	Services    []*ServiceConfig `json:"services"`
 }
 
