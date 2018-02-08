@@ -12,7 +12,7 @@ const getClientTestPath = "getClientConfigTestData/"
 func TestGetClientConfig(t *testing.T) {
 	//regexes to match dynamic properties in the client config
 	regexes := []*regexp.Regexp{
-		regexp.MustCompile("\"cluster_name\".*?,"),
+		regexp.MustCompile("\"clusterName\".*?,"),
 		regexp.MustCompile("\"namespace\".*?,"),
 	}
 

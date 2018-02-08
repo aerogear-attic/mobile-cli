@@ -91,7 +91,7 @@ kubectl plugin mobile get clientconfig`,
 			}
 
 			outputJSON := ServiceConfigs{
-				Version:     "1",
+				Version:     1,
 				Services:    ret,
 				Namespace:   ns,
 				ClientID:    clientID,
