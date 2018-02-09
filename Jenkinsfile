@@ -60,6 +60,8 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
           sh "./mobile"
         }
 
+        /*TestLabel*/    
+
         stage ("Integration") {
           sh "oc project ${project}"
           sh "go test -timeout 30m -c ./integration"
