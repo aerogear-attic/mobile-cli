@@ -14,6 +14,10 @@ import (
 const integrationTestPath = "createIntegrationTestData/"
 
 func TestIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration testing in short mode")
+	}
+
 	fhSyncServer := &ProvisionServiceParams{
 		ServiceName: "fh-sync-server",
 		Namespace:   fmt.Sprintf("--namespace=%s", *namespace),
