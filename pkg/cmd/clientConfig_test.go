@@ -203,14 +203,16 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			"name": "test-service",
 			"type": "",
 			"url": "",
-			"config": {}
+			"config": {},
+			"certificatePinningHashes": null
 		},
 		{
 			"id": "keycloak",
 			"name": "keycloak",
 			"type": "",
 			"url": "",
-			"config": {}
+			"config": {},
+			"certificatePinningHashes": null
 		}
 	]
 }`

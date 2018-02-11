@@ -19,12 +19,24 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	"crypto/sha256"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"net/url"
+	"os"
 )
 
 func isClientConfigKey(key string) bool {
 	return key == "url" || key == "name" || key == "type" || key == "id"
+}
+
+func retrieveCertificateForURL(url *url.URL, allowInvalidCertificates bool) (*x509.Certificate, error) {
+	conn, err := tls.Dial("tcp", url.Host+":443", &tls.Config{
+		InsecureSkipVerify: allowInvalidCertificates,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return conn.ConnectionState().PeerCertificates[0], nil
 }
 
 func appendCertificatePinningInfoToService(s *ServiceConfig) error {
@@ -35,17 +47,17 @@ func appendCertificatePinningInfoToService(s *ServiceConfig) error {
 	if serviceURL.Scheme != "https" {
 		return nil
 	}
-	// TODO: Make the InsecureSkipVerify here configurable. I think there will be times when we don't want to allow auto-pinning to unverified certificates.
+
+	allowInvalidCertificates := os.Getenv("AEROGEAR_ALLOW_INVALID_CERTS") == "true"
+
 	// TODO: Allow for the Host variable to contain a port. So split it and then if there's a port use that, else use 443.
-	conn, err := tls.Dial("tcp", serviceURL.Host+":443", &tls.Config{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		return err
-	}
+	certificate, err := retrieveCertificateForURL(serviceURL, allowInvalidCertificates)
 	hasher := sha256.New()
 	// TODO: Do we want to loop through here? The command here https://developer.mozilla.org/en-US/docs/Web/HTTP/Public_Key_Pinning only returns what we are currently returning.
-	hasher.Write(conn.ConnectionState().PeerCertificates[0].RawSubjectPublicKeyInfo)
+	_, err = hasher.Write(certificate.RawSubjectPublicKeyInfo)
+	if err != nil {
+		return nil
+	}
 	s.CertificatePinningHashes = []string{base64.StdEncoding.EncodeToString(hasher.Sum(nil))}
 	return nil
 }
