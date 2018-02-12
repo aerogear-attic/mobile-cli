@@ -22,6 +22,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	kerror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -71,7 +72,11 @@ kubectl plugin mobile get clientconfig`,
 				var svcConfig *ServiceConfig
 				var err error
 				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
+				// ignoring not found as some services will not have this public configmap
 				if err != nil {
+					if kerror.IsNotFound(err) {
+						continue
+					}
 					return errors.Wrap(err, "unable to create config. Failed to get service "+svc.Name+" configmap")
 				}
 				if _, ok := convertors[svc.Name]; !ok {
