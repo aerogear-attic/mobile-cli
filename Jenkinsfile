@@ -22,10 +22,10 @@ String sanitizeObjectName(String s) {
 // The jnlp container will be the one that the configured node will run on
 // you can define more containers and run them along-side
 def goSlaveContainer = containerTemplate(
-  name: 'jnlp', 
+  name: 'jnlp',
   image: 'docker.io/fhwendy/jenkins-slave-go-centos7:201801081225',
   args: '${computer.jnlpmac} ${computer.name}',
-  ttyEnabled: false) 
+  ttyEnabled: false)
 
 podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveContainer]) {
   node ("mobile-cli-go") {
@@ -54,7 +54,6 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
 
           sh "./mobile"
         }
-    
 
         stage ("Integration") {
           sh "oc project ${project}"
@@ -71,7 +70,7 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
         }
 
         stage ("Clear Project") {
-            "sh oc delete project ${project}"
+            sh "oc delete project ${project}"
         }
       }
     }
