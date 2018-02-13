@@ -1,3 +1,8 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/golang/crypto)](https://goreportcard.com/report/github.com/golang/crypto)
+
+[![Coverage Status](https://coveralls.io/repos/github/aerogear/mobile-cli/badge.svg?branch=add-go-report-card-to-readme)](https://coveralls.io/github/aerogear/mobile-cli?branch=add-go-report-card-to-readme)
+
+
 ## The Mobile CLI is a standalone CLI that can also be used a kubectl / oc plugin
 
 ## Note this is still under construction and not yet fit for use

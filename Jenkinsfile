@@ -38,11 +38,16 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
 
         stage ("Setup") {
           sh "glide install"
+          sh "go get golang.org/x/tools/cmd/cover"
+          sh "go get github.com/mattn/goveralls"
         }
 
-        stage ("Build") {
-          sh "make build"
+        withCredentials([string(credentialsId: "coveralls_io", variable: 'COVERALLS_TOKEN')]) {
+          stage ("Build") {
+            sh "make coveralls_build COVERALLS_TOKEN=${COVERALLS_TOKEN}"
+          }
         }
+        
         def project = sanitizeObjectName("mobile-cli-${env.CHANGE_AUTHOR}-${env.BUILD_TAG}")
         stage ("Run") {
           // workaround because of the https://issues.jboss.org/browse/FH-4471

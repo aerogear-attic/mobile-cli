@@ -15,6 +15,9 @@ setup:
 .PHONY: build
 build: setup check build_binary
 
+.PHONY: coveralls_build
+coveralls_build: setup coveralls_check build_binary
+
 .PHONY: build_binary_linux
 build_binary_linux:
 	env GOOS=linux GOARCH=amd64 go build -o mobile ./cmd/mobile
@@ -32,6 +35,13 @@ test-unit:
 	@echo Running tests:
 	go test -v -race -cover $(UNIT_TEST_FLAGS) \
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
+
+.PHONY: coveralls_test-unit
+coveralls_test-unit:
+	@echo Running tests:
+	go test -v -race -cover -covermode=atomic -coverprofile=coverage.out $(UNIT_TEST_FLAGS) \
+	  $(addprefix $(PKG)/,$(TEST_DIRS))
+	goveralls -coverprofile=coverage.out -service=jenkins-ci -repotoken $(COVERALLS_TOKEN)
 
 .PHONY: integration
 integration: build_binary
@@ -53,6 +63,9 @@ fmt:
 
 .PHONY: check
 check: errcheck vet fmt test-unit
+
+.PHONY: coveralls_check
+coveralls_check: errcheck vet fmt coveralls_test-unit
 
 integration_binary: 
 	go test -c -v ./integration
