@@ -63,7 +63,15 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
         stage ("Integration") {
           sh "oc project ${project}"
           sh "go test -timeout 30m -c ./integration"
-          sh "./integration.test -test.short -test.v -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
+          def labels = getPullRequestLabels {}  
+          def test_short = "-test.short"
+          if(labels.contains("run long tests")){
+            test_short = ""
+            print "Will run the full integration test-suite"
+          } else {
+            print "Will run the integration test-suite with -test.short flag"
+          }
+          sh "./integration.test ${test_short} -test.v -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
         }
 
         stage ("Archive") {
