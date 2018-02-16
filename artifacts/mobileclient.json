@@ -14,6 +14,10 @@
   "spec": {
     "name": "myapp",
     "apiKey": "25113a4f-48b3-4dbb-b462-e2d388a475ac",
-    "clientType": "cordova"
+    "clientType": "cordova",
+    "excludedServices": [
+      "test",
+      "test2"
+    ]
   }
 }

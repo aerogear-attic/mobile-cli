@@ -69,11 +69,11 @@ func (cc *ClientCmd) ListClientsCmd() *cobra.Command {
 		mClients := mobileClientList.(*v1alpha1.MobileClientList)
 		var data [][]string
 		for _, mClient := range mClients.Items {
-			data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier})
+			data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier, strings.Join(mClient.Spec.ExcludedServices, ", ")})
 		}
 		table := tablewriter.NewWriter(out)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Name", "ClientType", "AppIdentifier"})
+		table.SetHeader([]string{"ID", "Name", "ClientType", "AppIdentifier", "ExcludedServices"})
 		table.Render()
 		return nil
 	})
@@ -113,10 +113,10 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
 	cc.Out.AddRenderer(command.Name(), "table", func(out io.Writer, mobileClient interface{}) error {
 		mClient := mobileClient.(*v1alpha1.MobileClient)
 		var data [][]string
-		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey, mClient.Spec.AppIdentifier})
+		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey, mClient.Spec.AppIdentifier, strings.Join(mClient.Spec.ExcludedServices, ", ")})
 		table := tablewriter.NewWriter(out)
 		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Namespace", "Name", "ClientType", "ApiKey", "AppIdentifier"})
+		table.SetHeader([]string{"ID", "Namespace", "Name", "ClientType", "ApiKey", "AppIdentifier", "Excluded Services"})
 		table.Render()
 		return nil
 	})
