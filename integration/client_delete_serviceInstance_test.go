@@ -16,6 +16,9 @@ import (
 const deleteServicetestPath = "deleteServiceInstanceTestData/"
 
 func TestDeleteServiceInstance(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration testing in short mode")
+	}
 
 	fhSyncServer := &ProvisionServiceParams{
 		ServiceName: "fh-sync-server",
