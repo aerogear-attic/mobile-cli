@@ -4,3 +4,6 @@
 
 cmd/mobile/mobile
 mobile
+
+coverage.out
+integration.test
