@@ -15,7 +15,6 @@ type ValidationResult struct {
 }
 
 func (v ValidationResult) Test(t *testing.T) (output []byte, err error) {
-	t.Log(fmt.Sprintf("%s\n", v.Output))
 	if !v.Success {
 		t.Fatal(v.Message)
 	}

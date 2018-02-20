@@ -17,29 +17,34 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"strings"
 
+	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
 // ClientConfigCmd executes the retrieval and display of the client config
 type ClientConfigCmd struct {
 	*BaseCmd
-	k8Client    kubernetes.Interface
-	clusterHost string
+	k8Client     kubernetes.Interface
+	mobileClient mobile.Interface
+	clusterHost  string
 }
 
 // NewClientConfigCmd creates and returns a ClientConfigCmd object
-func NewClientConfigCmd(k8Client kubernetes.Interface, clusterHost string, out io.Writer) *ClientConfigCmd {
+func NewClientConfigCmd(k8Client kubernetes.Interface, mobileClient mobile.Interface, clusterHost string, out io.Writer) *ClientConfigCmd {
 	return &ClientConfigCmd{
-		k8Client:    k8Client,
-		clusterHost: clusterHost,
-		BaseCmd:     &BaseCmd{Out: output.NewRenderer(out)},
+		k8Client:     k8Client,
+		clusterHost:  clusterHost,
+		mobileClient: mobileClient,
+		BaseCmd:      &BaseCmd{Out: output.NewRenderer(out)},
 	}
 }
 
@@ -67,10 +72,22 @@ kubectl plugin mobile get clientconfig`,
 			if err != nil {
 				return err
 			}
+
+			client, err := ccc.mobileClient.MobileV1alpha1().MobileClients(ns).Get(clientID, metav1.GetOptions{})
+			if err != nil {
+				return errors.Wrap(err, "failed to get mobile client with clientID "+clientID)
+			}
+
 			ms := listServices(ns, ccc.k8Client)
 			for _, svc := range ms {
 				var svcConfig *ServiceConfig
 				var err error
+				includedService := true
+				for _, excluded := range client.Spec.ExcludedServices {
+					if strings.TrimSpace(excluded) == strings.TrimSpace(svc.ID) {
+						includedService = false
+					}
+				}
 				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
 				// ignoring not found as some services will not have this public configmap
 				if err != nil {
@@ -80,7 +97,6 @@ kubectl plugin mobile get clientconfig`,
 					return errors.Wrap(err, "unable to create config. Failed to get service "+svc.Name+" configmap")
 				}
 				if _, ok := convertors[svc.Name]; !ok {
-
 					convertor := defaultSecretConvertor{}
 					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data); err != nil {
 						return err
@@ -92,7 +108,9 @@ kubectl plugin mobile get clientconfig`,
 						return err
 					}
 				}
-				ret = append(ret, svcConfig)
+				if includedService {
+					ret = append(ret, svcConfig)
+				}
 			}
 
 			outputJSON := ServiceConfigs{
