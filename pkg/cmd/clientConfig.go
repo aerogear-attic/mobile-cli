@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
@@ -83,7 +84,7 @@ kubectl plugin mobile get clientconfig`,
 				var err error
 				includedService := true
 				for _, excluded := range client.Spec.ExcludedServices {
-					if excluded == svc.ID {
+					if strings.TrimSpace(excluded) == strings.TrimSpace(svc.ID) {
 						includedService = false
 					}
 				}
