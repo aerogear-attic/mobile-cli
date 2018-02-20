@@ -77,8 +77,6 @@ kubectl plugin mobile get clientconfig`,
 				return errors.Wrap(err, "failed to get mobile client with clientID "+clientID)
 			}
 
-			fmt.Printf("spec: %+v\n", client.Spec)
-
 			ms := listServices(ns, ccc.k8Client)
 			for _, svc := range ms {
 				var svcConfig *ServiceConfig
@@ -89,9 +87,6 @@ kubectl plugin mobile get clientconfig`,
 						includedService = false
 					}
 				}
-				// if !includedService {
-				// 	continue
-				// }
 				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
 				// ignoring not found as some services will not have this public configmap
 				if err != nil {
