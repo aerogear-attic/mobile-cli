@@ -34,6 +34,7 @@ func TestGetServices(t *testing.T) {
 
 			output, err := cmd.CombinedOutput()
 			if err != nil {
+				t.Logf("output: %v\n", string(output))
 				t.Fatal(err)
 			}
 			if *update {
