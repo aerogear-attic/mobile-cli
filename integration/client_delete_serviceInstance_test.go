@@ -148,7 +148,7 @@ func deleteServiceInstance(t *testing.T, sid, namespace string) {
 	cmd := exec.Command("oc", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Failed to delete service instance %s: %v, with output %v", sid, err, output)
+		t.Fatalf("Failed to delete service instance %s: %v, with output %v", sid, err, string(output))
 	}
 }
 
@@ -186,6 +186,9 @@ func getInstance(si *ProvisionServiceParams) (instance *v1beta1.ServiceInstance,
 		return nil, err
 	}
 
+	if len(siList.Items) == 0 {
+		return nil, errors.New("no matching instances found")
+	}
 	return &siList.Items[0], nil
 }
 

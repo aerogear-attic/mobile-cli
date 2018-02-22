@@ -11,4 +11,6 @@ Spec:
   clientType: iOS
   apiKey: 834d44f-d697-4c56-aec6-47940679f79a
   name: app2
-
+  excludedServices:
+  - test1
+    test2

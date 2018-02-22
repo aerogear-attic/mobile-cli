@@ -139,6 +139,7 @@ func TestIntegration(t *testing.T) {
 func CreateInstance(t *testing.T, si *ProvisionServiceParams) {
 	args := []string{"create", "serviceinstance", si.ServiceName, si.Namespace}
 	args = append(args, si.Params...)
+	t.Logf("executing: %v\n", *executable+strings.Join(args, " "))
 	cmd := exec.Command(*executable, args...)
 
 	output, err := cmd.CombinedOutput()
