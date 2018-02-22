@@ -157,19 +157,20 @@ When used standalone, a namespace must be specified by providing the --namespace
 					APIVersion: "mobile.k8s.io/v1alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{},
+					Labels:      map[string]string{},
+					Annotations: map[string]string{},
 				},
 				Spec: v1alpha1.MobileClientSpec{Name: name, ApiKey: appKey, ClientType: clientType, AppIdentifier: appIdentifier},
 			}
 			switch app.Spec.ClientType {
 			case "android":
-				app.Labels["icon"] = "fa-android"
+				app.Annotations["icon"] = "fa fa-android"
 				break
 			case "iOS":
-				app.Labels["icon"] = "fa-apple"
+				app.Annotations["icon"] = "fa fa-apple"
 				break
 			case "cordova":
-				app.Labels["icon"] = "icon-cordova"
+				app.Annotations["icon"] = "font-icon icon-cordova"
 				break
 			}
 			app.Name = name + "-" + strings.ToLower(app.Spec.ClientType)

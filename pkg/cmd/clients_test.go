@@ -334,11 +334,11 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
-				icon, ok := c.Labels["icon"]
+				icon, ok := c.Annotations["icon"]
 				if !ok {
 					t.Fatal("expected an icon to be set but there was none")
 				}
-				if icon != "icon-cordova" {
+				if icon != "font-icon icon-cordova" {
 					t.Fatal("expected the icon to be icon-cordova but got ", icon)
 				}
 			},
@@ -371,11 +371,11 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
-				icon, ok := c.Labels["icon"]
+				icon, ok := c.Annotations["icon"]
 				if !ok {
 					t.Fatal("expected an icon to be set but there was none")
 				}
-				if icon != "fa-android" {
+				if icon != "fa fa-android" {
 					t.Fatal("expected the icon to be fa-android but got ", icon)
 				}
 			},
@@ -408,11 +408,11 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
-				icon, ok := c.Labels["icon"]
+				icon, ok := c.Annotations["icon"]
 				if !ok {
 					t.Fatal("expected an icon to be set but there was none")
 				}
-				if icon != "fa-apple" {
+				if icon != "fa fa-apple" {
 					t.Fatal("expected the icon to be fa-apple but got ", icon)
 				}
 			},
