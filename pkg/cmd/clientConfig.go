@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
+	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -35,15 +36,17 @@ type ClientConfigCmd struct {
 	*BaseCmd
 	k8Client     kubernetes.Interface
 	mobileClient mobile.Interface
+	scClient     sc.Interface
 	clusterHost  string
 }
 
 // NewClientConfigCmd creates and returns a ClientConfigCmd object
-func NewClientConfigCmd(k8Client kubernetes.Interface, mobileClient mobile.Interface, clusterHost string, out io.Writer) *ClientConfigCmd {
+func NewClientConfigCmd(k8Client kubernetes.Interface, mobileClient mobile.Interface, scClient sc.Interface, clusterHost string, out io.Writer) *ClientConfigCmd {
 	return &ClientConfigCmd{
 		k8Client:     k8Client,
 		clusterHost:  clusterHost,
 		mobileClient: mobileClient,
+		scClient:     scClient,
 		BaseCmd:      &BaseCmd{Out: output.NewRenderer(out)},
 	}
 }
@@ -84,8 +87,15 @@ kubectl plugin mobile get clientconfig`,
 				var err error
 				includedService := true
 				for _, excluded := range client.Spec.ExcludedServices {
-					if strings.TrimSpace(excluded) == strings.TrimSpace(svc.ID) {
+					catalogService, err := ccc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Get(excluded, v1.GetOptions{})
+					if kerror.IsNotFound(err) {
+						continue
+					} else if err != nil {
+						return err
+					}
+					if strings.TrimSpace(catalogService.Labels["serviceName"]) == strings.TrimSpace(svc.Name) {
 						includedService = false
+						break
 					}
 				}
 				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
