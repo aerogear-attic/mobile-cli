@@ -23,8 +23,11 @@ import (
 	"regexp"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
+	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	mcFake "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
+	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	scFake "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/fake"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -53,16 +56,17 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	}
 
 	tests := []struct {
-		name         string
-		k8Client     func() kubernetes.Interface
-		mobileClient func() mobile.Interface
-		ClusterHost  string
-		namespace    string
-		args         []string
-		cobraCmd     *cobra.Command
-		ExpectError  bool
-		ErrorPattern string
-		ValidateOut  func(bytes.Buffer) error
+		name             string
+		k8Client         func() kubernetes.Interface
+		mobileClient     func() mobile.Interface
+		SvcCatalogClient func() versioned.Interface
+		ClusterHost      string
+		namespace        string
+		args             []string
+		cobraCmd         *cobra.Command
+		ExpectError      bool
+		ErrorPattern     string
+		ValidateOut      func(bytes.Buffer) error
 	}{
 		{
 			name: "get client config command with empty namespace",
@@ -71,6 +75,10 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			},
 			mobileClient: func() mobile.Interface {
 				return &mcFake.Clientset{}
+			},
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
 			},
 			namespace:    "",
 			ClusterHost:  "test",
@@ -91,6 +99,10 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			},
 			mobileClient: func() mobile.Interface {
 				return &mcFake.Clientset{}
+			},
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
 			},
 			namespace:   "testing-ns",
 			ClusterHost: "test",
@@ -169,6 +181,10 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			},
 			mobileClient: func() mobile.Interface {
 				return &mcFake.Clientset{}
+			},
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				return fake
 			},
 			namespace:   "testing-ns",
 			ClusterHost: "test",
@@ -268,11 +284,25 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 							Name:             "test",
 							ApiKey:           "testkey",
 							ClientType:       "cordova",
-							ExcludedServices: []string{"keycloak"},
+							ExcludedServices: []string{"dh-keycloak-fsdfsdfs"},
 						},
 					}, nil
 				})
 				return mf
+			},
+			SvcCatalogClient: func() versioned.Interface {
+				fake := &scFake.Clientset{}
+				fake.AddReactor("get", "serviceinstances", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "dh-keycloak-fsdfsdfs",
+							Labels: map[string]string{
+								"serviceName": "keycloak",
+							},
+						},
+					}, nil
+				})
+				return fake
 			},
 			namespace:   "testing-ns",
 			ClusterHost: "test",
@@ -305,7 +335,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			var out bytes.Buffer
-			ccCmd := cmd.NewClientConfigCmd(tc.k8Client(), tc.mobileClient(), tc.ClusterHost, &out)
+			ccCmd := cmd.NewClientConfigCmd(tc.k8Client(), tc.mobileClient(), tc.SvcCatalogClient(), tc.ClusterHost, &out)
 
 			got := ccCmd.GetClientConfigCmd()
 			if use := got.Use; use != tc.cobraCmd.Use {

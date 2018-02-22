@@ -88,8 +88,10 @@ kubectl plugin mobile get clientconfig`,
 				includedService := true
 				for _, excluded := range client.Spec.ExcludedServices {
 					catalogService, err := ccc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Get(excluded, v1.GetOptions{})
-					if err != nil {
+					if kerror.IsNotFound(err) {
 						continue
+					} else if err != nil {
+						return err
 					}
 					if strings.TrimSpace(catalogService.Labels["serviceName"]) == strings.TrimSpace(svc.Name) {
 						includedService = false
