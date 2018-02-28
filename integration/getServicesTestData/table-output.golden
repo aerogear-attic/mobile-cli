@@ -12,7 +12,9 @@
 | metrics         |                  | GRAFANA_STORAGE_SIZE,          |
 |                 |                  | PROMETHEUS_STORAGE_SIZE        |
 | aerogear-digger |                  | ANDROID_LICENSE_AGREEMENT      |
-| keycloak        |                  | ADMIN_NAME, ADMIN_PASSWORD     |
+| keycloak        |                  | ADMIN_NAME, ADMIN_PASSWORD,    |
+|                 |                  | SHARED_HOST, SHARED_REALM,     |
+|                 |                  | USE_SHARED_SERVICE             |
 | fh-sync-server  | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        |
 |                 |                  | MONGODB_USER_NAME,             |
 |                 |                  | MONGODB_USER_PASSWORD          |
