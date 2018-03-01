@@ -10,6 +10,9 @@
 |                 |                  | THREESCALE_ENABLE_CORS,        |
 |                 |                  | THREESCALE_SERVICE_ID          |
 | metrics         |                  | GRAFANA_STORAGE_SIZE,          |
+|                 |                  | POSTGRES_PASSWORD,             |
+|                 |                  | POSTGRES_STORAGE_SIZE,         |
+|                 |                  | POSTGRES_USER,                 |
 |                 |                  | PROMETHEUS_STORAGE_SIZE        |
 | aerogear-digger |                  | ANDROID_LICENSE_AGREEMENT      |
 | keycloak        |                  | ADMIN_NAME, ADMIN_PASSWORD,    |
