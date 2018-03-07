@@ -16,18 +16,11 @@ import (
 const deleteServicetestPath = "deleteServiceInstanceTestData/"
 
 func TestDeleteServiceInstance(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration testing in short mode")
-	}
 
 	fhSyncServer := &ProvisionServiceParams{
-		ServiceName: "fh-sync-server",
+		ServiceName: "hello-aerogear-apb",
 		Namespace:   fmt.Sprintf("--namespace=%s", *namespace),
-		Params: []string{
-			"-p MONGODB_USER_NAME=fhsync",
-			"-p MONGODB_USER_PASSWORD=fhsyncpass",
-			"-p MONGODB_ADMIN_PASSWORD=pass",
-		},
+		Params:      []string{},
 	}
 	if err := deleteAllMobileEnabledSecrets(*namespace); err != nil {
 		t.Log("failed to clean up secrets")
@@ -37,6 +30,7 @@ func TestDeleteServiceInstance(t *testing.T) {
 			t.Log("failed to clean up secrets")
 		}
 	}()
+	t.Log("Before create")
 	createInstance(t, fhSyncServer)
 	fhSyncID, err := getInstanceID(fhSyncServer)
 	defer func() {
@@ -135,16 +129,18 @@ func TestDeleteServiceInstance(t *testing.T) {
 func createInstance(t *testing.T, si *ProvisionServiceParams) {
 	args := []string{"create", "serviceinstance", si.ServiceName, si.Namespace}
 	args = append(args, si.Params...)
+	t.Log(args)
 	cmd := exec.Command(*executable, args...)
-
+	t.Log(args)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("Failed to create service instance %s: %v, with output %v", si.ServiceName, err, string(output))
 	}
+	t.Log(output)
 }
 
 func deleteServiceInstance(t *testing.T, sid, namespace string) {
-	args := []string{"delete", "serviceinstance", sid, "-n=" + namespace}
+	args := []string{"delete", "serviceinstance", sid, "--namespace=" + namespace}
 	cmd := exec.Command("oc", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
