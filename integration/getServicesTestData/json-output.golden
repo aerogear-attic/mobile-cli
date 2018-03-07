@@ -5,9 +5,9 @@
 			"metadata": {
 				"name": "1522a4d0e2fbf86a26cbe096eb1b6b2d",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/1522a4d0e2fbf86a26cbe096eb1b6b2d",
-				"uid": "12368a77-0c06-11e8-896a-0242ac110004",
+				"uid": "ce28ee7f-2054-11e8-a14a-0242ac110006",
 				"resourceVersion": "38",
-				"creationTimestamp": "2018-02-07T12:54:44Z"
+				"creationTimestamp": "2018-03-05T09:08:44Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -39,9 +39,9 @@
 			"metadata": {
 				"name": "2b825339e8d685a78476621a252beea8",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/2b825339e8d685a78476621a252beea8",
-				"uid": "1255238e-0c06-11e8-896a-0242ac110004",
-				"resourceVersion": "39",
-				"creationTimestamp": "2018-02-07T12:54:45Z"
+				"uid": "cde445bd-2054-11e8-a14a-0242ac110006",
+				"resourceVersion": "31",
+				"creationTimestamp": "2018-03-05T09:08:43Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -68,11 +68,41 @@
 		},
 		{
 			"metadata": {
+				"name": "2d688fd086581e4bc1ec82836be3199f",
+				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/2d688fd086581e4bc1ec82836be3199f",
+				"uid": "cc604722-2056-11e8-a14a-0242ac110006",
+				"resourceVersion": "54",
+				"creationTimestamp": "2018-03-05T09:23:00Z"
+			},
+			"spec": {
+				"clusterServiceBrokerName": "ansible-service-broker",
+				"externalName": "localregistry-hello-aerogear-apb",
+				"externalID": "2d688fd086581e4bc1ec82836be3199f",
+				"description": "deploys hello-aerogear web application",
+				"bindable": false,
+				"binding_retrievable": false,
+				"planUpdatable": false,
+				"externalMetadata": {
+					"displayName": "Hello Aerogear (APB)",
+					"integrations": "hello-aerogear-db-apb",
+					"providerDisplayName": "Red Hat, Inc.",
+					"serviceName": "hello-aerogear-apb"
+				},
+				"tags": [
+					"mobile-service"
+				]
+			},
+			"status": {
+				"removedFromBrokerCatalog": false
+			}
+		},
+		{
+			"metadata": {
 				"name": "9623d53183cc78619f888ea8499c678e",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/9623d53183cc78619f888ea8499c678e",
-				"uid": "12180ceb-0c06-11e8-896a-0242ac110004",
-				"resourceVersion": "37",
-				"creationTimestamp": "2018-02-07T12:54:44Z"
+				"uid": "cdf39062-2054-11e8-a14a-0242ac110006",
+				"resourceVersion": "33",
+				"creationTimestamp": "2018-03-05T09:08:43Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -101,9 +131,9 @@
 			"metadata": {
 				"name": "a0c0c2478554458d5c77abc95f0473a3",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/a0c0c2478554458d5c77abc95f0473a3",
-				"uid": "1209b137-0c06-11e8-896a-0242ac110004",
-				"resourceVersion": "33",
-				"creationTimestamp": "2018-02-07T12:54:44Z"
+				"uid": "cde6dfc7-2054-11e8-a14a-0242ac110006",
+				"resourceVersion": "32",
+				"creationTimestamp": "2018-03-05T09:08:43Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -133,9 +163,9 @@
 			"metadata": {
 				"name": "b95513950bb3f132de25d58fb75f8dca",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/b95513950bb3f132de25d58fb75f8dca",
-				"uid": "120a3d53-0c06-11e8-896a-0242ac110004",
-				"resourceVersion": "34",
-				"creationTimestamp": "2018-02-07T12:54:44Z"
+				"uid": "cde3c4a6-2054-11e8-a14a-0242ac110006",
+				"resourceVersion": "143",
+				"creationTimestamp": "2018-03-05T09:08:43Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -167,9 +197,9 @@
 			"metadata": {
 				"name": "c57e94c36c1e7f6bb41cf7c589d9eb08",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/c57e94c36c1e7f6bb41cf7c589d9eb08",
-				"uid": "12092f0e-0c06-11e8-896a-0242ac110004",
-				"resourceVersion": "32",
-				"creationTimestamp": "2018-02-07T12:54:44Z"
+				"uid": "ce0a6562-2054-11e8-a14a-0242ac110006",
+				"resourceVersion": "37",
+				"creationTimestamp": "2018-03-05T09:08:44Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
