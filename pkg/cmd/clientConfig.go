@@ -120,12 +120,12 @@ kubectl plugin mobile get clientconfig`,
 					}
 				}
 				if includedService {
-					err = appendCertificatePinningInfoToService(svcConfig)
-					if err != nil {
-						return errors.Wrap(err, "unable to append certificate pinning information to service config")
-					}
 					ret = append(ret, svcConfig)
 				}
+			}
+			servicePinningHashes, err := retrieveHTTPSConfigForServices(ret)
+			if err != nil {
+				return errors.Wrap(err, "unable to append https configuration for services.")
 			}
 
 			outputJSON := ServiceConfigs{
@@ -134,6 +134,7 @@ kubectl plugin mobile get clientconfig`,
 				Namespace:   ns,
 				ClientID:    clientID,
 				ClusterName: ccc.clusterHost,
+				Https:       servicePinningHashes,
 			}
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "ServiceConfig", outputType(cmd.Flags())))

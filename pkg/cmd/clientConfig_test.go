@@ -115,7 +115,8 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 	"clusterName": "test",
 	"namespace": "testing-ns",
 	"clientId": "client-id",
-	"services": []
+	"services": [],
+	"https": []
 }`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
@@ -203,18 +204,17 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			"name": "test-service",
 			"type": "",
 			"url": "",
-			"config": {},
-			"certificatePinningHashes": null
+			"config": {}
 		},
 		{
 			"id": "keycloak",
 			"name": "keycloak",
 			"type": "",
 			"url": "",
-			"config": {},
-			"certificatePinningHashes": null
+			"config": {}
 		}
-	]
+	],
+	"https": []
 }`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
@@ -325,7 +325,8 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			"url": "",
 			"config": {}
 		}
-	]
+	],
+	"https": []
 }`
 				if strings.TrimSpace(out.String()) != expected {
 					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))

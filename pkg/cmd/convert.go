@@ -21,6 +21,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
+	"fmt"
+	"github.com/pkg/errors"
 	"net/url"
 	"os"
 )
@@ -29,37 +31,61 @@ func isClientConfigKey(key string) bool {
 	return key == "url" || key == "name" || key == "type" || key == "id"
 }
 
-func retrieveCertificateForURL(url *url.URL, allowInvalidCertificates bool) (*x509.Certificate, error) {
-	conn, err := tls.Dial("tcp", url.Host+":443", &tls.Config{
-		InsecureSkipVerify: allowInvalidCertificates,
-	})
+func retrieveHTTPSConfigForServices(services []*ServiceConfig) ([]*CertificatePinningHash, error) {
+	httpsConfig := []*CertificatePinningHash{}
+	for _, svc := range services {
+		pinningHash, err := retrieveHTTPSConfigForService(svc)
+		if err != nil {
+			return nil, err
+		}
+		if pinningHash != nil {
+			httpsConfig = append(httpsConfig, pinningHash)
+		}
+	}
+	return httpsConfig, nil
+}
+
+func retrieveHTTPSConfigForService(service *ServiceConfig) (*CertificatePinningHash, error) {
+	serviceURL, err := url.Parse(service.URL)
 	if err != nil {
 		return nil, err
 	}
-	return conn.ConnectionState().PeerCertificates[0], nil
-}
-
-func appendCertificatePinningInfoToService(s *ServiceConfig) error {
-	serviceURL, err := url.Parse(s.URL)
-	if err != nil {
-		return err
-	}
 	if serviceURL.Scheme != "https" {
-		return nil
+		return nil, nil
 	}
 
 	allowInvalidCertificates := os.Getenv("AEROGEAR_ALLOW_INVALID_CERTS") == "true"
 
-	// TODO: Allow for the Host variable to contain a port. So split it and then if there's a port use that, else use 443.
 	certificate, err := retrieveCertificateForURL(serviceURL, allowInvalidCertificates)
+	if err != nil {
+		return nil, err
+	}
+
 	hasher := sha256.New()
-	// TODO: Do we want to loop through here? The command here https://developer.mozilla.org/en-US/docs/Web/HTTP/Public_Key_Pinning only returns what we are currently returning.
 	_, err = hasher.Write(certificate.RawSubjectPublicKeyInfo)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	s.CertificatePinningHashes = []string{base64.StdEncoding.EncodeToString(hasher.Sum(nil))}
-	return nil
+	pinningHash := base64.StdEncoding.EncodeToString(hasher.Sum(nil))
+	return &CertificatePinningHash{serviceURL.String(), pinningHash}, nil
+}
+
+func retrieveCertificateForURL(url *url.URL, allowInvalidCertificates bool) (*x509.Certificate, error) {
+	// If the 443 port is not appended to the URLs host then we should append it.
+	port := "443"
+	if url.Port() != "" {
+		port = url.Port()
+	}
+	hostURL := fmt.Sprintf("%s:%s", url.Host, port)
+
+	conn, err := tls.Dial("tcp", hostURL, &tls.Config{
+		InsecureSkipVerify: allowInvalidCertificates,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not retrieve certificate for URL "+url.String())
+	}
+	return conn.ConnectionState().PeerCertificates[0], nil
 }
 
 func convertSecretToMobileService(s v1.Secret) *Service {
