@@ -24,17 +24,16 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"net/url"
-	"os"
 )
 
 func isClientConfigKey(key string) bool {
 	return key == "url" || key == "name" || key == "type" || key == "id"
 }
 
-func retrieveHTTPSConfigForServices(services []*ServiceConfig) ([]*CertificatePinningHash, error) {
-	httpsConfig := []*CertificatePinningHash{}
-	for _, svc := range services {
-		pinningHash, err := retrieveHTTPSConfigForService(svc)
+func retrieveHTTPSConfigForServices(svcConfigs []*ServiceConfig, includeInvalidCerts bool) ([]*CertificatePinningHash, error) {
+	httpsConfig := make([]*CertificatePinningHash, 0)
+	for _, svc := range svcConfigs {
+		pinningHash, err := retrieveHTTPSConfigForService(svc, includeInvalidCerts)
 		if err != nil {
 			return nil, err
 		}
@@ -45,33 +44,32 @@ func retrieveHTTPSConfigForServices(services []*ServiceConfig) ([]*CertificatePi
 	return httpsConfig, nil
 }
 
-func retrieveHTTPSConfigForService(service *ServiceConfig) (*CertificatePinningHash, error) {
-	serviceURL, err := url.Parse(service.URL)
+func retrieveHTTPSConfigForService(svcConfig *ServiceConfig, allowInvalidCert bool) (*CertificatePinningHash, error) {
+	// Parse the services URL, if it's not HTTPS then don't attempt to retrieve a cert for it.
+	serviceURL, err := url.Parse(svcConfig.URL)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Could not parse service URL "+svcConfig.URL)
 	}
 	if serviceURL.Scheme != "https" {
 		return nil, nil
 	}
 
-	allowInvalidCertificates := os.Getenv("AEROGEAR_ALLOW_INVALID_CERTS") == "true"
-
-	certificate, err := retrieveCertificateForURL(serviceURL, allowInvalidCertificates)
+	certificate, err := retrieveCertificateForURL(serviceURL, allowInvalidCert)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Could not retrieve certificate for service URL "+serviceURL.String())
 	}
 
 	hasher := sha256.New()
 	_, err = hasher.Write(certificate.RawSubjectPublicKeyInfo)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Could not write public key to buffer for hashing")
 	}
 	pinningHash := base64.StdEncoding.EncodeToString(hasher.Sum(nil))
-	return &CertificatePinningHash{serviceURL.String(), pinningHash}, nil
+	return &CertificatePinningHash{serviceURL.Host, pinningHash}, nil
 }
 
-func retrieveCertificateForURL(url *url.URL, allowInvalidCertificates bool) (*x509.Certificate, error) {
-	// If the 443 port is not appended to the URLs host then we should append it.
+func retrieveCertificateForURL(url *url.URL, allowInvalidCert bool) (*x509.Certificate, error) {
+	// If the 443 port is not appended to the URLs host then we should append it or tls.Dial will fail.
 	port := "443"
 	if url.Port() != "" {
 		port = url.Port()
@@ -79,7 +77,7 @@ func retrieveCertificateForURL(url *url.URL, allowInvalidCertificates bool) (*x5
 	hostURL := fmt.Sprintf("%s:%s", url.Host, port)
 
 	conn, err := tls.Dial("tcp", hostURL, &tls.Config{
-		InsecureSkipVerify: allowInvalidCertificates,
+		InsecureSkipVerify: allowInvalidCert,
 	})
 
 	if err != nil {

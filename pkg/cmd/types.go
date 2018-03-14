@@ -76,7 +76,7 @@ type ServiceConfigs struct {
 	Namespace   string                    `json:"namespace"`
 	ClientID    string                    `json:"clientId,omitempty"`
 	Services    []*ServiceConfig          `json:"services"`
-	Https       []*CertificatePinningHash `json:"https"`
+	Https       []*CertificatePinningHash `json:"https,omitempty"`
 }
 
 //ServiceConfig is the configuration for a specific service

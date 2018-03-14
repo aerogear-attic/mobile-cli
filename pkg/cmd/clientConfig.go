@@ -53,6 +53,9 @@ func NewClientConfigCmd(k8Client kubernetes.Interface, mobileClient mobile.Inter
 
 // GetClientConfigCmd returns a cobra command object for getting client configs
 func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
+	var includeCertificateHashes bool
+	var allowInvalidCertificateHashes bool
+
 	cmd := &cobra.Command{
 		Use:   "clientconfig <clientID>",
 		Short: "get clientconfig returns a client ready filtered configuration of the available services.",
@@ -123,10 +126,6 @@ kubectl plugin mobile get clientconfig`,
 					ret = append(ret, svcConfig)
 				}
 			}
-			servicePinningHashes, err := retrieveHTTPSConfigForServices(ret)
-			if err != nil {
-				return errors.Wrap(err, "unable to append https configuration for services.")
-			}
 
 			outputJSON := ServiceConfigs{
 				Version:     1,
@@ -134,8 +133,17 @@ kubectl plugin mobile get clientconfig`,
 				Namespace:   ns,
 				ClientID:    clientID,
 				ClusterName: ccc.clusterHost,
-				Https:       servicePinningHashes,
 			}
+
+			// If the flag is set then include another key named 'https' which contains certificate hashes.
+			if includeCertificateHashes {
+				servicePinningHashes, err := retrieveHTTPSConfigForServices(outputJSON.Services, allowInvalidCertificateHashes)
+				if err != nil {
+					return errors.Wrap(err, "Could not append HTTPS configuration for services")
+				}
+				outputJSON.Https = servicePinningHashes
+			}
+
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "ServiceConfig", outputType(cmd.Flags())))
 			}
@@ -159,5 +167,8 @@ kubectl plugin mobile get clientconfig`,
 		table.Render()
 		return nil
 	})
+
+	cmd.Flags().BoolVar(&allowInvalidCertificateHashes, "allow-invalid-certs", false, "include certificate hashes for services with invalid/self-signed certificates")
+	cmd.Flags().BoolVar(&includeCertificateHashes, "include-cert-hashes", false, "include certificate hashes for services in the client config")
 	return cmd
 }
