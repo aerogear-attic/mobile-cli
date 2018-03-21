@@ -1,24 +1,28 @@
-+-----------------+------------------+--------------------------------+
-|      NAME       |   INTEGRATIONS   |           PARAMETERS           |
-+-----------------+------------------+--------------------------------+
-| ups             |                  | MYSQL_DATABASE,                |
-|                 |                  | MYSQL_PASSWORD,                |
-|                 |                  | MYSQL_ROOT_PASSWORD,           |
-|                 |                  | MYSQL_USER, MYSQL_VERSION      |
-| 3scale          |                  | THREESCALE_ACCESS_TOKEN,       |
-|                 |                  | THREESCALE_DOMAIN,             |
-|                 |                  | THREESCALE_ENABLE_CORS,        |
-|                 |                  | THREESCALE_SERVICE_ID          |
-| metrics         |                  | GRAFANA_STORAGE_SIZE,          |
-|                 |                  | POSTGRES_PASSWORD,             |
-|                 |                  | POSTGRES_STORAGE_SIZE,         |
-|                 |                  | POSTGRES_USER,                 |
-|                 |                  | PROMETHEUS_STORAGE_SIZE        |
-| aerogear-digger |                  | ANDROID_LICENSE_AGREEMENT      |
-| keycloak        |                  | ADMIN_NAME, ADMIN_PASSWORD,    |
-|                 |                  | SHARED_HOST, SHARED_REALM,     |
-|                 |                  | USE_SHARED_SERVICE             |
-| fh-sync-server  | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        |
-|                 |                  | MONGODB_USER_NAME,             |
-|                 |                  | MONGODB_USER_PASSWORD          |
-+-----------------+------------------+--------------------------------+
++--------------------------+------------------+--------------------------------+
+|           NAME           |   INTEGRATIONS   |           PARAMETERS           |
++--------------------------+------------------+--------------------------------+
+| ups                      |                  | MYSQL_DATABASE,                |
+|                          |                  | MYSQL_USER, MYSQL_VERSION,     |
+|                          |                  | _MYSQL_PASSWORD,               |
+|                          |                  | _MYSQL_ROOT_PASSWORD           |
+| 3scale                   |                  | THREESCALE_ACCESS_TOKEN,       |
+|                          |                  | THREESCALE_DOMAIN,             |
+|                          |                  | THREESCALE_ENABLE_CORS,        |
+|                          |                  | THREESCALE_SERVICE_ID          |
+| metrics                  |                  | GRAFANA_STORAGE_SIZE,          |
+|                          |                  | POSTGRES_PASSWORD,             |
+|                          |                  | POSTGRES_STORAGE_SIZE,         |
+|                          |                  | POSTGRES_USER,                 |
+|                          |                  | PROMETHEUS_STORAGE_SIZE        |
+| aerogear-digger          |                  | ANDROID_LICENSE_AGREEMENT      |
+| keycloak                 |                  | ADMIN_PASSWORD,                |
+|                          |                  | ADMIN_USERNAME,                |
+|                          |                  | CUSTOM_REALM_NAME,             |
+|                          |                  | SHARED_HOST,                   |
+|                          |                  | USE_SHARED_SERVICE             |
+| fh-sync-server           | keycloak,apiKeys | MONGODB_ADMIN_PASSWORD,        |
+|                          |                  | MONGODB_USER_NAME,             |
+|                          |                  | MONGODB_USER_PASSWORD          |
+| custom-runtime-connector |                  | SERVICE_CONFIG, SERVICE_NAME,  |
+|                          |                  | SERVICE_URI                    |
++--------------------------+------------------+--------------------------------+
