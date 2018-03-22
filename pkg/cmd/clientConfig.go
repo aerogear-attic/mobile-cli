@@ -106,15 +106,16 @@ kubectl plugin mobile get clientconfig`,
 					}
 					return errors.Wrap(err, "unable to create config. Failed to get service "+svc.Name+" configmap")
 				}
+				configType := configMap.ObjectMeta.Annotations["configType"]
 				if _, ok := convertors[svc.Name]; !ok {
 					convertor := defaultSecretConvertor{}
-					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data); err != nil {
+					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data, configType); err != nil {
 						return err
 					}
 				} else {
 					// we can only convert what is available
 					convertor := convertors[svc.Name]
-					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data); err != nil {
+					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data, configType); err != nil {
 						return err
 					}
 				}
