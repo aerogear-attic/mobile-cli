@@ -17,12 +17,12 @@ limitations under the License.
 package internalversion
 
 import (
-	mobile "github.com/aerogear/mobile-cli/pkg/apis/mobile"
-	scheme "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/internalversion/scheme"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile"
+	"github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/internalversion/scheme"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/rest"
 )
 
 // MobileClientsGetter has a method to return a MobileClientInterface.
@@ -31,16 +31,16 @@ type MobileClientsGetter interface {
 	MobileClients(namespace string) MobileClientInterface
 }
 
-// MobileClientInterface has methods to work with MobileClient resources.
+// MobileClientInterface has methods to work with Client resources.
 type MobileClientInterface interface {
-	Create(*mobile.MobileClient) (*mobile.MobileClient, error)
-	Update(*mobile.MobileClient) (*mobile.MobileClient, error)
+	Create(*mobile.Client) (*mobile.Client, error)
+	Update(*mobile.Client) (*mobile.Client, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string, options v1.GetOptions) (*mobile.MobileClient, error)
-	List(opts v1.ListOptions) (*mobile.MobileClientList, error)
+	Get(name string, options v1.GetOptions) (*mobile.Client, error)
+	List(opts v1.ListOptions) (*mobile.ClientList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *mobile.MobileClient, err error)
+	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *mobile.Client, err error)
 	MobileClientExpansion
 }
 
@@ -59,8 +59,8 @@ func newMobileClients(c *MobileClient, namespace string) *mobileClients {
 }
 
 // Get takes name of the mobileClient, and returns the corresponding mobileClient object, and an error if there is any.
-func (c *mobileClients) Get(name string, options v1.GetOptions) (result *mobile.MobileClient, err error) {
-	result = &mobile.MobileClient{}
+func (c *mobileClients) Get(name string, options v1.GetOptions) (result *mobile.Client, err error) {
+	result = &mobile.Client{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("mobileclients").
@@ -72,8 +72,8 @@ func (c *mobileClients) Get(name string, options v1.GetOptions) (result *mobile.
 }
 
 // List takes label and field selectors, and returns the list of MobileClients that match those selectors.
-func (c *mobileClients) List(opts v1.ListOptions) (result *mobile.MobileClientList, err error) {
-	result = &mobile.MobileClientList{}
+func (c *mobileClients) List(opts v1.ListOptions) (result *mobile.ClientList, err error) {
+	result = &mobile.ClientList{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("mobileclients").
@@ -94,8 +94,8 @@ func (c *mobileClients) Watch(opts v1.ListOptions) (watch.Interface, error) {
 }
 
 // Create takes the representation of a mobileClient and creates it.  Returns the server's representation of the mobileClient, and an error, if there is any.
-func (c *mobileClients) Create(mobileClient *mobile.MobileClient) (result *mobile.MobileClient, err error) {
-	result = &mobile.MobileClient{}
+func (c *mobileClients) Create(mobileClient *mobile.Client) (result *mobile.Client, err error) {
+	result = &mobile.Client{}
 	err = c.client.Post().
 		Namespace(c.ns).
 		Resource("mobileclients").
@@ -106,8 +106,8 @@ func (c *mobileClients) Create(mobileClient *mobile.MobileClient) (result *mobil
 }
 
 // Update takes the representation of a mobileClient and updates it. Returns the server's representation of the mobileClient, and an error, if there is any.
-func (c *mobileClients) Update(mobileClient *mobile.MobileClient) (result *mobile.MobileClient, err error) {
-	result = &mobile.MobileClient{}
+func (c *mobileClients) Update(mobileClient *mobile.Client) (result *mobile.Client, err error) {
+	result = &mobile.Client{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("mobileclients").
@@ -141,8 +141,8 @@ func (c *mobileClients) DeleteCollection(options *v1.DeleteOptions, listOptions 
 }
 
 // Patch applies the patch and returns the patched mobileClient.
-func (c *mobileClients) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *mobile.MobileClient, err error) {
-	result = &mobile.MobileClient{}
+func (c *mobileClients) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *mobile.Client, err error) {
+	result = &mobile.Client{}
 	err = c.client.Patch(pt).
 		Namespace(c.ns).
 		Resource("mobileclients").

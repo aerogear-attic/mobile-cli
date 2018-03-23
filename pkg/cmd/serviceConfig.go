@@ -29,23 +29,23 @@ import (
 // TODO move to the secret data read when discovering the services
 //TODO need to come up with a better way of representing this
 var capabilities = map[string]map[string][]string{
-	"fh-sync-server": map[string][]string{
+	"fh-sync-server": {
 		"capabilities": {"data storage, data syncronisation"},
 		"integrations": {ServiceNameKeycloak, IntegrationAPIKeys, ServiceNameThreeScale},
 	},
-	"keycloak": map[string][]string{
+	"keycloak": {
 		"capabilities": {"authentication, authorisation"},
 		"integrations": {},
 	},
-	"mcp-mobile-keys": map[string][]string{
+	"mcp-mobile-keys": {
 		"capabilities": {"access apps"},
 		"integrations": {},
 	},
-	"3scale": map[string][]string{
+	"3scale": {
 		"capabilities": {"authentication, authorization"},
 		"integrations": {},
 	},
-	"custom": map[string][]string{
+	"custom": {
 		"capabilities": {""},
 		"integrations": {""},
 	},
@@ -56,7 +56,7 @@ func listServices(ns string, k8Client kubernetes.Interface) []*Service {
 	if err != nil {
 		log.Fatal("failed to get mobile services. Backing secrets error ", err)
 	}
-	out := []*Service{}
+	var out []*Service
 	for _, s := range secrets.Items {
 		out = append(out, convertSecretToMobileService(s))
 	}

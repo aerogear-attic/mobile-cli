@@ -25,7 +25,7 @@ import (
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

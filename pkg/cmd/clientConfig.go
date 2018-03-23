@@ -62,7 +62,7 @@ kubectl plugin mobile get clientconfig`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var ns string
 			var err error
-			ret := []*ServiceConfig{}
+			ret := make([]*ServiceConfig, 0)
 			convertors := map[string]SecretConvertor{
 				"fh-sync-server": &syncSecretConvertor{},
 				"keycloak":       &keycloakSecretConvertor{},

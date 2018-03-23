@@ -17,18 +17,18 @@ limitations under the License.
 package fake
 
 import (
-	v1beta1 "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	testing "k8s.io/client-go/testing"
+	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/testing"
 )
 
-// FakeServiceInstances implements ServiceInstanceInterface
-type FakeServiceInstances struct {
-	Fake *FakeServicecatalogV1beta1
+// ServiceInstances implements ServiceInstanceInterface
+type ServiceInstances struct {
+	Fake *ServicecatalogV1beta1
 	ns   string
 }
 
@@ -37,7 +37,7 @@ var serviceinstancesResource = schema.GroupVersionResource{Group: "servicecatalo
 var serviceinstancesKind = schema.GroupVersionKind{Group: "servicecatalog.k8s.io", Version: "v1beta1", Kind: "ServiceInstance"}
 
 // Get takes name of the serviceInstance, and returns the corresponding serviceInstance object, and an error if there is any.
-func (c *FakeServiceInstances) Get(name string, options v1.GetOptions) (result *v1beta1.ServiceInstance, err error) {
+func (c *ServiceInstances) Get(name string, options v1.GetOptions) (result *v1beta1.ServiceInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(serviceinstancesResource, c.ns, name), &v1beta1.ServiceInstance{})
 
@@ -48,7 +48,7 @@ func (c *FakeServiceInstances) Get(name string, options v1.GetOptions) (result *
 }
 
 // List takes label and field selectors, and returns the list of ServiceInstances that match those selectors.
-func (c *FakeServiceInstances) List(opts v1.ListOptions) (result *v1beta1.ServiceInstanceList, err error) {
+func (c *ServiceInstances) List(opts v1.ListOptions) (result *v1beta1.ServiceInstanceList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(serviceinstancesResource, serviceinstancesKind, c.ns, opts), &v1beta1.ServiceInstanceList{})
 
@@ -70,14 +70,14 @@ func (c *FakeServiceInstances) List(opts v1.ListOptions) (result *v1beta1.Servic
 }
 
 // Watch returns a watch.Interface that watches the requested serviceInstances.
-func (c *FakeServiceInstances) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *ServiceInstances) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(serviceinstancesResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a serviceInstance and creates it.  Returns the server's representation of the serviceInstance, and an error, if there is any.
-func (c *FakeServiceInstances) Create(serviceInstance *v1beta1.ServiceInstance) (result *v1beta1.ServiceInstance, err error) {
+func (c *ServiceInstances) Create(serviceInstance *v1beta1.ServiceInstance) (result *v1beta1.ServiceInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(serviceinstancesResource, c.ns, serviceInstance), &v1beta1.ServiceInstance{})
 
@@ -88,7 +88,7 @@ func (c *FakeServiceInstances) Create(serviceInstance *v1beta1.ServiceInstance) 
 }
 
 // Update takes the representation of a serviceInstance and updates it. Returns the server's representation of the serviceInstance, and an error, if there is any.
-func (c *FakeServiceInstances) Update(serviceInstance *v1beta1.ServiceInstance) (result *v1beta1.ServiceInstance, err error) {
+func (c *ServiceInstances) Update(serviceInstance *v1beta1.ServiceInstance) (result *v1beta1.ServiceInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(serviceinstancesResource, c.ns, serviceInstance), &v1beta1.ServiceInstance{})
 
@@ -100,7 +100,7 @@ func (c *FakeServiceInstances) Update(serviceInstance *v1beta1.ServiceInstance) 
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeServiceInstances) UpdateStatus(serviceInstance *v1beta1.ServiceInstance) (*v1beta1.ServiceInstance, error) {
+func (c *ServiceInstances) UpdateStatus(serviceInstance *v1beta1.ServiceInstance) (*v1beta1.ServiceInstance, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(serviceinstancesResource, "status", c.ns, serviceInstance), &v1beta1.ServiceInstance{})
 
@@ -111,7 +111,7 @@ func (c *FakeServiceInstances) UpdateStatus(serviceInstance *v1beta1.ServiceInst
 }
 
 // Delete takes name of the serviceInstance and deletes it. Returns an error if one occurs.
-func (c *FakeServiceInstances) Delete(name string, options *v1.DeleteOptions) error {
+func (c *ServiceInstances) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(serviceinstancesResource, c.ns, name), &v1beta1.ServiceInstance{})
 
@@ -119,7 +119,7 @@ func (c *FakeServiceInstances) Delete(name string, options *v1.DeleteOptions) er
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeServiceInstances) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *ServiceInstances) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewDeleteCollectionAction(serviceinstancesResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.ServiceInstanceList{})
@@ -127,7 +127,7 @@ func (c *FakeServiceInstances) DeleteCollection(options *v1.DeleteOptions, listO
 }
 
 // Patch applies the patch and returns the patched serviceInstance.
-func (c *FakeServiceInstances) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.ServiceInstance, err error) {
+func (c *ServiceInstances) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.ServiceInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(serviceinstancesResource, c.ns, name, data, subresources...), &v1beta1.ServiceInstance{})
 
