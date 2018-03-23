@@ -17,12 +17,12 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	scheme "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/scheme"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/scheme"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/rest"
 )
 
 // ServiceBindingsGetter has a method to return a ServiceBindingInterface.

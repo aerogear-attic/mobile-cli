@@ -18,13 +18,13 @@ package scheme
 
 import (
 	mobile "github.com/aerogear/mobile-cli/pkg/apis/mobile/install"
-	announced "k8s.io/apimachinery/pkg/apimachinery/announced"
-	registered "k8s.io/apimachinery/pkg/apimachinery/registered"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
-	os "os"
+	"k8s.io/apimachinery/pkg/apimachinery/announced"
+	"k8s.io/apimachinery/pkg/apimachinery/registered"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"os"
 )
 
 var Scheme = runtime.NewScheme()

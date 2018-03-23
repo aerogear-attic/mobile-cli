@@ -38,7 +38,7 @@ import (
 	ktesting "k8s.io/client-go/testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
@@ -91,11 +91,11 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 		{
 			name: "get client config command with no services",
 			k8Client: func() kubernetes.Interface {
-				fakeclient := &kFake.Clientset{}
-				fakeclient.AddReactor("list", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+				fkClient := &kFake.Clientset{}
+				fkClient.AddReactor("list", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1.SecretList{Items: []v1.Secret{}}, nil
 				})
-				return fakeclient
+				return fkClient
 			},
 			mobileClient: func() mobile.Interface {
 				return &mcFake.Clientset{}

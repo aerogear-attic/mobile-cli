@@ -16,15 +16,9 @@ package cmd
 
 import (
 	"encoding/json"
-
-	"net/http"
-
-	"io"
-
 	"github.com/pkg/errors"
+	"net/http"
 )
-
-var renderers = map[string]func(writer io.Writer, data interface{}) error{}
 
 //Service represents a serverside application that mobile application will interact with
 type Service struct {
@@ -120,7 +114,7 @@ func (dsc defaultSecretConvertor) Convert(id string, params map[string]string, c
 				if err := json.Unmarshal([]byte(v), &jsCfg); err != nil {
 					return nil, errors.Wrap(err, "failed to unmarshall service configuration ")
 				}
-				config[k] = jsCfg;
+				config[k] = jsCfg
 			} else {
 				config[k] = string(v)
 			}

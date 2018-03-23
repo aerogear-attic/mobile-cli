@@ -152,16 +152,6 @@ func deleteServiceInstance(t *testing.T, sid, namespace string) {
 	}
 }
 
-func deleteResource(resourceType, name, namespace string) error {
-	args := []string{"delete", resourceType, name, "-n=" + namespace}
-	cmd := exec.Command("oc", args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("%v error output %s", err, string(output))
-	}
-	return nil
-}
-
 func deleteAllMobileEnabledSecrets(namespace string) error {
 	args := []string{"delete", "secret", "-l", "mobile=enabled", "-n=" + namespace}
 	cmd := exec.Command("oc", args...)

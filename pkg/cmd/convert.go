@@ -17,7 +17,7 @@ package cmd
 import (
 	"strings"
 
-	v1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 func isClientConfigKey(key string) bool {

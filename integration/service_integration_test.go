@@ -182,7 +182,7 @@ func GetBinding() (*v1beta1.ServiceBinding, error) {
 	}
 
 	if len(sbList.Items) == 0 {
-		return nil, errors.New("Could not find servicebindings")
+		return nil, errors.New("could not find servicebindings")
 	}
 
 	return &sbList.Items[0], nil
