@@ -2,15 +2,15 @@ package mobile
 
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-// MobileClientList is a list of MobileClient objects.
-type MobileClientList struct {
+// ClientList is a list of Client objects.
+type ClientList struct {
 	metav1.TypeMeta
 	metav1.ListMeta
 
-	Items []MobileClient
+	Items []Client
 }
 
-type MobileClientSpec struct {
+type ClientSpec struct {
 	Name          string
 	ApiKey        string
 	ClientType    string
@@ -19,9 +19,9 @@ type MobileClientSpec struct {
 
 // +genclient
 
-type MobileClient struct {
+type Client struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
 
-	Spec MobileClientSpec
+	Spec ClientSpec
 }

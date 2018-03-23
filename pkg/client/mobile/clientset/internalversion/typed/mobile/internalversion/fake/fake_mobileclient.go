@@ -17,40 +17,40 @@ limitations under the License.
 package fake
 
 import (
-	mobile "github.com/aerogear/mobile-cli/pkg/apis/mobile"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	testing "k8s.io/client-go/testing"
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/testing"
 )
 
-// FakeMobileClients implements MobileClientInterface
-type FakeMobileClients struct {
-	Fake *FakeMobile
+// MobileClients implements MobileClientInterface
+type MobileClients struct {
+	Fake *Mobile
 	ns   string
 }
 
 var mobileclientsResource = schema.GroupVersionResource{Group: "mobile.k8s.io", Version: "", Resource: "mobileclients"}
 
-var mobileclientsKind = schema.GroupVersionKind{Group: "mobile.k8s.io", Version: "", Kind: "MobileClient"}
+var mobileclientsKind = schema.GroupVersionKind{Group: "mobile.k8s.io", Version: "", Kind: "Client"}
 
 // Get takes name of the mobileClient, and returns the corresponding mobileClient object, and an error if there is any.
-func (c *FakeMobileClients) Get(name string, options v1.GetOptions) (result *mobile.MobileClient, err error) {
+func (c *MobileClients) Get(name string, options v1.GetOptions) (result *mobile.Client, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(mobileclientsResource, c.ns, name), &mobile.MobileClient{})
+		Invokes(testing.NewGetAction(mobileclientsResource, c.ns, name), &mobile.Client{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*mobile.MobileClient), err
+	return obj.(*mobile.Client), err
 }
 
 // List takes label and field selectors, and returns the list of MobileClients that match those selectors.
-func (c *FakeMobileClients) List(opts v1.ListOptions) (result *mobile.MobileClientList, err error) {
+func (c *MobileClients) List(opts v1.ListOptions) (result *mobile.ClientList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(mobileclientsResource, mobileclientsKind, c.ns, opts), &mobile.MobileClientList{})
+		Invokes(testing.NewListAction(mobileclientsResource, mobileclientsKind, c.ns, opts), &mobile.ClientList{})
 
 	if obj == nil {
 		return nil, err
@@ -60,8 +60,8 @@ func (c *FakeMobileClients) List(opts v1.ListOptions) (result *mobile.MobileClie
 	if label == nil {
 		label = labels.Everything()
 	}
-	list := &mobile.MobileClientList{}
-	for _, item := range obj.(*mobile.MobileClientList).Items {
+	list := &mobile.ClientList{}
+	for _, item := range obj.(*mobile.ClientList).Items {
 		if label.Matches(labels.Set(item.Labels)) {
 			list.Items = append(list.Items, item)
 		}
@@ -70,57 +70,57 @@ func (c *FakeMobileClients) List(opts v1.ListOptions) (result *mobile.MobileClie
 }
 
 // Watch returns a watch.Interface that watches the requested mobileClients.
-func (c *FakeMobileClients) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *MobileClients) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(mobileclientsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a mobileClient and creates it.  Returns the server's representation of the mobileClient, and an error, if there is any.
-func (c *FakeMobileClients) Create(mobileClient *mobile.MobileClient) (result *mobile.MobileClient, err error) {
+func (c *MobileClients) Create(mobileClient *mobile.Client) (result *mobile.Client, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(mobileclientsResource, c.ns, mobileClient), &mobile.MobileClient{})
+		Invokes(testing.NewCreateAction(mobileclientsResource, c.ns, mobileClient), &mobile.Client{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*mobile.MobileClient), err
+	return obj.(*mobile.Client), err
 }
 
 // Update takes the representation of a mobileClient and updates it. Returns the server's representation of the mobileClient, and an error, if there is any.
-func (c *FakeMobileClients) Update(mobileClient *mobile.MobileClient) (result *mobile.MobileClient, err error) {
+func (c *MobileClients) Update(mobileClient *mobile.Client) (result *mobile.Client, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(mobileclientsResource, c.ns, mobileClient), &mobile.MobileClient{})
+		Invokes(testing.NewUpdateAction(mobileclientsResource, c.ns, mobileClient), &mobile.Client{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*mobile.MobileClient), err
+	return obj.(*mobile.Client), err
 }
 
 // Delete takes name of the mobileClient and deletes it. Returns an error if one occurs.
-func (c *FakeMobileClients) Delete(name string, options *v1.DeleteOptions) error {
+func (c *MobileClients) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(mobileclientsResource, c.ns, name), &mobile.MobileClient{})
+		Invokes(testing.NewDeleteAction(mobileclientsResource, c.ns, name), &mobile.Client{})
 
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeMobileClients) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *MobileClients) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewDeleteCollectionAction(mobileclientsResource, c.ns, listOptions)
 
-	_, err := c.Fake.Invokes(action, &mobile.MobileClientList{})
+	_, err := c.Fake.Invokes(action, &mobile.ClientList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched mobileClient.
-func (c *FakeMobileClients) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *mobile.MobileClient, err error) {
+func (c *MobileClients) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *mobile.Client, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(mobileclientsResource, c.ns, name, data, subresources...), &mobile.MobileClient{})
+		Invokes(testing.NewPatchSubresourceAction(mobileclientsResource, c.ns, name, data, subresources...), &mobile.Client{})
 
 	if obj == nil {
 		return nil, err
 	}
-	return obj.(*mobile.MobileClient), err
+	return obj.(*mobile.Client), err
 }

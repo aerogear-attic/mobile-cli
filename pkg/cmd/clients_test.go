@@ -125,15 +125,15 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 		{
 			Name: "test get client returns only one client with the right name",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1alpha1.MobileClient{
 						Spec: v1alpha1.MobileClientSpec{
 							Name: "myapp",
 						},
 					}, nil
 				})
-				return mc
+				return fkMc
 			},
 			ClientName:  "myapp",
 			ExpectError: false,
@@ -150,11 +150,11 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 		{
 			Name: "test get client returns a clear error when it fails",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("failed to get mobile client")
 				})
-				return mc
+				return fkMc
 			},
 			ClientName:   "myapp",
 			Flags:        []string{"--namespace=myproject", "-o=json"},
@@ -164,8 +164,8 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 		{
 			Name: "test get client fails and returns usage when missing a required argument",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				return mc
+				fkMc := &mcFake.Clientset{}
+				return fkMc
 			},
 			ClientName:  "",
 			Flags:       []string{"--namespace=myproject", "-o=json"},
@@ -228,8 +228,8 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 		{
 			Name: "test delete client succeeds with no errors",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				return mc
+				fkMc := &mcFake.Clientset{}
+				return fkMc
 			},
 			ClientName: "myapp",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
@@ -237,8 +237,8 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 		{
 			Name: "test delete client fails and returns usage when missing arguments",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				return mc
+				fkMc := &mcFake.Clientset{}
+				return fkMc
 			},
 			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: false,
@@ -247,11 +247,11 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 		{
 			Name: "test delete client returns a clear error when delete fails",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("delete", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("delete", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("failed to delete mobileclient")
 				})
-				return mc
+				return fkMc
 			},
 			ExpectUsage: true,
 			Flags:       []string{"--namespace=myproject", "-o=json"},
@@ -310,12 +310,12 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name: "test create cordova mobile client succeeds without error",
 			Args: []string{"test", "cordova", "my.app.org"},
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
 					return true, ca.GetObject(), nil
 				})
-				return mc
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
@@ -347,12 +347,12 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name: "test create android mobile client succeeds without error",
 			Args: []string{"test", "android", "my.app.org"},
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
 					return true, ca.GetObject(), nil
 				})
-				return mc
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
@@ -384,12 +384,12 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name: "test create iOS mobile client succeeds without error",
 			Args: []string{"test", "iOS", "my.app.org"},
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					ca := action.(kt.CreateAction)
 					return true, ca.GetObject(), nil
 				})
-				return mc
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
@@ -423,11 +423,11 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			ExpectError:  true,
 			ErrorPattern: "^Failed validation while creating new mobile client: .*",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("should not have been called")
 				})
-				return mc
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
@@ -437,8 +437,8 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			ExpectError: false,
 			ExpectUsage: true,
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				return mc
+				fkMc := &mcFake.Clientset{}
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
@@ -448,11 +448,11 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			ExpectError:  true,
 			ErrorPattern: "^failed to create mobile client: something went wrong",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("something went wrong")
 				})
-				return mc
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
@@ -462,11 +462,11 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			ExpectError:  true,
 			ErrorPattern: "^Failed validation while creating new mobile client: .*",
 			MobileClient: func() mc.Interface {
-				mc := &mcFake.Clientset{}
-				mc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("should not have been called")
 				})
-				return mc
+				return fkMc
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},

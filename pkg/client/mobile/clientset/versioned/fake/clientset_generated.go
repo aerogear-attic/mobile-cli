@@ -27,11 +27,11 @@ import (
 	"k8s.io/client-go/testing"
 )
 
-// NewSimpleClientset returns a clientset that will respond with the provided objects.
+// NewSimpleClientSet returns a clientset that will respond with the provided objects.
 // It's backed by a very simple object tracker that processes creates, updates and deletions as-is,
 // without applying any validations and/or defaults. It shouldn't be considered a replacement
 // for a real clientset and is mostly useful in simple unit tests.
-func NewSimpleClientset(objects ...runtime.Object) *Clientset {
+func NewSimpleClientSet(objects ...runtime.Object) *Clientset {
 	o := testing.NewObjectTracker(scheme, codecs.UniversalDecoder())
 	for _, obj := range objects {
 		if err := o.Add(obj); err != nil {
@@ -62,10 +62,10 @@ var _ clientset.Interface = &Clientset{}
 
 // MobileV1alpha1 retrieves the MobileV1alpha1Client
 func (c *Clientset) MobileV1alpha1() mobilev1alpha1.MobileV1alpha1Interface {
-	return &fakemobilev1alpha1.FakeMobileV1alpha1{Fake: &c.Fake}
+	return &fakemobilev1alpha1.MobileV1alpha1{Fake: &c.Fake}
 }
 
 // Mobile retrieves the MobileV1alpha1Client
 func (c *Clientset) Mobile() mobilev1alpha1.MobileV1alpha1Interface {
-	return &fakemobilev1alpha1.FakeMobileV1alpha1{Fake: &c.Fake}
+	return &fakemobilev1alpha1.MobileV1alpha1{Fake: &c.Fake}
 }

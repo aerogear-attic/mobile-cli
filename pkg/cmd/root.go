@@ -55,7 +55,7 @@ func mustGetStrFlag(flags *pflag.FlagSet, name string) string {
 		log.Fatal("failed to get flag "+name, err)
 	}
 	if val == "" {
-		log.Fatal("missing required flag argument " + name + "\n")
+		log.Fatalln("missing required flag argument " + name)
 	}
 	return val
 }

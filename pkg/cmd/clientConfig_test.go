@@ -38,7 +38,7 @@ import (
 	ktesting "k8s.io/client-go/testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {

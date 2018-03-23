@@ -18,7 +18,7 @@ package internalversion
 
 import (
 	"github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/internalversion/scheme"
-	rest "k8s.io/client-go/rest"
+	"k8s.io/client-go/rest"
 )
 
 type MobileInterface interface {
@@ -26,7 +26,7 @@ type MobileInterface interface {
 	MobileClientsGetter
 }
 
-// MobileClient is used to interact with features provided by the mobile.k8s.io group.
+// Client is used to interact with features provided by the mobile.k8s.io group.
 type MobileClient struct {
 	restClient rest.Interface
 }
@@ -35,7 +35,7 @@ func (c *MobileClient) MobileClients(namespace string) MobileClientInterface {
 	return newMobileClients(c, namespace)
 }
 
-// NewForConfig creates a new MobileClient for the given config.
+// NewForConfig creates a new Client for the given config.
 func NewForConfig(c *rest.Config) (*MobileClient, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
@@ -48,7 +48,7 @@ func NewForConfig(c *rest.Config) (*MobileClient, error) {
 	return &MobileClient{client}, nil
 }
 
-// NewForConfigOrDie creates a new MobileClient for the given config and
+// NewForConfigOrDie creates a new Client for the given config and
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *MobileClient {
 	client, err := NewForConfig(c)
@@ -58,7 +58,7 @@ func NewForConfigOrDie(c *rest.Config) *MobileClient {
 	return client
 }
 
-// New creates a new MobileClient for the given RESTClient.
+// New creates a new Client for the given RESTClient.
 func New(c rest.Interface) *MobileClient {
 	return &MobileClient{c}
 }

@@ -867,7 +867,7 @@ const (
 
 // These are external finalizer values to service catalog, must be qualified name.
 const (
-	FinalizerServiceCatalog string = "kubernetes-incubator/service-catalog"
+	FinalizerServiceCatalog = "kubernetes-incubator/service-catalog"
 )
 
 // ServiceBindingPropertiesState is the state of a

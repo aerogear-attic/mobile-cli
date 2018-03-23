@@ -18,7 +18,7 @@ package internalversion
 
 import (
 	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/scheme"
-	rest "k8s.io/client-go/rest"
+	"k8s.io/client-go/rest"
 )
 
 type ServicecatalogInterface interface {
