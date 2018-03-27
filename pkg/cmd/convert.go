@@ -15,15 +15,15 @@
 package cmd
 
 import (
-	"strings"
-	"k8s.io/client-go/pkg/api/v1"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
+	"k8s.io/client-go/pkg/api/v1"
 	"net/url"
+	"strings"
 )
 
 func isClientConfigKey(key string) bool {

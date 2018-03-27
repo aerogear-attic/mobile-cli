@@ -71,12 +71,12 @@ type SecretConvertor interface {
 
 //ServiceConfigs are collection of configurations for services in a specific namespace
 type ServiceConfigs struct {
-	Version     int                       `json:"version"`
-	ClusterName string                    `json:"clusterName"`
-	Namespace   string                    `json:"namespace"`
-	ClientID    string                    `json:"clientId,omitempty"`
-	Services    []*ServiceConfig          `json:"services"`
-	Https       []*CertificatePinningHash `json:"https,omitempty"`
+	Version     int              `json:"version"`
+	ClusterName string           `json:"clusterName"`
+	Namespace   string           `json:"namespace"`
+	ClientID    string           `json:"clientId,omitempty"`
+	Services    []*ServiceConfig `json:"services"`
+	Https       HttpsConfig      `json:"https,omitempty"`
 }
 
 //ServiceConfig is the configuration for a specific service
@@ -86,6 +86,10 @@ type ServiceConfig struct {
 	Type   string                 `json:"type"`
 	URL    string                 `json:"url"`
 	Config map[string]interface{} `json:"config"`
+}
+
+type HttpsConfig struct {
+	CertificatePinning []*CertificatePinningHash `json:"certificatePinning,omitempty"`
 }
 
 type CertificatePinningHash struct {

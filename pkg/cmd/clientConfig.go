@@ -141,7 +141,7 @@ kubectl plugin mobile get clientconfig`,
 				if err != nil {
 					return errors.Wrap(err, "Could not append HTTPS configuration for services")
 				}
-				outputJSON.Https = servicePinningHashes
+				outputJSON.Https.CertificatePinning = servicePinningHashes
 			}
 
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
