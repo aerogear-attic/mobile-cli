@@ -63,7 +63,7 @@ make build_linux
 
 ### Pre req
 
-- Have a local kubernetes or oc cluster via something like minikube or oc cluster up
+- Have a local kubernetes or oc cluster via something like minikube, oc cluster up or [minishift](https://github.com/aerogear/minishift-mobilecore-addon).
 - Install glide (https://github.com/Masterminds/glide), e.g. `brew install glide`
 
 ### Setup the Custom Resource Definition
