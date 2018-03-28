@@ -1,10 +1,7 @@
 +--------------------------+------------------+--------------------------------+
 |           NAME           |   INTEGRATIONS   |           PARAMETERS           |
 +--------------------------+------------------+--------------------------------+
-| ups                      |                  | MYSQL_DATABASE,                |
-|                          |                  | MYSQL_USER, MYSQL_VERSION,     |
-|                          |                  | _MYSQL_PASSWORD,               |
-|                          |                  | _MYSQL_ROOT_PASSWORD           |
+| ups                      |                  |                                |
 | 3scale                   |                  | THREESCALE_ACCESS_TOKEN,       |
 |                          |                  | THREESCALE_DOMAIN,             |
 |                          |                  | THREESCALE_ENABLE_CORS,        |
