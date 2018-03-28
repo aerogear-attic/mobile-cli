@@ -53,8 +53,8 @@ func NewClientConfigCmd(k8Client kubernetes.Interface, mobileClient mobile.Inter
 
 // GetClientConfigCmd returns a cobra command object for getting client configs
 func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
-	var includeCertificateHashes bool
-	var allowInvalidCertificateHashes bool
+	var includeCertificatePins bool
+	var allowSelfSignedCerts bool
 
 	cmd := &cobra.Command{
 		Use:   "clientconfig <clientID>",
@@ -136,12 +136,14 @@ kubectl plugin mobile get clientconfig`,
 			}
 
 			// If the flag is set then include another key named 'https' which contains certificate hashes.
-			if includeCertificateHashes {
-				servicePinningHashes, err := retrieveHTTPSConfigForServices(outputJSON.Services, allowInvalidCertificateHashes)
+			if includeCertificatePins {
+				servicePinningHashes, err := retrieveHTTPSConfigForServices(outputJSON.Services, allowSelfSignedCerts)
 				if err != nil {
 					return errors.Wrap(err, "Could not append HTTPS configuration for services")
 				}
-				outputJSON.Https.CertificatePinning = servicePinningHashes
+				outputJSON.Https = &HttpsConfig{
+					CertificatePinning: servicePinningHashes,
+				}
 			}
 
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
@@ -168,7 +170,7 @@ kubectl plugin mobile get clientconfig`,
 		return nil
 	})
 
-	cmd.Flags().BoolVar(&allowInvalidCertificateHashes, "allow-invalid-certs", false, "include certificate hashes for services with invalid/self-signed certificates")
-	cmd.Flags().BoolVar(&includeCertificateHashes, "include-cert-hashes", false, "include certificate hashes for services in the client config")
+	cmd.Flags().BoolVar(&allowSelfSignedCerts, "allow-self-signed-certs", false, "include certificate hashes for services with invalid/self-signed certificates")
+	cmd.Flags().BoolVar(&includeCertificatePins, "include-cert-pins", false, "include certificate hashes for services in the client config")
 	return cmd
 }
