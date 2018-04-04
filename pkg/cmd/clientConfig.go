@@ -53,6 +53,9 @@ func NewClientConfigCmd(k8Client kubernetes.Interface, mobileClient mobile.Inter
 
 // GetClientConfigCmd returns a cobra command object for getting client configs
 func (ccc *ClientConfigCmd) GetClientConfigCmd() *cobra.Command {
+	var includeCertificatePins bool
+	var skipTLSVerification bool
+
 	cmd := &cobra.Command{
 		Use:   "clientconfig <clientID>",
 		Short: "get clientconfig returns a client ready filtered configuration of the available services.",
@@ -131,6 +134,18 @@ kubectl plugin mobile get clientconfig`,
 				ClientID:    clientID,
 				ClusterName: ccc.clusterHost,
 			}
+
+			// If the flag is set then include another key named 'https' which contains certificate hashes.
+			if includeCertificatePins {
+				servicePinningHashes, err := retrieveHTTPSConfigForServices(outputJSON.Services, skipTLSVerification)
+				if err != nil {
+					return errors.Wrap(err, "Could not append HTTPS configuration for services")
+				}
+				outputJSON.Https = &HttpsConfig{
+					CertificatePinning: servicePinningHashes,
+				}
+			}
+
 			if err := ccc.Out.Render("get"+cmd.Name(), outputType(cmd.Flags()), outputJSON); err != nil {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "ServiceConfig", outputType(cmd.Flags())))
 			}
@@ -154,5 +169,8 @@ kubectl plugin mobile get clientconfig`,
 		table.Render()
 		return nil
 	})
+
+	cmd.Flags().BoolVar(&skipTLSVerification, "insecure-skip-tls-verify", false, "include certificate hashes for services with invalid/self-signed certificates")
+	cmd.Flags().BoolVar(&includeCertificatePins, "include-cert-pins", false, "include certificate hashes for services in the client config")
 	return cmd
 }

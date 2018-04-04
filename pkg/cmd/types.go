@@ -76,6 +76,7 @@ type ServiceConfigs struct {
 	Namespace   string           `json:"namespace"`
 	ClientID    string           `json:"clientId,omitempty"`
 	Services    []*ServiceConfig `json:"services"`
+	Https       *HttpsConfig     `json:"https,omitempty"`
 }
 
 //ServiceConfig is the configuration for a specific service
@@ -85,6 +86,15 @@ type ServiceConfig struct {
 	Type   string                 `json:"type"`
 	URL    string                 `json:"url"`
 	Config map[string]interface{} `json:"config"`
+}
+
+type HttpsConfig struct {
+	CertificatePinning []*CertificatePinningHash `json:"certificatePins,omitempty"`
+}
+
+type CertificatePinningHash struct {
+	Host            string `json:"host"`
+	CertificateHash string `json:"certificateHash"`
 }
 
 // defaultSecretConvertor will provide a default secret to config conversion

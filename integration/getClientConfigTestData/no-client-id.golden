@@ -2,7 +2,9 @@ Usage:
   mobile get clientconfig <clientID> [flags]
 
 Flags:
-  -h, --help   help for clientconfig
+  -h, --help                       help for clientconfig
+      --include-cert-pins          include certificate hashes for services in the client config
+      --insecure-skip-tls-verify   include certificate hashes for services with invalid/self-signed certificates
 
 Global Flags:
       --namespace string   --namespace=myproject
