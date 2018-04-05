@@ -1,0 +1,57 @@
+[[constraint]]
+  name = "github.com/goreleaser/archive"
+  version = "^1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/google/go-github"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mattn/go-zglob"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.1.4"
+
+[[constraint]]
+  name = "github.com/urfave/cli"
+  version = "1.19.1"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/sync"
+
+[[constraint]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/apex/log"
+
+
+[[constraint]]
+  name = "github.com/caarlos0/ctrlc"
+  version = "1.0.0"
+
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.5.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/campoy/unique"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+
+[[constraint]]
+  name = "github.com/goreleaser/nfpm"
+  version = "~0.5.0"
