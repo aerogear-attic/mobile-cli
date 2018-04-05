@@ -17,17 +17,17 @@ It uses a language familiar to mobile developers and abstracts away some of the 
 
 ```bash
 mobile get services
-mobile create serviceinstance fh-sync-server --namespace=myproject
-mobile get clientconfig <MobileClientID> --namespace=myproject 
-mobile create integration <consuming_service_instance_id> <providing_service_instance_id> --namespace=myproject
-mobile create clientbuild <MobileClientID> <Git_Source_Url> <buildName>
-mobile get clientbuilds <clientBuildID> 
+mobile create serviceinstance <serviceName> --namespace=<namespace>
+mobile get clientconfig <mobileClientID> --namespace=<namespace> 
+mobile create integration <consumingServiceInstanceID> <providingServiceInstanceID> --namespace=<namespace>
+mobile create clientbuild <mobileClientID> <gitSourceUrl> <buildName> --namespace=<namespace>
+mobile get clientbuilds <clientBuildID> --namespace=<namespace>
 ``` 
 
 ## CLI Installation
 ### Pre-requisites
 - Have a local Kubernetes or OpenShift cluster with mobile clients and services available via minikube, [mobile core installer](https://github.com/aerogear/mobile-core/blob/master/docs/walkthroughs/local-setup.adoc) or [minishift](https://github.com/aerogear/minishift-mobilecore-addon).
-- Install [glide](https://github.com/Masterminds/glide) (e.g. `brew install glide [Mac]`)
+- Install [glide](https://github.com/Masterminds/glide)
 - Install [go](https://golang.org/doc/install)
 
 ### Clone this repository
@@ -121,8 +121,7 @@ The mobile CLI can also be use standalone as it will pick up on your kube config
 mobile <command> --namespace=mine 
 ``` 
 
-**NOTE: When the mobile CLI is used as an oc plugin, the namespace does not have to be specified as this
-takes the current namespace selected. However, when using the mobile CLI as a standalone, the namespace must always be specified by using the *--namespace* flag.**
+**NOTE: When this CLI is used as an OC plugin, you do not need to provide the --namespace flag.**
 
 ## Design
 
@@ -148,10 +147,10 @@ In a similar fashion to the oc and kubectl CLI, we have some core resources that
 ### get
 ```
   client           gets a single mobile client in the namespace
+  clients          gets a list of mobile clients represented in the namespace
   clientbuild      get a specific clientbuild for a mobile client
   clientbuilds     get clientbuilds for a mobile client
   clientconfig     get clientconfig returns a client ready filtered configuration of the available services.
-  clients          gets a list of mobile clients represented in the namespace
   integration      get a single integration
   integrations     get a list of the current integrations between services
   serviceconfig    get a mobile aware service definition
