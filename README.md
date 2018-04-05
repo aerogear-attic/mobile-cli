@@ -40,11 +40,18 @@ git clone https://github.com/aerogear/mobile-cli
 
 ### Build 
 
-```
+#### Install Prerequisites:
+```sh
 glide install
+go install -u github.com/kisielk/errcheck
+```
+
+#### Build Binary:
+```sh
 make build
 ```
 
+#### Testing Binary
 To test, run:
 
 ```
