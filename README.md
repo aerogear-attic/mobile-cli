@@ -18,10 +18,9 @@ It uses a language familiar to mobile developers and abstracts away some of the 
 ```bash
 mobile get services
 mobile create serviceinstance <serviceName> --namespace=<namespace>
+mobile get clients --namespace=<namespace>
 mobile get clientconfig <mobileClientID> --namespace=<namespace> 
 mobile create integration <consumingServiceInstanceID> <providingServiceInstanceID> --namespace=<namespace>
-mobile create clientbuild <mobileClientID> <gitSourceUrl> <buildName> --namespace=<namespace>
-mobile get clientbuilds <clientBuildID> --namespace=<namespace>
 ``` 
 
 ## CLI Installation
@@ -148,8 +147,6 @@ In a similar fashion to the oc and kubectl CLI, we have some core resources that
 ```
   client           gets a single mobile client in the namespace
   clients          gets a list of mobile clients represented in the namespace
-  clientbuild      get a specific clientbuild for a mobile client
-  clientbuilds     get clientbuilds for a mobile client
   clientconfig     get clientconfig returns a client ready filtered configuration of the available services.
   integration      get a single integration
   integrations     get a list of the current integrations between services
@@ -162,7 +159,6 @@ In a similar fashion to the oc and kubectl CLI, we have some core resources that
 ### create 
 ```
   client          create a mobile client representation in your namespace
-  clientbuild     create a build for a mobile client
   integration     integrate certain mobile services together. mobile get services will show you what can be integrated.
   serviceconfig   create a new service config
   serviceinstance create a running instance of the given service
@@ -171,20 +167,9 @@ In a similar fashion to the oc and kubectl CLI, we have some core resources that
 ### delete
 ```
   client          deletes a single mobile client in the namespace
-  clientbuild     delete a build for a mobile client
   integration     delete the integration between mobile services.
   serviceconfig   delete a service config
   serviceinstance deletes a service instance and other objects created when provisioning the services instance, such as pod presets
-```
-
-### start
-```
-  clientbuild     start a build for a mobile client
-```
-
-### stop
-```
-  clientbuild     stop a build for a mobile client
 ```
                     
 ## Contributing 
