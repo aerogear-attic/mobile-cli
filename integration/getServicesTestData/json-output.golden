@@ -141,7 +141,7 @@
 				"clusterServiceBrokerName": "ansible-service-broker",
 				"externalName": "dh-keycloak-apb",
 				"externalID": "b95513950bb3f132de25d58fb75f8dca",
-				"description": "Keycloak - AEROGEAR-2309",
+				"description": "Keycloak - Open Source Identity and Access Management",
 				"bindable": true,
 				"binding_retrievable": false,
 				"planUpdatable": false,

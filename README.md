@@ -2,52 +2,51 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/aerogear/mobile-cli/badge.svg?branch=add-go-report-card-to-readme)](https://coveralls.io/github/aerogear/mobile-cli?branch=add-go-report-card-to-readme)
 
+# Mobile CLI
 
-## The Mobile CLI is a standalone CLI that can also be used a kubectl / oc plugin
+**NOTE: The Mobile CLI is still under construction and not yet fit for use.**
 
-## Note this is still under construction and not yet fit for use
+The Mobile CLI is a standalone CLI that can also be used as a kubectl or oc plugin.
 
-The mobile CLI focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite
-of services ontop of Kubernetes / OpenShift. 
+It focuses on a small set of commands to empower mobile focused developers to consume and take full advantage of the RedHat mobile suite of services ontop of Kubernetes/OpenShift. 
 
-It uses a language familiar to mobile developers and abstracts away some of the complexity of dealing with Kubernetes / OpenShift which can be 
-initially daunting and overwhelming.
+It uses a language familiar to mobile developers and abstracts away some of the complexity of dealing with Kubernetes/OpenShift which can be initially daunting and overwhelming.
 
-### Examples
-Note not all of these commands currently exist but are present below to show the general concept
+## Examples
+**Note: Not all of these commands currently exist but are present below to show the general concept.**
 
-```
+```bash
 mobile get services
-
-mobile provision fh-sync
-
-mobile --namespace=myproject get clientconfig <MobileClientID>
-
-mobile create integration fh-sync keycloak
-
-mobile create clientbuild <MobileClientID> <Git_Source_Url> [buildName]
-
-mobile get buildartifact <clientBuildID> 
+mobile create serviceinstance <serviceName> --namespace=<namespace>
+mobile get clients --namespace=<namespace>
+mobile get clientconfig <mobileClientID> --namespace=<namespace> 
+mobile create integration <consumingServiceInstanceID> <providingServiceInstanceID> --namespace=<namespace>
 ``` 
 
-### Checkout 
+## CLI Installation
+### Pre-requisites
+- Have a local Kubernetes or OpenShift cluster with mobile clients and services available via minikube, [mobile core installer](https://github.com/aerogear/mobile-core/blob/master/docs/walkthroughs/local-setup.adoc) or [minishift](https://github.com/aerogear/minishift-mobilecore-addon).
+- Install [glide](https://github.com/Masterminds/glide)
+- Install [go](https://golang.org/doc/install)
 
-```
+### Clone this repository
+
+```bash
 mkdir -p $GOPATH/src/github.com/aerogear
 cd $GOPATH/src/github.com/aerogear
 git clone https://github.com/aerogear/mobile-cli
 ```
 
-### Build 
+### Build the CLI Binary
 
-```
+```bash
 glide install
 make build
 ```
 
 To test, run:
 
-```
+```bash
 ./mobile
 ```
 
@@ -55,20 +54,13 @@ To test, run:
 
 To use the mobile CLI inside an APB container it needs to be compiled for the linux/amd64 platform:
 
+```bash
+make build_binary_linux
 ```
-make build_linux
-```
-
-### Install
-
-### Pre req
-
-- Have a local kubernetes or oc cluster via something like minikube, oc cluster up or [minishift](https://github.com/aerogear/minishift-mobilecore-addon).
-- Install glide (https://github.com/Masterminds/glide), e.g. `brew install glide`
 
 ### Setup the Custom Resource Definition
 
-```
+```bash
 oc login -u system:admin
 oc create -f artifacts/mobileclient_crd.yaml
 ```
@@ -98,124 +90,88 @@ oc edit clusterrole admin # add the above and save
 oc edit clusterrole edit # add the above and save
 ```
 
-### Setup the plugin
+### Setup as Kubectl/OC plugin
 
 - have the [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) command line tool or the [oc command line tool](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#installing-the-cli) already installed
 - it should be version k8s version 1.8 or OpenShift 3.7 or later
 - create a new dir ```mkdir -p ~/.kube/plugins/mobile```  
 - copy the cli_plugin.yaml file to the dir ```cp ./artifacts/cli_plugin.yaml ~/.kube/plugins/mobile```
-- rename the ```cli_plugin.yaml``` file to ```plugin.yaml```
+and rename the ```cli_plugin.yaml``` file to ```plugin.yaml```
 - install the mobile CLI binary onto your $PATH
 
-### Basic usage
+## Basic usage
 
-To access the plugin you can use the following command:
-```kubectl plugin mobile <command>```
-
-You can also use it standalone as it will pick up on your kube configuration:
-```mobile --namespace=mine <command>``` notice we pass the namespace here.
+To use the mobile CLI as a plugin you can use the following command:
+``` bash
+kubectl plugin mobile <command>
+oc plugin mobile <command>
+```
 
 **Passing flags**
 
-To pass flags when using the plugin ensure to use the ```--``` option:
-```kubectl plugin mobile -- create client --<someflag> ```
+To pass flags when using the mobile CLI as a plugin, ensure to use the ```--``` option:
+```bash
+kubectl plugin mobile create client -- --<someflag>
+oc plugin mobile create client -- --<someflag>
+```
 
+The mobile CLI can also be use standalone as it will pick up on your kube configuration:
+```bash
+mobile <command> --namespace=mine 
+``` 
+
+**NOTE: When this CLI is used as an OC plugin, you do not need to provide the --namespace flag.**
 
 ## Design
 
-The design of the CLI API attempts to give a familiar feel to users familiar wil the kubectl and oc CLIs. 
-It is also intended to use parlance familiar to mobile developers in order to help them become more productive
-and avoid needing to know the innards of various kubernetes resources.
+The design of the CLI API attempts to give a familiar feel to users familiar with the kubectl and oc CLIs.  It is also intended to use parlance familiar to mobile developers in order to help them become more productive and avoid needing to know the innards of various kubernetes resources.
 
 ## Core Objects or Resources
 
-In a similar fashion to the oc and kubectl CLI, we have some core resources that we work with. Some of these are backed by things like secrets while others are
-defined as custom resources.
+In a similar fashion to the oc and kubectl CLI, we have some core resources that we work with. Some of these are backed by things like secrets while others are defined as custom resources.
 
-- **MobileClient:** the mobile client is a resource that represents your mobile client app as part of the OpenShift UI. It gives us the context and information needed to show you relevant information
-around your particular mobile runtime as well as allowing us setup the different kind of client builds required.
+- **MobileClient:** The mobile client is a resource that represents your mobile client application as part of the OpenShift UI. It gives us the context and information needed to show you relevant information around your particular mobile runtime as well as allowing us to setup the different kind of client builds required.
 
-- **ClientConfig** the client config, is a resource created by aggregating together all of the available service configs. This resource is configuration
-required in order to consume your mobile aware services from your mobile client. It is used by the client SDKs for the various mobile services.
+- **ClientConfig** The client config, is a resource created by aggregating together all of the available service configs. This resource is the configuration required in order to consume your mobile aware services from your mobile client. It is used by the client SDKs for the various mobile services.
 
--  **ServiceConfig:** Contains services' information that is used to configure the Mobile SDK. For more information see [here](./doc/service_config.md).
+-  **ServiceConfig:** The service config contains the services' information that is used to configure the Mobile SDK. For more information see [here](./doc/service_config.md).
 
-- **ClientBuild** the ClientBuild is backed by a regular BuildConfig however the CLI will help you create this BuildConfig with as little effort as possible. Allowing you to focus on
-just the mobile parts rather than needing to understand how to setup and manage a buildconfig and builds. For example, it will help you manage build credentials, and keys and ensure the build integrates
-seamlessly with the areogear mobile build farm .
+- **ClientBuild** The client build is backed by a regular BuildConfig, however the CLI will help you create this BuildConfig with as little effort as possible. This allows you to focus on just the mobile parts rather than needing to understand how to setup and manage a buildconfig and builds. For example, it will help you manage build credentials, and keys and ensure the build integrates seamlessly with the aereogear mobile build farm.
 
-- **Binding** the Binding is backed by a binding resource in the service catalog. Once again we try to remove the need to understand how to create the
-native objects so that you can focus on being productive and building your mobile app. When doing a binding, you will be able to integrate different
-mobile services together. For example when using sync and keycloak you can bind them together and have your sync service protected by keycloak. This is as simple as
-```mobile bind fh-sync keycloak```
+- **Binding** The binding is backed by a binding resource in the service catalog. Once again we try to remove the need to understand how to create the native objects so that you can focus on being productive and building your mobile app. When doing a binding, you will be able to integrate different mobile services together. For example when using sync and keycloak you can bind them together and have your sync service protected by keycloak. This is as simple as
+```mobile create integration <consuming_service_instance_id> <providing_service_instance_id>```
 
-### Command Structure
+## Command Structure
 
-get 
+### get
+```
+  client           gets a single mobile client in the namespace
+  clients          gets a list of mobile clients represented in the namespace
+  clientconfig     get clientconfig returns a client ready filtered configuration of the available services.
+  integration      get a single integration
+  integrations     get a list of the current integrations between services
+  serviceconfig    get a mobile aware service definition
+  serviceconfigs   get a list of deployed mobile enabled services
+  serviceinstances get a list of provisioned service instances based on the service name.
+  services         get mobile aware services that can be provisioned to your namespace
+```
     
-    - clients
-        - get clients #returns a list of mobile clients within the current namespace
-        - get client <clientName> # returns a single mobile client
-    - serviceinstances
-        - get serviceinstances <serviceName> # Returns a list of provisioned serviceInstances based on the service name.
-    - services
-        - get services # Returns mobile aware services that can be provisioned to your namespace
-    - serviceconfig
-        - get serviceconfigs # returns a list of mobile aware service configurations (this is the full unfiltered configuration data)
-        - get serviceconfig <serviceName> #returns a single mobile aware service configuration (this is the full unfiltered configuration data) 
-    - clientconfig
-        - get clientconfig <clientID> # returns the filtered configuration as should be consumed by mobile clients making use of the sdks 
-    - clientbuild
-        - get clientbuilds #returns a list of mobile client builds
-        - get clientbuild <clientBuildName> #returns a single mobile client build
-    - integrations   
-        - get integrations # returns a list of integrations between mobile aware services and their consumers
-        - get integration <name> # return a single integration and the name of the services consuming it
+### create 
+```
+  client          create a mobile client representation in your namespace
+  integration     integrate certain mobile services together. mobile get services will show you what can be integrated.
+  serviceconfig   create a new service config
+  serviceinstance create a running instance of the given service
+```
     
-    
-create 
-    
-    - client
-        - create client <clientName> <clientType> <appIdentifier> # will create a representation of the mobile client application
-    - serviceinstance
-        - create serviceinstance <serviceName> # this command will likely prompt for needed imputs
-    - serviceconfig
-        - create serviceconfig # this command will likely prompt for needed imputs    
-    - integration
-        - create integration <consuming_service_inst_id> <providing_service_inst_id> # will create the binding and pod preset and optionally redeploy the consuming service
-        for example: mobile create integration fh-sync keycloak 
-    - clientbuild
-        - create clientbuild <clientID> <git_Source> [buildName] # will create a Jenkins PipeLine based buildconfig likely will need a several option flags to cover
-        things like credentials and keys
-    
-delete
-
-    - client
-        - delete client <clientID> # removes the configmap or mobileclient object if we go with CRD
-    - serviceinstance
-        - delete serviceinstance <serviceInstanceID> # deletes a service instance and other objects created when provisioning the services instance such as pod presets
-    - serviceconfig
-        - delete serviceconfig <configName> # remove the configur        
-    - integration
-        - delete integration <consuming_service_inst_id> <providing_service_inst_id> # removes all the objects created when the integratio was enabled. 
-        for example mobile delete binding fh-sync keycloak
-    - clientbuild
-        - delete the buildconfig and any other related object that back the client build.
-        example: delete clientbuild <clientBuildName>    
-
-replace
-
-
-start
-
-    - clientbuild <buildName>
-    
-
-stop
-
-    - clientbuild <buildName>
+### delete
+```
+  client          deletes a single mobile client in the namespace
+  integration     delete the integration between mobile services.
+  serviceconfig   delete a service config
+  serviceinstance deletes a service instance and other objects created when provisioning the services instance, such as pod presets
+```
                     
-
 ## Contributing 
 
 Check the [`CONTRIBUTING.md`](https://github.com/aerogear/mobile-cli/blob/master/.github/CONTRIBUTING.md) file. 
