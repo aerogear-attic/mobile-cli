@@ -126,12 +126,12 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
 // CreateClientCmd builds the create mobileclient command
 func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "client <name> <clientType iOS|cordova|android> <appIdentifier bundleID|packageName>",
+		Use:   "client <name> <clientType android|cordova|iOS|xamarin> <appIdentifier bundleID|packageName>",
 		Short: "create a mobile client representation in your namespace",
 		Long: `create client sets up the representation of a mobile application of the specified type in your namespace.
 This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
 
-The available client types are android, cordova and iOS. 
+The available client types are android, cordova, iOS and xamarin. 
 
 When used standalone, a namespace must be specified by providing the --namespace flag.`,
 		Example: `  mobile create client <name> <clientType> <appIdentifier> --namespace=myproject 
@@ -172,6 +172,11 @@ When used standalone, a namespace must be specified by providing the --namespace
 			case "cordova":
 				app.Annotations["icon"] = "font-icon icon-cordova"
 				break
+			case "xamarin":
+				app.Annotations["icon"] = "font-icon icon-xamarin"
+				break
+			default:
+				return errors.New("Unknown client type")
 			}
 			app.Name = name + "-" + strings.ToLower(app.Spec.ClientType)
 			if err := input.ValidateMobileClient(app); err != nil {
