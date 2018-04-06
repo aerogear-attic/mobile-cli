@@ -47,6 +47,7 @@ func TestClientJson(t *testing.T) {
 		"cordova",
 		"iOS",
 		"android",
+		"xamarin",
 	}
 
 	name := fmt.Sprintf("%s-mobile-crud-test-entity", *prefix)
