@@ -458,7 +458,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name:         "test create mobile client fails with unknown client type",
 			Args:         []string{"test", "firefox", "my.app.org"},
 			ExpectError:  true,
-			ErrorPattern: "^Failed validation while creating new mobile client: .*",
+			ErrorPattern: "^Unknown client type",
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
