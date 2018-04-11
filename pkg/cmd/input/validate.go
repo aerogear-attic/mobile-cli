@@ -42,4 +42,4 @@ func (vc validClients) Contains(client string) bool {
 	return false
 }
 
-var ValidClients = validClients{"iOS", "android", "cordova"}
+var ValidClients = validClients{"iOS", "android", "cordova", "xamarin"}

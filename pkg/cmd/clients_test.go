@@ -418,10 +418,47 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			},
 		},
 		{
+			Name: "test create xamarin mobile client succeeds without error",
+			Args: []string{"test", "xamarin", "my.app.org"},
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					ca := action.(kt.CreateAction)
+					return true, ca.GetObject(), nil
+				})
+				return fkMc
+			},
+			Flags: []string{"--namespace=myproject", "-o=json"},
+			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
+				if nil == c {
+					t.Fatal("expected a mobile client but got nil")
+				}
+				if c.Spec.ClientType != "xamarin" {
+					t.Fatal("expected the clientType to be cordova but got ", c.Spec.ClientType)
+				}
+				if c.Spec.AppIdentifier != "my.app.org" {
+					t.Fatal("expected an appIdentifier to be set as my.app.org but was  ", c.Spec.AppIdentifier)
+				}
+				if c.Spec.Name != "test" {
+					t.Fatal("expected the client name to be test but got ", c.Spec.Name)
+				}
+				if c.Spec.ApiKey == "" {
+					t.Fatal("expected an apiKey to be generated but it was empty")
+				}
+				icon, ok := c.Annotations["icon"]
+				if !ok {
+					t.Fatal("expected an icon to be set but there was none")
+				}
+				if icon != "font-icon icon-xamarin" {
+					t.Fatal("expected the icon to be icon-xamarin but got ", icon)
+				}
+			},
+		},
+		{
 			Name:         "test create mobile client fails with unknown client type",
 			Args:         []string{"test", "firefox", "my.app.org"},
 			ExpectError:  true,
-			ErrorPattern: "^Failed validation while creating new mobile client: .*",
+			ErrorPattern: "^Unknown client type",
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
