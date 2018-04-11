@@ -286,7 +286,7 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 		{
 			Name: "should fail when no service class found",
 			ValidateErr: func(t *testing.T, err error) {
-				expectedErr := "failed to find serviceclass with name: keycloak"
+				expectedErr := "failed to find any serviceclasses"
 				if err == nil {
 					t.Fatal("expected an error but got none")
 				}
@@ -475,13 +475,31 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 								ObjectMeta: metav1.ObjectMeta{
 									GenerateName: "keycloak",
 									Name:         "keycloak",
-									Labels: map[string]string{
-										"serviceName": "keycloak",
+								},
+								Spec: v1beta1.ServiceInstanceSpec{
+									PlanReference: v1beta1.PlanReference{
+										ClusterServiceClassExternalName: "keycloak",
+									},
+									ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+										Name: "id",
 									},
 								},
 							},
 						},
 					}, nil
+				})
+				fake.AddReactor("list", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClassList{
+						Items: []v1beta1.ClusterServiceClass{
+							{
+								Spec: v1beta1.ClusterServiceClassSpec{
+									ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"keycloak"}`)},
+									ExternalName:     "keycloak",
+								},
+							},
+						},
+					}, nil
+
 				})
 				return fake
 			},
@@ -489,12 +507,12 @@ func TestServicesCmd_ListServiceInstanceCmd(t *testing.T) {
 				return &kFake.Clientset{}
 			},
 			ValidateOut: func(t *testing.T, data []byte) {
-				var list = &v1beta1.ServiceInstanceList{}
-				if err := json.Unmarshal(data, list); err != nil {
+				var list = []v1beta1.ServiceInstance{}
+				if err := json.Unmarshal(data, &list); err != nil {
 					t.Fatal("failed to unmarshal data", err)
 				}
-				if len(list.Items) != 1 {
-					t.Fatalf("expected only one item in the list but got %v", len(list.Items))
+				if len(list) != 1 {
+					t.Fatalf("expected only one item in the list but got %v", len(list))
 				}
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},

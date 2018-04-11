@@ -26,7 +26,6 @@ import (
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -102,6 +101,27 @@ func podPreset(objectName, secretName, providerSvcName, consumerSvcName string) 
 	return &podPreset
 }
 
+func (bc *IntegrationCmd) getServiceNameFromServiceInst(si *v1beta1.ServiceInstance) (string, error) {
+	serviceClass, err := bc.
+		scClient.
+		ServicecatalogV1beta1().
+		ClusterServiceClasses().
+		Get(si.Spec.ClusterServiceClassRef.Name, metav1.GetOptions{})
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	serviceMeta := map[string]interface{}{}
+	if err := json.Unmarshal(serviceClass.
+		Spec.
+		ExternalMetadata.
+		Raw, &serviceMeta); err != nil {
+		return "", errors.WithStack(err)
+	}
+	serviceName := serviceMeta["serviceName"].(string)
+	return serviceName, nil
+}
+
+// CreateIntegrationCmd will create a binding from the provider services and setup a pod preset for the consumer service
 func (bc *IntegrationCmd) CreateIntegrationCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "integration <consuming_service_instance_id> <providing_service_instance_id>",
@@ -136,17 +156,23 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			consumerSvc := getService(namespace, consumerSvcInst.Labels["serviceName"], bc.k8Client) // the consumer service
-			providerSvc := getService(namespace, providerSvcInst.Labels["serviceName"], bc.k8Client) // the provider service
+			consumerServiceName, err := bc.getServiceNameFromServiceInst(consumerSvcInst)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			providerServiceName, err := bc.getServiceNameFromServiceInst(providerSvcInst)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 			//TODO review how we build the params
-			bindParams := buildBindParams(providerSvc, consumerSvc)
+			bindParams := buildBindParams(providerServiceName, consumerServiceName)
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
-			preset := podPreset(objectName, objectName, providerSvcInst.Labels["serviceName"], consumerSvcInst.Labels["serviceName"])
+			preset := podPreset(objectName, objectName, providerServiceName, consumerServiceName)
 			if _, err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Create(preset); err != nil {
 				return errors.Wrap(err, "failed to create pod preset for service ")
 			}
 			// prepare and create our binding
-			binding, err := createBindingObject(consumerSvc.Name, providerSvc.Name, objectName, providerSvcInst.Name, bindParams, objectName)
+			binding, err := createBindingObject(consumerServiceName, providerServiceName, objectName, providerSvcInstName, bindParams, objectName)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -154,7 +180,6 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if err != nil {
 				return errors.WithStack(err)
 			}
-
 			// check if a redeploy was asked for
 			redeploy, err := cmd.PersistentFlags().GetBool("auto-redeploy")
 			if err != nil {
@@ -202,11 +227,11 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if redeploy {
 
 				// update the deployment with an annotation
-				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvc.Name, metav1.GetOptions{})
+				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerServiceName, metav1.GetOptions{})
 				if err != nil {
 					return errors.Wrap(err, "failed to get deployment for service "+consumerSvcInstName)
 				}
-				dep.Spec.Template.Labels[providerSvc.Name] = "enabled"
+				dep.Spec.Template.Labels[providerServiceName] = "enabled"
 				if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 					return errors.Wrap(err, "failed to update deployment for service "+consumerSvcInstName)
 				}
@@ -246,17 +271,22 @@ oc plugin mobile delete integration <consuming_service_instance_id> <providing_s
 			}
 			consumerSvcInstName := args[0]
 			providerSvcInstName := args[1]
-
-			consumerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(consumerSvcInstName, metav1.GetOptions{})
-			if err != nil {
-				return errors.WithStack(err)
-			}
 			providerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(providerSvcInstName, metav1.GetOptions{})
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			consumerSvcName := consumerSvcInst.Labels["serviceName"]
-			providerSvcName := providerSvcInst.Labels["serviceName"]
+			consumerSvcInst, err := bc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Get(consumerSvcInstName, metav1.GetOptions{})
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			consumerServiceName, err := bc.getServiceNameFromServiceInst(consumerSvcInst)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			providerServiceName, err := bc.getServiceNameFromServiceInst(providerSvcInst)
+			if err != nil {
+				return errors.WithStack(err)
+			}
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
 			if err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, metav1.NewDeleteOptions(0)); err != nil {
 				return errors.WithStack(err)
@@ -314,11 +344,11 @@ oc plugin mobile delete integration <consuming_service_instance_id> <providing_s
 
 			if redeploy {
 				//update the deployment with an annotation
-				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerSvcName, metav1.GetOptions{})
+				dep, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Get(consumerServiceName, metav1.GetOptions{})
 				if err != nil {
 					return errors.Wrap(err, "service "+consumerSvcInstName)
 				}
-				delete(dep.Spec.Template.Labels, providerSvcName)
+				delete(dep.Spec.Template.Labels, providerServiceName)
 				if _, err := bc.k8Client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 					return errors.Wrap(err, "failed to update deployment for service "+consumerSvcInstName)
 				}
@@ -379,27 +409,12 @@ func (bc *IntegrationCmd) ListIntegrationsCmd() *cobra.Command {
 	return cmd
 }
 
-// TODO remove need for this by retrieving the params from the secret in the APB
-func buildBindParams(from *Service, to *Service) map[string]interface{} {
+// TODO review how we build params. This is still POC
+func buildBindParams(from string, to string) map[string]interface{} {
 	var p = map[string]interface{}{}
-	p["credentials"] = map[string]string{
-		"route":          from.Host,
-		"service_secret": to.ID,
-	}
 
-	for k, v := range from.Params {
-		p[k] = v
-	}
-	if from.Name == ServiceNameThreeScale {
-		p["apicast_route"] = from.Params["apicast_route"]
-		p["apicast_token"] = from.Params["token"]
-		p["apicast_service_id"] = from.Params["service_id"]
-		p["service_route"] = to.Host
-		p["service_name"] = to.Name
-		p["app_key"] = uuid.NewV4().String()
-		p["service_secret"] = to.ID
-	} else if from.Name == ServiceNameKeycloak {
-		p["service"] = to.Name
+	if from == ServiceNameKeycloak {
+		p["service"] = to
 	}
 	return p
 }
