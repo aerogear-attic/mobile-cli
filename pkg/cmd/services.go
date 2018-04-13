@@ -142,7 +142,7 @@ func findServiceClassByName(scClient versioned.Interface, name string) (*v1beta1
 		return nil, err
 	}
 	if mobileServices == nil || len(mobileServices.Items) == 0 {
-		return nil, errors.New("failed to find serviceclass with name: " + name)
+		return nil, errors.New("failed to find any serviceclasses")
 	}
 
 	for _, item := range mobileServices.Items {
@@ -443,6 +443,20 @@ Run the "mobile get serviceinstances" command from this tool to see which servic
 	}
 }
 
+func findServiceInstanceByExternalName(client versioned.Interface, ns, name string) ([]v1beta1.ServiceInstance, error) {
+	sis, err := client.ServicecatalogV1beta1().ServiceInstances(ns).List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var relevantSi []v1beta1.ServiceInstance
+	for _, s := range sis.Items {
+		if s.Spec.ClusterServiceClassExternalName == name {
+			relevantSi = append(relevantSi, s)
+		}
+	}
+	return relevantSi, nil
+}
+
 func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstances <serviceName>",
@@ -460,7 +474,12 @@ func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "failed to get namespace")
 			}
-			si, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).List(metav1.ListOptions{LabelSelector: "serviceName=" + serviceName})
+			scs, err := findServiceClassByName(sc.scClient, serviceName)
+			if err != nil {
+				return err
+			}
+
+			si, err := findServiceInstanceByExternalName(sc.scClient, ns, scs.Spec.ExternalName)
 			if err != nil {
 				return err
 			}
@@ -473,9 +492,9 @@ func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 		},
 	}
 	sc.Out.AddRenderer("list"+cmd.Name(), "table", func(writer io.Writer, serviceInstances interface{}) error {
-		scL := serviceInstances.(*v1beta1.ServiceInstanceList)
+		scL := serviceInstances.([]v1beta1.ServiceInstance)
 		var data [][]string
-		for _, item := range scL.Items {
+		for _, item := range scL {
 			data = append(data, []string{item.Spec.ClusterServiceClassExternalName, item.Name})
 		}
 		table := tablewriter.NewWriter(writer)

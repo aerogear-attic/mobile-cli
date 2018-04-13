@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"fmt"
 	"testing"
 
 	"bytes"
@@ -31,6 +32,8 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 			},
 		},
 	}
+
+	fmt.Print(defaultServiceBinding)
 
 	cases := []struct {
 		Name             string
@@ -86,6 +89,14 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "keycloak",
 						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "keycloak",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
+						},
 					}, nil
 				})
 				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -93,7 +104,18 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "fh-sync-server",
 						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "fh-sync-server",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
+						},
 					}, nil
+				})
+				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
 				})
 				return fake, fakeWatch, []runtime.Object{
 					defaultServiceBinding,
@@ -126,9 +148,20 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1beta1.ServiceInstance{
 						ObjectMeta: metav1.ObjectMeta{
-							Name: "keycloak",
+							Name: "fh-sync-server",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "fh-sync-server",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
 						},
 					}, nil
+				})
+				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
 				})
 				return fake, fakeWatch, []runtime.Object{
 					defaultServiceBinding,
@@ -173,6 +206,14 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "keycloak",
 						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "keycloak",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
+						},
 					}, nil
 				})
 				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -180,7 +221,18 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "fh-sync-server",
 						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "fh-sync-server",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
+						},
 					}, nil
+				})
+				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
 				})
 				return fake, fakeWatch, []runtime.Object{
 					defaultServiceBinding,
@@ -387,8 +439,13 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 					return true, &v1beta1.ServiceInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "keycloak",
-							Labels: map[string]string{
-								"serviceName": "keycloak",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "keycloak",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
 							},
 						},
 					}, nil
@@ -397,11 +454,19 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 					return true, &v1beta1.ServiceInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "fh-sync-server",
-							Labels: map[string]string{
-								"serviceName": "fh-sync-server",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "fh-sync-server",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
 							},
 						},
 					}, nil
+				})
+				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
 				})
 				fake.AddReactor("delete", "podpreset", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, nil
@@ -436,11 +501,36 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 				fakeWatch := watch.NewFake()
 				fake := &scFake.Clientset{}
 				fake.AddWatchReactor("servicebindings", ktesting.DefaultWatchReactor(fakeWatch, nil))
-
+				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
+				})
 				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1beta1.ServiceInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "keycloak",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "keycloak",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
+						},
+					}, nil
+				})
+				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ServiceInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "fh-sync-server",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "fh-sync-server",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
 						},
 					}, nil
 				})
@@ -482,10 +572,21 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 				fake := &scFake.Clientset{}
 				fakeWatch := watch.NewFake()
 				fake.AddWatchReactor("servicebindings", ktesting.DefaultWatchReactor(fakeWatch, nil))
+				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
+				})
 				fake.AddReactor("get", "serviceinstances", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1beta1.ServiceInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "keycloak",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "keycloak",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
 						},
 					}, nil
 				})
@@ -493,6 +594,14 @@ func TestIntegrationCmd_DeleteIntegrationCmd(t *testing.T) {
 					return true, &v1beta1.ServiceInstance{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: "fh-sync-server",
+						},
+						Spec: v1beta1.ServiceInstanceSpec{
+							PlanReference: v1beta1.PlanReference{
+								ClusterServiceClassExternalName: "fh-sync-server",
+							},
+							ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+								Name: "id",
+							},
 						},
 					}, nil
 				})
