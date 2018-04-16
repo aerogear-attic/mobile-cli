@@ -17,7 +17,6 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
@@ -27,7 +26,6 @@ import (
 	"github.com/spf13/cobra"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -79,28 +77,11 @@ kubectl plugin mobile get clientconfig`,
 				return err
 			}
 
-			client, err := ccc.mobileClient.MobileV1alpha1().MobileClients(ns).Get(clientID, metav1.GetOptions{})
-			if err != nil {
-				return errors.Wrap(err, "failed to get mobile client with clientID "+clientID)
-			}
-
 			ms := listServices(ns, ccc.k8Client)
 			for _, svc := range ms {
 				var svcConfig *ServiceConfig
 				var err error
 				includedService := true
-				for _, excluded := range client.Spec.ExcludedServices {
-					catalogService, err := ccc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Get(excluded, v1.GetOptions{})
-					if kerror.IsNotFound(err) {
-						continue
-					} else if err != nil {
-						return err
-					}
-					if strings.TrimSpace(catalogService.Labels["serviceName"]) == strings.TrimSpace(svc.Name) {
-						includedService = false
-						break
-					}
-				}
 				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
 				// ignoring not found as some services will not have this public configmap
 				if err != nil {

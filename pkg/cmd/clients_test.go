@@ -497,7 +497,7 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name:         "test create mobile client fails when there is no appIdentifier",
 			Args:         []string{"test", "android", ""},
 			ExpectError:  true,
-			ErrorPattern: "^Failed validation while creating new mobile client: .*",
+			ErrorPattern: "^failed validation while creating new mobile client: .*",
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {

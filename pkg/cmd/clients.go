@@ -69,7 +69,7 @@ func (cc *ClientCmd) ListClientsCmd() *cobra.Command {
 		mClients := mobileClientList.(*v1alpha1.MobileClientList)
 		var data [][]string
 		for _, mClient := range mClients.Items {
-			data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier, strings.Join(mClient.Spec.ExcludedServices, ", ")})
+			data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier})
 		}
 		table := tablewriter.NewWriter(out)
 		table.AppendBulk(data)
@@ -113,7 +113,7 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
 	cc.Out.AddRenderer(command.Name(), "table", func(out io.Writer, mobileClient interface{}) error {
 		mClient := mobileClient.(*v1alpha1.MobileClient)
 		var data [][]string
-		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey, mClient.Spec.AppIdentifier, strings.Join(mClient.Spec.ExcludedServices, ", ")})
+		data = append(data, []string{mClient.Name, mClient.Namespace, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.ApiKey, mClient.Spec.AppIdentifier})
 		table := tablewriter.NewWriter(out)
 		table.AppendBulk(data)
 		table.SetHeader([]string{"ID", "Namespace", "Name", "ClientType", "ApiKey", "AppIdentifier", "Excluded Services"})
@@ -180,7 +180,7 @@ When used standalone, a namespace must be specified by providing the --namespace
 			}
 			app.Name = name + "-" + strings.ToLower(app.Spec.ClientType)
 			if err := input.ValidateMobileClient(app); err != nil {
-				return errors.Wrap(err, "Failed validation while creating new mobile client")
+				return errors.Wrap(err, "failed validation while creating new mobile client")
 			}
 			createdClient, err := cc.mobileClient.MobileV1alpha1().MobileClients(namespace).Create(app)
 			if err != nil {
