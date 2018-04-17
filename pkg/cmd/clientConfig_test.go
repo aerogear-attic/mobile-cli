@@ -22,8 +22,6 @@ import (
 
 	"regexp"
 
-	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	mcFake "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
 	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
@@ -34,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	kFake "k8s.io/client-go/kubernetes/fake"
-	kt "k8s.io/client-go/testing"
 	ktesting "k8s.io/client-go/testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -208,117 +205,6 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 		{
 			"id": "keycloak",
 			"name": "keycloak",
-			"type": "",
-			"url": "",
-			"config": {}
-		}
-	]
-}`
-				if strings.TrimSpace(out.String()) != expected {
-					return errors.New(fmt.Sprintf("expected: '%v', got: '%v'", expected, strings.TrimSpace(out.String())))
-				}
-				return nil
-			},
-		},
-		{
-			name: "get client config command with excluded services",
-			k8Client: func() kubernetes.Interface {
-				fakeclient := &kFake.Clientset{}
-				fakeclient.AddReactor("list", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					secrets := []v1.Secret{
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name: "test-service",
-								Labels: map[string]string{
-									"mobile": "enabled",
-								},
-							},
-							Data: map[string][]byte{
-								"name": []byte("test-service"),
-							},
-						},
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name: "keycloak",
-								Labels: map[string]string{
-									"mobile": "enabled",
-								},
-							},
-							Data: map[string][]byte{
-								"name": []byte("keycloak"),
-							},
-						},
-					}
-					secretList := &v1.SecretList{
-						Items: secrets,
-					}
-					return true, secretList, nil
-				})
-				fakeclient.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					var config *v1.ConfigMap
-					name := action.(ktesting.GetAction).GetName()
-					if name == "keycloak" {
-						config = &v1.ConfigMap{
-							Data: map[string]string{
-								"public_installation": "{}",
-								"name":                "keycloak",
-							},
-						}
-					}
-					if name == "test-service" {
-						config = &v1.ConfigMap{
-							Data: map[string]string{
-								"name": "test-service",
-							},
-						}
-					}
-					return true, config, nil
-				})
-				return fakeclient
-			},
-			mobileClient: func() mobile.Interface {
-				mf := &mcFake.Clientset{}
-				mf.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					return true, &v1alpha1.MobileClient{
-						Spec: v1alpha1.MobileClientSpec{
-							Name:             "test",
-							ApiKey:           "testkey",
-							ClientType:       "cordova",
-							ExcludedServices: []string{"dh-keycloak-fsdfsdfs"},
-						},
-					}, nil
-				})
-				return mf
-			},
-			SvcCatalogClient: func() versioned.Interface {
-				fake := &scFake.Clientset{}
-				fake.AddReactor("get", "serviceinstances", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					return true, &v1beta1.ServiceInstance{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "dh-keycloak-fsdfsdfs",
-							Labels: map[string]string{
-								"serviceName": "keycloak",
-							},
-						},
-					}, nil
-				})
-				return fake
-			},
-			namespace:   "testing-ns",
-			ClusterHost: "test",
-			args:        []string{"client-id"},
-			cobraCmd:    getFakeCbrCmd(),
-			ExpectError: false,
-			ValidateOut: func(out bytes.Buffer) error {
-				expected := `{
-	"version": 1,
-	"clusterName": "test",
-	"namespace": "testing-ns",
-	"clientId": "client-id",
-	"services": [
-		{
-			"id": "test-service",
-			"name": "test-service",
 			"type": "",
 			"url": "",
 			"config": {}
