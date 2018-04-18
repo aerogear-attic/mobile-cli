@@ -130,7 +130,8 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 							ObjectMeta: metav1.ObjectMeta{
 								Name: "test-service",
 								Labels: map[string]string{
-									"mobile": "enabled",
+									"mobile":   "enabled",
+									"clientId": "client-id",
 								},
 							},
 							Data: map[string][]byte{
@@ -141,7 +142,8 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 							ObjectMeta: metav1.ObjectMeta{
 								Name: "keycloak",
 								Labels: map[string]string{
-									"mobile": "enabled",
+									"mobile":   "enabled",
+									"clientId": "client-id",
 								},
 							},
 							Data: map[string][]byte{
@@ -153,26 +155,6 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 						Items: secrets,
 					}
 					return true, secretList, nil
-				})
-				fakeclient.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					var config *v1.ConfigMap
-					name := action.(ktesting.GetAction).GetName()
-					if name == "keycloak" {
-						config = &v1.ConfigMap{
-							Data: map[string]string{
-								"public_installation": "{}",
-								"name":                "keycloak",
-							},
-						}
-					}
-					if name == "test-service" {
-						config = &v1.ConfigMap{
-							Data: map[string]string{
-								"name": "test-service",
-							},
-						}
-					}
-					return true, config, nil
 				})
 				return fakeclient
 			},

@@ -24,7 +24,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	kerror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -64,10 +63,7 @@ kubectl plugin mobile get clientconfig`,
 			var ns string
 			var err error
 			ret := make([]*ServiceConfig, 0)
-			convertors := map[string]SecretConvertor{
-				"fh-sync-server": &syncSecretConvertor{},
-				"keycloak":       &keycloakSecretConvertor{},
-			}
+
 			if len(args) != 1 {
 				return cmd.Usage()
 			}
@@ -77,35 +73,19 @@ kubectl plugin mobile get clientconfig`,
 				return err
 			}
 
-			ms := listServices(ns, ccc.k8Client)
-			for _, svc := range ms {
-				var svcConfig *ServiceConfig
-				var err error
-				includedService := true
-				configMap, err := ccc.k8Client.CoreV1().ConfigMaps(ns).Get(svc.Name, v1.GetOptions{})
-				// ignoring not found as some services will not have this public configmap
+			filter := v1.ListOptions{LabelSelector: fmt.Sprintf("clientId=%s", clientID)}
+			secrets, err := ccc.k8Client.CoreV1().Secrets(ns).List(filter)
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Error retrieving secrets with clientId %s", clientID))
+			}
+
+			for _, secret := range secrets.Items {
+				convertor := defaultSecretConvertor{}
+				svcConfig, err := convertor.Convert(secret)
 				if err != nil {
-					if kerror.IsNotFound(err) {
-						continue
-					}
-					return errors.Wrap(err, "unable to create config. Failed to get service "+svc.Name+" configmap")
+					return err
 				}
-				configType := configMap.ObjectMeta.Annotations["configType"]
-				if _, ok := convertors[svc.Name]; !ok {
-					convertor := defaultSecretConvertor{}
-					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data, configType); err != nil {
-						return err
-					}
-				} else {
-					// we can only convert what is available
-					convertor := convertors[svc.Name]
-					if svcConfig, err = convertor.Convert(svc.ID, configMap.Data, configType); err != nil {
-						return err
-					}
-				}
-				if includedService {
-					ret = append(ret, svcConfig)
-				}
+				ret = append(ret, svcConfig)
 			}
 
 			outputJSON := ServiceConfigs{
