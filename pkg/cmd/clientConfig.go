@@ -117,9 +117,6 @@ kubectl plugin mobile get clientconfig`,
 	ccc.Out.AddRenderer("get"+cmd.Name(), "table", func(writer io.Writer, serviceConfigs interface{}) error {
 		serviceConfigList := serviceConfigs.(ServiceConfigs)
 		var data [][]string
-		if serviceConfigList.ClientID != "" {
-			data = append(data, []string{"Client ID", serviceConfigList.ClientID, "", ""})
-		}
 		for _, service := range serviceConfigList.Services {
 			data = append(data, []string{service.ID, service.Name, service.Type, service.URL})
 		}
