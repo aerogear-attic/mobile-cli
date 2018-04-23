@@ -17,6 +17,7 @@ package cmd
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
+	"k8s.io/client-go/pkg/api/v1"
 	"net/http"
 )
 
@@ -64,11 +65,6 @@ const (
 	IntegrationAPIKeys    = "mcp-mobile-keys"
 )
 
-// SecretConvertor converts a kubernetes secret into a mobile.ServiceConfig
-type SecretConvertor interface {
-	Convert(id string, params map[string]string, configType string) (*ServiceConfig, error)
-}
-
 //ServiceConfigs are collection of configurations for services in a specific namespace
 type ServiceConfigs struct {
 	Version     int              `json:"version"`
@@ -114,20 +110,22 @@ func (i ignoredFields) Contains(field string) bool {
 var defaultIgnored = ignoredFields{"password", "token", "url", "uri", "name", "type", "id"}
 
 //Convert a kubernetes secret to a mobile.ServiceConfig
-func (dsc defaultSecretConvertor) Convert(id string, params map[string]string, configType string) (*ServiceConfig, error) {
+func (dsc defaultSecretConvertor) Convert(secret v1.Secret) (*ServiceConfig, error) {
+	params := secret.Data
 	config := map[string]interface{}{}
 	headers := map[string]string{}
 	for k, v := range params {
+		strV := string(v)
 		if !defaultIgnored.Contains(k) {
-			if configType == "json" && k == "config" {
+			if k == "config" {
 				jsCfg := map[string]interface{}{}
-				if err := json.Unmarshal([]byte(v), &jsCfg); err != nil {
+				if err := json.Unmarshal([]byte(strV), &jsCfg); err != nil {
 					return nil, errors.Wrap(err, "failed to unmarshall service configuration ")
 				}
 				config = jsCfg
 				break // we have json config, stop looping
 			} else {
-				config[k] = string(v) // loop over config params
+				config[k] = string(strV) // loop over config params
 			}
 		}
 	}
@@ -136,63 +134,11 @@ func (dsc defaultSecretConvertor) Convert(id string, params map[string]string, c
 	}
 
 	return &ServiceConfig{
-		ID:     id,
-		Name:   params["name"],
-		URL:    params["uri"],
-		Type:   params["type"],
-		Config: config,
-	}, nil
-}
-
-type keycloakSecretConvertor struct{}
-
-//Convert a kubernetes keycloak secret into a keycloak mobile.ServiceConfig
-func (ksc keycloakSecretConvertor) Convert(id string, params map[string]string, configType string) (*ServiceConfig, error) {
-	config := map[string]interface{}{}
-	headers := map[string]string{}
-	err := json.Unmarshal([]byte(params["public_installation"]), &config)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshall keycloak configuration ")
-	}
-	if len(headers) > 0 {
-		config["headers"] = headers
-	}
-	return &ServiceConfig{
-		Config: config,
-		ID:     id,
+		ID:     secret.Name,
 		Name:   string(params["name"]),
 		URL:    string(params["uri"]),
 		Type:   string(params["type"]),
-	}, nil
-}
-
-type syncSecretConvertor struct{}
-
-//Convert a kubernetes Sync Server secret into a keycloak mobile.ServiceConfig
-func (scc syncSecretConvertor) Convert(id string, params map[string]string, configType string) (*ServiceConfig, error) {
-	config := map[string]interface{}{
-		"url": params["host"],
-	}
-	headers := map[string]string{}
-
-	acAppID, acAppIDExists := params["apicast_app_id"]
-	acAppKey, acAppKeyExists := params["apicast_app_key"]
-	acRoute, acRouteExists := params["apicast_route"]
-	if acAppIDExists && acAppKeyExists && acRouteExists {
-		headers["app_id"] = acAppID
-		headers["app_key"] = acAppKey
-		config["url"] = acRoute
-	}
-	if len(headers) > 0 {
-		config["headers"] = headers
-	}
-
-	return &ServiceConfig{
 		Config: config,
-		ID:     id,
-		Name:   params["name"],
-		URL:    params["uri"],
-		Type:   params["type"],
 	}, nil
 }
 
