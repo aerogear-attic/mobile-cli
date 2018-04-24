@@ -16,7 +16,6 @@ package cmd
 
 import (
 	"encoding/json"
-
 	"fmt"
 
 	"io"
@@ -45,8 +44,10 @@ func NewIntegrationCmd(scClient sc.Interface, k8Client kubernetes.Interface, out
 	return &IntegrationCmd{scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(out)}}
 }
 
-func createBindingObject(consumer, provider, bindingName, instance string, params map[string]interface{}, secretName string) (*v1beta1.ServiceBinding, error) {
-	pdata, err := json.Marshal(params)
+func createBindingObject(consumer, provider, bindingName, instance string, bindParams *ServiceParams, secretName string) (*v1beta1.ServiceBinding, error) {
+	parsedBindParams := buildBindParams(bindParams)
+	pdata, err := json.Marshal(parsedBindParams)
+
 	if err != nil {
 		return nil, err
 	}
@@ -164,10 +165,36 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			//TODO review how we build the params
-			bindParams := buildBindParams(providerServiceName, consumerServiceName)
+			// Get available bind parameters from the provider cluster service plan
+			clusterServiceClass, err := findServiceClassByName(bc.scClient, providerServiceName)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			clusterServicePlan, err := findServicePlanByNameAndClass(bc.scClient, "default", clusterServiceClass.Name)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			bindParams := &ServiceParams{}
+			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceBindingCreateParameterSchema.Raw, bindParams); err != nil {
+				return errors.WithStack(err)
+			}
+
+			flagParams, err := cmd.Flags().GetStringArray("params")
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			// Get bind parameters value from user input
+			bindParams, err = GetParams(flagParams, bindParams)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
 			objectName := objectName(consumerSvcInstName, providerSvcInstName)
 			preset := podPreset(objectName, objectName, providerServiceName, consumerServiceName)
+
+			// Create Pod Preset for service
 			if _, err := bc.k8Client.SettingsV1alpha1().PodPresets(namespace).Create(preset); err != nil {
 				return errors.Wrap(err, "failed to create pod preset for service ")
 			}
@@ -242,6 +269,8 @@ If both the --no-wait and --auto-redeploy flags are set to true, --auto-redeploy
 	}
 	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately after a successful response instead of waiting until the binding is complete")
 	cmd.PersistentFlags().Bool("auto-redeploy", false, "--auto-redeploy=true will cause a backing deployment to be rolled out")
+	cmd.PersistentFlags().StringArrayP("params", "p", []string{}, "set the parameters needed to set up the integration programatically rather than being prompted for them: -p PARAM1=val -p PARAM2=val2")
+
 	return cmd
 }
 
@@ -410,11 +439,12 @@ func (bc *IntegrationCmd) ListIntegrationsCmd() *cobra.Command {
 }
 
 // TODO review how we build params. This is still POC
-func buildBindParams(from string, to string) map[string]interface{} {
-	var p = map[string]interface{}{}
+func buildBindParams(bindParams *ServiceParams) map[string]interface{} {
+	params := map[string]interface{}{}
 
-	if from == ServiceNameKeycloak {
-		p["service"] = to
+	for k, v := range bindParams.Properties {
+		params[k] = v["value"]
 	}
-	return p
+
+	return params
 }

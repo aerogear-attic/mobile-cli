@@ -1,10 +1,10 @@
 package cmd_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"testing"
-
-	"bytes"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
@@ -117,6 +117,34 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
 				})
+				fake.AddReactor("list", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "test",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "test",
+							},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+				fake.AddReactor("list", "clusterserviceplans", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					params := &cmd.ServiceParams{Required: []string{"CLIENT_NAME"}, Properties: map[string]map[string]interface{}{"CLIENT_NAME": {"value": "", "default": "test-client-name"}}}
+					b, _ := json.Marshal(params)
+					return true, &v1beta1.ClusterServicePlanList{Items: []v1beta1.ClusterServicePlan{
+						{Spec: v1beta1.ClusterServicePlanSpec{
+							ServiceBindingCreateParameterSchema: &runtime.RawExtension{Raw: b},
+							ClusterServiceClassRef:              v1beta1.ClusterObjectReference{Name: "test"},
+							ExternalName:                        "default"},
+						},
+					},
+					}, nil
+				})
 				return fake, fakeWatch, []runtime.Object{
 					defaultServiceBinding,
 				}
@@ -162,6 +190,34 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 				})
 				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
+				})
+				fake.AddReactor("list", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "test",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "test",
+							},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+				fake.AddReactor("list", "clusterserviceplans", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					params := &cmd.ServiceParams{Required: []string{"CLIENT_NAME"}, Properties: map[string]map[string]interface{}{"CLIENT_NAME": {"value": "", "default": "test-client-name"}}}
+					b, _ := json.Marshal(params)
+					return true, &v1beta1.ClusterServicePlanList{Items: []v1beta1.ClusterServicePlan{{
+						Spec: v1beta1.ClusterServicePlanSpec{
+							ServiceBindingCreateParameterSchema: &runtime.RawExtension{Raw: b},
+							ClusterServiceClassRef:              v1beta1.ClusterObjectReference{Name: "test"},
+							ExternalName:                        "default"},
+					},
+					},
+					}, nil
 				})
 				return fake, fakeWatch, []runtime.Object{
 					defaultServiceBinding,
@@ -234,6 +290,34 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 				fake.AddReactor("get", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1beta1.ClusterServiceClass{Spec: v1beta1.ClusterServiceClassSpec{ExternalMetadata: &runtime.RawExtension{Raw: []byte(`{"serviceName":"test"}`)}}}, nil
 				})
+				fake.AddReactor("list", "clusterserviceclasses", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "test",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "test",
+							},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+				fake.AddReactor("list", "clusterserviceplans", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					params := &cmd.ServiceParams{Required: []string{"CLIENT_NAME"}, Properties: map[string]map[string]interface{}{"CLIENT_NAME": {"value": "", "default": "test-client-name"}}}
+					b, _ := json.Marshal(params)
+					return true, &v1beta1.ClusterServicePlanList{Items: []v1beta1.ClusterServicePlan{{
+						Spec: v1beta1.ClusterServicePlanSpec{
+							ServiceBindingCreateParameterSchema: &runtime.RawExtension{Raw: b},
+							ClusterServiceClassRef:              v1beta1.ClusterObjectReference{Name: "test"},
+							ExternalName:                        "default"},
+					},
+					},
+					}, nil
+				})
 				return fake, fakeWatch, []runtime.Object{
 					defaultServiceBinding,
 				}
@@ -254,7 +338,7 @@ func TestIntegrationCmd_CreateIntegrationCmd(t *testing.T) {
 				return fake
 			},
 			Args:  []string{"keycloak", "fh-sync-server"},
-			Flags: []string{"--namespace=test", "--auto-redeploy=true", "--no-wait=true"},
+			Flags: []string{"--namespace=test", "-pCLIENT_NAME=test", "--auto-redeploy=true", "--no-wait=true"},
 		},
 	}
 
