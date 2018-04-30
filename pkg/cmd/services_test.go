@@ -373,7 +373,7 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 					}}, nil
 				})
 				fakeClient.AddReactor("list", "clusterserviceplans", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					params := &cmd.InstanceCreateParams{Required: []string{"ADMIN_NAME"}, Properties: map[string]map[string]interface{}{"ADMIN_NAME": {"value": ""}}}
+					params := &cmd.ServiceParams{Required: []string{"ADMIN_NAME"}, Properties: map[string]map[string]interface{}{"ADMIN_NAME": {"value": ""}}}
 					b, _ := json.Marshal(params)
 					return true, &v1beta1.ClusterServicePlanList{Items: []v1beta1.ClusterServicePlan{{
 						Spec: v1beta1.ClusterServicePlanSpec{ServiceInstanceCreateParameterSchema: &runtime.RawExtension{Raw: b}, ClusterServiceClassRef: v1beta1.ClusterObjectReference{Name: "test"}, ExternalName: "default"},
@@ -414,7 +414,7 @@ func TestServicesCmd_CreateServiceInstanceCmd(t *testing.T) {
 					}}, nil
 				})
 				fakeClient.AddReactor("list", "clusterserviceplans", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					params := &cmd.InstanceCreateParams{Required: []string{"ADMIN_NAME"}, Properties: map[string]map[string]interface{}{"ADMIN_NAME": {"value": "", "default": "admin"}}}
+					params := &cmd.ServiceParams{Required: []string{"ADMIN_NAME"}, Properties: map[string]map[string]interface{}{"ADMIN_NAME": {"value": "", "default": "admin"}}}
 					b, _ := json.Marshal(params)
 					return true, &v1beta1.ClusterServicePlanList{Items: []v1beta1.ClusterServicePlan{{
 						Spec: v1beta1.ClusterServicePlanSpec{ServiceInstanceCreateParameterSchema: &runtime.RawExtension{Raw: b}, ClusterServiceClassRef: v1beta1.ClusterObjectReference{Name: "test"}, ExternalName: "default"},

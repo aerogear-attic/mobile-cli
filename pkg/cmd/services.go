@@ -16,14 +16,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"io"
 
 	"encoding/json"
-
-	"bufio"
 
 	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
@@ -107,7 +104,7 @@ func (sc *ServicesCmd) ListServicesCmd() *cobra.Command {
 				return err
 			}
 
-			params := &InstanceCreateParams{}
+			params := &ServiceParams{}
 			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceInstanceCreateParameterSchema.Raw, &params); err != nil {
 				return err
 			}
@@ -176,34 +173,6 @@ func findServicePlanByNameAndClass(scClient versioned.Interface, planName, servi
 	return nil, errors.New("failed to find serviceplan associated with the serviceclass " + serviceClassName)
 }
 
-func requiredParam(instParams InstanceCreateParams, key string) bool {
-	for _, r := range instParams.Required {
-		if r == key {
-			return true
-		}
-	}
-	return false
-}
-
-func parseParams(keyVals []string) (map[string]string, error) {
-	params := map[string]string{}
-	for _, p := range keyVals {
-		kv := strings.Split(p, "=")
-		if len(kv) != 2 {
-			return nil, NewIncorrectParameterFormat("key value pairs are needed failed to find one: " + p)
-		}
-		params[strings.TrimSpace(kv[0])] = kv[1]
-	}
-	return params, nil
-}
-
-type InstanceCreateParams struct {
-	AdditionalProperties bool                              `json:"additionalProperties"`
-	Properties           map[string]map[string]interface{} `json:"properties"`
-	Required             []string                          `json:"required"`
-	Type                 string                            `json:"type"`
-}
-
 func (sc *ServicesCmd) CreateServiceInstanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serviceinstance <serviceName>",
@@ -225,6 +194,7 @@ Run the "mobile get services" command from this tool to see which services are a
 				return errors.Wrap(err, "failed to get namespace")
 			}
 
+			// Get available provision parameters from the cluster service plan
 			clusterServiceClass, err := findServiceClassByName(sc.scClient, serviceName)
 			if err != nil {
 				return errors.WithStack(err)
@@ -233,68 +203,22 @@ Run the "mobile get services" command from this tool to see which services are a
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			// handle the params
-			params, err := cmd.Flags().GetStringArray("params")
-			if err != nil {
-				return errors.WithStack(err)
-			}
-			parsedParams, err := parseParams(params)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-			instParams := &InstanceCreateParams{}
+
+			instParams := &ServiceParams{}
+
 			if err := json.Unmarshal(clusterServicePlan.Spec.ServiceInstanceCreateParameterSchema.Raw, instParams); err != nil {
 				return errors.WithStack(err)
 			}
 
-			if len(parsedParams) > 0 {
-				for k, v := range instParams.Properties {
-					defaultVal := v["default"]
-					if pVal, ok := parsedParams[k]; !ok && requiredParam(*instParams, k) || requiredParam(*instParams, k) && pVal == "" {
-						if defaultVal != nil {
-							//use default
-							v["value"] = defaultVal
-							continue
-						}
-						return errors.New(fmt.Sprintf("missing required parameter %s", k))
-					}
-					v["value"] = parsedParams[k]
-					instParams.Properties[k] = v
-				}
-			} else {
-				scanner := bufio.NewScanner(os.Stdin)
-				for k, v := range instParams.Properties {
-					validInput := false
-					val := ""
-					for validInput == false {
-						questionFormat := "Set value for %s [default value: %s, required: %v]"
-						if v["default"] != nil {
-							fmt.Println(fmt.Sprintf(questionFormat, k, v["default"], requiredParam(*instParams, k)))
-						} else {
-							fmt.Println(fmt.Sprintf(questionFormat, k, "<no default value>", requiredParam(*instParams, k)))
-						}
-						scanner.Scan()
+			flagParams, err := cmd.Flags().GetStringArray("params")
+			if err != nil {
+				return errors.WithStack(err)
+			}
 
-						val = strings.TrimSpace(scanner.Text())
-
-						if len(val) > 0 {
-							validInput = true
-						}
-						if validInput == false && val == "" && v["default"] != nil {
-							val = v["default"].(string)
-							validInput = true
-						}
-						if validInput == false && val == "" && !requiredParam(*instParams, k) {
-							validInput = true
-						}
-						if validInput == false {
-							fmt.Println("Invalid option for required field.")
-						}
-					}
-					v["value"] = val
-					instParams.Properties[k] = v
-					fmt.Println(fmt.Sprintf("Value for %s set to: %s", k, val))
-				}
+			// Get provision parameters value from user input
+			instParams, err = GetParams(flagParams, instParams)
+			if err != nil {
+				return errors.WithStack(err)
 			}
 
 			validServiceName := clusterServiceClass.Spec.ExternalName
@@ -379,9 +303,6 @@ Run the "mobile get services" command from this tool to see which services are a
 						return nil
 					}
 					o := msg.Object.(*v1beta1.ServiceInstance)
-					if o.Labels["serviceName"] != serviceName {
-						continue
-					}
 					switch msg.Type {
 					case watch.Error:
 						w.Stop()
