@@ -284,7 +284,6 @@ func (cc *ClientCmd) SetClientValueFromJsonCmd() *cobra.Command {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "mobile client", outType))
 			}
 
-
 			cmd.Printf("%+v", res)
 
 			return nil

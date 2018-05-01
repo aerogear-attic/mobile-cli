@@ -14,7 +14,7 @@ type MobileClientSpec struct {
 	ApiKey        string `json:"apiKey"`
 	AppIdentifier string `json:"appIdentifier"`
 	ClientType    string `json:"clientType"`
-	DmzUrl		  string `json:"dmzUrl"`
+	DmzUrl        string `json:"dmzUrl"`
 	Name          string `json:"name"`
 }
 
