@@ -553,7 +553,7 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 		ExpectError  bool
 		ErrorPattern string
 		ExpectUsage  bool
-		PatchFlag 	 string
+		PatchFlag    string
 		Flags        []string
 		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
@@ -571,7 +571,7 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				return fkMc
 			},
 			ClientName: "myapp",
-			PatchFlag: 	"--patch={}",
+			PatchFlag:  "--patch={}",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
 				if nil == client {
@@ -596,7 +596,7 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				return fkMc
 			},
 			ClientName: "myapp",
-			PatchFlag: 	"--patch={\"spec\": {\"name\": \"my-new-name\"}}",
+			PatchFlag:  "--patch={\"spec\": {\"name\": \"my-new-name\"}}",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
 				if nil == client {
@@ -621,7 +621,7 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				return fkMc
 			},
 			ClientName: "myapp",
-			PatchFlag: 	"--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
+			PatchFlag:  "--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
 				if nil == client {
@@ -641,9 +641,9 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				})
 				return fkMc
 			},
-			ClientName: "myapp",
-			PatchFlag: 	"",
-			Flags:      []string{"--namespace=myproject", "-o=json"},
+			ClientName:  "myapp",
+			PatchFlag:   "",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: true,
 		},
 	}
@@ -703,9 +703,9 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 		ExpectError  bool
 		ErrorPattern string
 		ExpectUsage  bool
-		ClientId 	 string
-		ValueName 	 string
-		Value 	 string
+		ClientId     string
+		ValueName    string
+		Value        string
 		Flags        []string
 		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
@@ -723,9 +723,9 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 				return fkMc
 			},
 			ClientName: "myapp",
-			ClientId: 	"--client=myapp-android",
-			ValueName: 	"--name=dmzUrl",
-			Value: 		"--value=dmzUrl.com",
+			ClientId:   "--client=myapp-android",
+			ValueName:  "--name=dmzUrl",
+			Value:      "--value=dmzUrl.com",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
 				if nil == client {

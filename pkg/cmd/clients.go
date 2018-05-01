@@ -295,12 +295,11 @@ func (cc *ClientCmd) SetClientValueFromJsonCmd() *cobra.Command {
 
 // SetClientSpecValueCmd sets value in client
 func (cc *ClientCmd) SetClientSpecValueCmd() *cobra.Command {
-	var(
-		clientId string
+	var (
+		clientId  string
 		valueName string
-		value string
+		value     string
 	)
-
 
 	command := &cobra.Command{
 		Use:   "value",
