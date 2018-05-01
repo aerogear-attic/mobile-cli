@@ -255,9 +255,11 @@ func (cc *ClientCmd) SetClientValueFromJsonCmd() *cobra.Command {
   			      kubectl plugin mobile set client <clientID> --patch='{"spec": {"dmzUrl": "www.dmz.com"}}'
 				  oc plugin mobile set client <clientID> --patch='{"spec": {"dmzUrl": "www.dmz.com"}}'`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var res *v1alpha1.MobileClient
-			var ns string
+			var (
+				err error
+				res *v1alpha1.MobileClient
+				ns  string
+			)
 
 			if len(args) != 1 {
 				return cmd.Usage()
@@ -284,11 +286,72 @@ func (cc *ClientCmd) SetClientValueFromJsonCmd() *cobra.Command {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "mobile client", outType))
 			}
 
-			cmd.Printf("%+v", res)
-
 			return nil
 		},
 	}
 	command.PersistentFlags().StringVarP(&patch, "patch", "p", "", "patch json to apply")
+	return command
+}
+
+// SetClientSpecValueCmd sets value in client
+func (cc *ClientCmd) SetClientSpecValueCmd() *cobra.Command {
+	var(
+		clientId string
+		valueName string
+		value string
+	)
+
+
+	command := &cobra.Command{
+		Use:   "value",
+		Short: "Sets value in mobileclient spec",
+		Long: `set client allows you to patch a mobile client in your namespace.
+			   Run the "mobile get clients" command from this tool to get the client ID.`,
+		Example: `mobile set --client=<clientID> --name=dmzUrl --value=www.example.com --namespace=myproject 
+  			      kubectl plugin mobile set --client=<clientID> --name=dmzUrl --value=www.example.com
+				  oc plugin mobile set --client=<clientID> --name=dmzUrl --value=www.example.com`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var (
+				err error
+				res *v1alpha1.MobileClient
+				ns  string
+			)
+
+			clientId, err := cmd.PersistentFlags().GetString("client")
+			if err != nil {
+				return errors.Wrap(err, "failed to get client flag")
+			}
+
+			name, err := cmd.PersistentFlags().GetString("name")
+			if err != nil {
+				return errors.Wrap(err, "failed to get name flag")
+			}
+
+			value, err := cmd.PersistentFlags().GetString("value")
+			if err != nil {
+				return errors.Wrap(err, "failed to get value flag")
+			}
+
+			ns, err = currentNamespace(cmd.Flags())
+			if err != nil {
+				return errors.Wrap(err, "failed to get namespace")
+			}
+
+			var patch = fmt.Sprintf("{\"spec\": {\"%s\": \"%s\"}}", name, value)
+			res, err = cc.mobileClient.MobileV1alpha1().MobileClients(ns).Patch(clientId, types.MergePatchType, []byte(patch))
+			if err != nil {
+				return errors.Wrap(err, "failed to set value in mobile client with clientID "+clientId)
+			}
+			//outType := outputType(cmd.Flags())
+			if err := cc.Out.Render(cmd.Name(), "json", res); err != nil {
+				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "mobile client", "json"))
+			}
+
+			return nil
+		},
+	}
+	command.PersistentFlags().StringVarP(&clientId, "client", "c", "", "value")
+	command.PersistentFlags().StringVarP(&valueName, "name", "n", "", "value")
+	command.PersistentFlags().StringVarP(&value, "value", "v", "", "value")
 	return command
 }

@@ -86,6 +86,7 @@ func main() {
 	{
 		setCmd := cmd.NewSetCommand()
 		setCmd.AddCommand(clientCmd.SetClientValueFromJsonCmd())
+		setCmd.AddCommand(clientCmd.SetClientSpecValueCmd())
 		rootCmd.AddCommand(setCmd)
 	}
 
