@@ -227,7 +227,6 @@ Run the "mobile get clients" command from this tool to get the client ID.`,
 				return cmd.Usage()
 			}
 			clientID := args[0]
-			fmt.Println(args)
 			ns, err = currentNamespace(cmd.Flags())
 			if err != nil {
 				return errors.Wrap(err, "failed to get namespace")
