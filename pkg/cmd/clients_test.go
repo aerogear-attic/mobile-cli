@@ -544,3 +544,251 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		})
 	}
 }
+
+func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
+	cases := []struct {
+		Name         string
+		ClientName   string
+		MobileClient func() mc.Interface
+		ExpectError  bool
+		ErrorPattern string
+		ExpectUsage  bool
+		PatchFlag    string
+		Flags        []string
+		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
+	}{
+		{
+			Name: "Test set with empty data",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							Name: "myapp",
+						},
+					}, nil
+				})
+				return fkMc
+			},
+			ClientName: "myapp",
+			PatchFlag:  "--patch={}",
+			Flags:      []string{"--namespace=myproject", "-o=json"},
+			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
+				if nil == client {
+					t.Fatal("expected a mobile client but got nil")
+				}
+				if client.Spec.Name != "myapp" {
+					t.Fatalf("expected an app with name %s but got %s ", "myapp", client.Spec.Name)
+				}
+			},
+		},
+		{
+			Name: "Test set with name data",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							Name: "my-new-app",
+						},
+					}, nil
+				})
+				return fkMc
+			},
+			ClientName: "myapp",
+			PatchFlag:  "--patch={\"spec\": {\"name\": \"my-new-name\"}}",
+			Flags:      []string{"--namespace=myproject", "-o=json"},
+			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
+				if nil == client {
+					t.Fatal("expected a mobile client but got nil")
+				}
+				if client.Spec.Name != "my-new-app" {
+					t.Fatalf("expected an app with name %s but got %s ", "myapp", client.Spec.Name)
+				}
+			},
+		},
+		{
+			Name: "Test set with invalid dmz url data",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to patch mobile client with clientID myapp-android: Invalid JSON Patch")
+
+				})
+				return fkMc
+			},
+			ClientName:  "myapp",
+			PatchFlag:   "--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
+			ExpectError: true,
+		},
+		{
+			Name: "Test set without patch flag",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to patch mobile client with clientID myapp-android: Invalid JSON Patch")
+				})
+				return fkMc
+			},
+			ClientName:  "myapp",
+			PatchFlag:   "",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
+			ExpectError: true,
+		},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			var stdOut bytes.Buffer
+			root := cmd.NewRootCmd()
+			clientCmd := cmd.NewClientCmd(testCase.MobileClient(), &stdOut)
+
+			setClient := clientCmd.SetClientValueFromJsonCmd()
+			setClient.SetOutput(&stdOut)
+			root.AddCommand(setClient)
+
+			flags := append(testCase.Flags, testCase.PatchFlag)
+			if err := setClient.ParseFlags(flags); err != nil {
+				t.Fatal("failed to parse flags ", err)
+			}
+			var args []string
+			if testCase.ClientName != "" {
+				args = append(args, testCase.ClientName)
+			}
+
+			err := setClient.RunE(setClient, args)
+			if testCase.ExpectError && err == nil {
+				t.Fatal("expected an error but got none")
+			}
+			if !testCase.ExpectError && err != nil {
+				t.Fatal("did not expect an error but got one", err)
+			}
+			if testCase.ExpectError && err != nil {
+				if m, err := regexp.Match(testCase.ErrorPattern, []byte(err.Error())); !m {
+					t.Fatal("expected the error to match the pattern "+testCase.ErrorPattern, err)
+				}
+			}
+			if testCase.ExpectUsage && setClient.UsageString() != string(stdOut.Bytes()) {
+				t.Fatalf("expected usage to match %s but got %s ", setClient.UsageString(), string(stdOut.Bytes()))
+			}
+
+			if nil != testCase.Validate {
+				mobileClient := &v1alpha1.MobileClient{}
+				if err := json.Unmarshal(stdOut.Bytes(), mobileClient); err != nil {
+					t.Fatal("failed to unmarshal mobile client")
+				}
+				testCase.Validate(t, mobileClient)
+			}
+
+		})
+	}
+}
+
+func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
+	cases := []struct {
+		Name         string
+		ClientName   string
+		MobileClient func() mc.Interface
+		ExpectError  bool
+		ErrorPattern string
+		ExpectUsage  bool
+		ClientId     string
+		ValueName    string
+		Value        string
+		Flags        []string
+		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
+	}{
+		{
+			Name: "Test set dmz url",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							DmzUrl: "dmzUrl.com",
+						},
+					}, nil
+				})
+				return fkMc
+			},
+			ClientName: "myapp",
+			ClientId:   "--client=myapp-android",
+			ValueName:  "--name=dmzUrl",
+			Value:      "--value=dmzUrl.com",
+			Flags:      []string{"--namespace=myproject", "-o=json"},
+			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
+				if nil == client {
+					t.Fatal("expected a mobile client but got nil")
+				}
+				if client.Spec.DmzUrl != "dmzUrl.com" {
+					t.Fatalf("expected an app with DmzUrl %s but got %s ", "dmzUrl.com", client.Spec.Name)
+				}
+			},
+		},
+		{
+			Name: "Test set with invalid dmz url data",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to patch mobile client with clientID myapp-android: Invalid JSON Patch")
+
+				})
+				return fkMc
+			},
+			ClientName:  "myapp",
+			ClientId:    "--client=myapp-android",
+			ValueName:   "--name=dmzUrl",
+			Value:       "--value=invalid",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
+			ExpectError: true,
+		},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			var stdOut bytes.Buffer
+			root := cmd.NewRootCmd()
+			clientCmd := cmd.NewClientCmd(testCase.MobileClient(), &stdOut)
+
+			setClient := clientCmd.SetClientSpecValueCmd()
+			setClient.SetOutput(&stdOut)
+			root.AddCommand(setClient)
+
+			flags := append(testCase.Flags, testCase.ClientId)
+			flags = append(testCase.Flags, testCase.ValueName)
+			flags = append(testCase.Flags, testCase.Value)
+			if err := setClient.ParseFlags(flags); err != nil {
+				t.Fatal("failed to parse flags ", err)
+			}
+			var args []string
+			if testCase.ClientName != "" {
+				args = append(args, testCase.ClientName)
+			}
+
+			err := setClient.RunE(setClient, args)
+			if testCase.ExpectError && err == nil {
+				t.Fatal("expected an error but got none")
+			}
+			if !testCase.ExpectError && err != nil {
+				t.Fatal("did not expect an error but got one", err)
+			}
+			if testCase.ExpectError && err != nil {
+				if m, err := regexp.Match(testCase.ErrorPattern, []byte(err.Error())); !m {
+					t.Fatal("expected the error to match the pattern "+testCase.ErrorPattern, err)
+				}
+			}
+			if testCase.ExpectUsage && setClient.UsageString() != string(stdOut.Bytes()) {
+				t.Fatalf("expected usage to match %s but got %s ", setClient.UsageString(), string(stdOut.Bytes()))
+			}
+
+			if nil != testCase.Validate {
+				mobileClient := &v1alpha1.MobileClient{}
+				if err := json.Unmarshal(stdOut.Bytes(), mobileClient); err != nil {
+					t.Fatal("failed to unmarshal mobile client")
+				}
+				testCase.Validate(t, mobileClient)
+			}
+		})
+	}
+}

@@ -81,6 +81,15 @@ func main() {
 		getCmd.AddCommand(svcCmd.ListServiceInstCmd())
 		rootCmd.AddCommand(getCmd)
 	}
+
+	//set
+	{
+		setCmd := cmd.NewSetCommand()
+		setCmd.AddCommand(clientCmd.SetClientValueFromJsonCmd())
+		setCmd.AddCommand(clientCmd.SetClientSpecValueCmd())
+		rootCmd.AddCommand(setCmd)
+	}
+
 	// delete
 	{
 		deleteCmd := cmd.NewDeleteComand()
