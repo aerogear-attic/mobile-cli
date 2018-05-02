@@ -617,9 +617,9 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				})
 				return fkMc
 			},
-			ClientName: "myapp",
-			PatchFlag:  "--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
-			Flags:      []string{"--namespace=myproject", "-o=json"},
+			ClientName:  "myapp",
+			PatchFlag:   "--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: true,
 		},
 		{
@@ -736,11 +736,11 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 				})
 				return fkMc
 			},
-			ClientName: "myapp",
-			ClientId:   "--client=myapp-android",
-			ValueName:  "--name=dmzUrl",
-			Value:      "--value=invalid",
-			Flags:      []string{"--namespace=myproject", "-o=json"},
+			ClientName:  "myapp",
+			ClientId:    "--client=myapp-android",
+			ValueName:   "--name=dmzUrl",
+			Value:       "--value=invalid",
+			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: true,
 		},
 	}

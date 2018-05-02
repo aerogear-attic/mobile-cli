@@ -336,7 +336,7 @@ func (cc *ClientCmd) SetClientSpecValueCmd() *cobra.Command {
 			}
 
 			var patch string
-			if value == "null" || value == ""{
+			if value == "null" || value == "" {
 				patch = fmt.Sprintf("{\"spec\": {\"%s\": null}}", name)
 			} else {
 				patch = fmt.Sprintf("{\"spec\": {\"%s\": \"%v\"}}", name, value)
