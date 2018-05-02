@@ -336,7 +336,13 @@ func (cc *ClientCmd) SetClientSpecValueCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to get namespace")
 			}
 
-			var patch = fmt.Sprintf("{\"spec\": {\"%s\": \"%s\"}}", name, value)
+			var patch string
+			if value == "null" || value == ""{
+				patch = fmt.Sprintf("{\"spec\": {\"%s\": null}}", name)
+			} else {
+				patch = fmt.Sprintf("{\"spec\": {\"%s\": \"%v\"}}", name, value)
+			}
+
 			res, err = cc.mobileClient.MobileV1alpha1().MobileClients(ns).Patch(clientId, types.MergePatchType, []byte(patch))
 			if err != nil {
 				return errors.Wrap(err, "failed to set value in mobile client with clientID "+clientId)

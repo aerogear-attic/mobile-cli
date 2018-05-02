@@ -608,29 +608,19 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 			},
 		},
 		{
-			Name: "Test set with name data",
+			Name: "Test set with invalid dmz url data",
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					return true, &v1alpha1.MobileClient{
-						Spec: v1alpha1.MobileClientSpec{
-							Name: "my-new-app",
-						},
-					}, nil
+					return true, nil, errors.New("failed to patch mobile client with clientID myapp-android: Invalid JSON Patch")
+
 				})
 				return fkMc
 			},
 			ClientName: "myapp",
 			PatchFlag:  "--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
-			Validate: func(t *testing.T, client *v1alpha1.MobileClient) {
-				if nil == client {
-					t.Fatal("expected a mobile client but got nil")
-				}
-				if client.Spec.Name != "my-new-app" {
-					t.Fatalf("expected an app with name %s but got %s ", "myapp", client.Spec.Name)
-				}
-			},
+			ExpectError: true,
 		},
 		{
 			Name: "Test set without patch flag",
@@ -735,6 +725,23 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 					t.Fatalf("expected an app with DmzUrl %s but got %s ", "dmzUrl.com", client.Spec.Name)
 				}
 			},
+		},
+		{
+			Name: "Test set with invalid dmz url data",
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("patch", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to patch mobile client with clientID myapp-android: Invalid JSON Patch")
+
+				})
+				return fkMc
+			},
+			ClientName: "myapp",
+			ClientId:   "--client=myapp-android",
+			ValueName:  "--name=dmzUrl",
+			Value:      "--value=invalid",
+			Flags:      []string{"--namespace=myproject", "-o=json"},
+			ExpectError: true,
 		},
 	}
 
