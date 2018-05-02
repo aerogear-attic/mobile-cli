@@ -277,7 +277,7 @@ func (cc *ClientCmd) SetClientValueFromJsonCmd() *cobra.Command {
 
 			res, err = cc.mobileClient.MobileV1alpha1().MobileClients(ns).Patch(clientID, types.MergePatchType, []byte(patch))
 			if err != nil {
-				return errors.Wrap(err, "failed to patch mobile client with clientID "+clientID)
+				return errors.Wrap(err, fmt.Sprintf("failed to patch mobile client with clientID %s", clientID))
 			}
 
 			outType := outputType(cmd.Flags())
@@ -344,9 +344,9 @@ func (cc *ClientCmd) SetClientSpecValueCmd() *cobra.Command {
 
 			res, err = cc.mobileClient.MobileV1alpha1().MobileClients(ns).Patch(clientId, types.MergePatchType, []byte(patch))
 			if err != nil {
-				return errors.Wrap(err, "failed to set value in mobile client with clientID "+clientId)
+				return errors.Wrap(err, fmt.Sprintf("failed to set value in mobile client with clientID %s", clientId))
 			}
-			//outType := outputType(cmd.Flags())
+
 			if err := cc.Out.Render(cmd.Name(), "json", res); err != nil {
 				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "mobile client", "json"))
 			}
@@ -355,7 +355,7 @@ func (cc *ClientCmd) SetClientSpecValueCmd() *cobra.Command {
 		},
 	}
 	command.PersistentFlags().StringVarP(&clientId, "client", "c", "", "value")
-	command.PersistentFlags().StringVarP(&valueName, "name", "n", "", "value")
+	command.PersistentFlags().StringVarP(&valueName, "name", "n", "", "name")
 	command.PersistentFlags().StringVarP(&value, "value", "v", "", "value")
 	return command
 }
