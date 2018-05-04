@@ -5,9 +5,9 @@
 			"metadata": {
 				"name": "1522a4d0e2fbf86a26cbe096eb1b6b2d",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/1522a4d0e2fbf86a26cbe096eb1b6b2d",
-				"uid": "70e74a1b-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "55",
-				"creationTimestamp": "2018-04-04T09:13:30Z"
+				"uid": "256ebed9-4f84-11e8-bca4-0a580a82019e",
+				"resourceVersion": "66975413",
+				"creationTimestamp": "2018-05-04T10:16:01Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -19,20 +19,21 @@
 				"planUpdatable": false,
 				"externalMetadata": {
 					"dependencies": [
-						"docker.io/aerogear/unifiedpush-wildfly:1.3.1.no-auth.Final",
+						"docker.io/aerogear/unifiedpush-wildfly-plain:2.0.2",
 						"docker.io/centos/postgresql-96-centos7:9.6",
 						"docker.io/aerogear/ups-config-operator:master",
 						"docker.io/openshift/oauth-proxy:v1.1.0"
 					],
-					"displayName": "AeroGear Unified Push Server (UPS)",
-					"documentationUrl": "https://aerogear.org/push",
+					"displayName": "Unified Push Server",
+					"documentationUrl": "https://github.com/aerogearcatalog/unifiedpush-apb/blob/master/docs/modules/ups_openshift/index.asciidoc",
 					"imageUrl": "https://pbs.twimg.com/profile_images/1794440005/aerogear_icon-1_400x400.png",
 					"longDescription": "An APB deploying the AeroGear UnifiedPush Server with persistent storage and authentication through Openshift",
 					"providerDisplayName": "Red Hat, Inc.",
 					"serviceName": "ups"
 				},
 				"tags": [
-					"mobile-service"
+					"mobile-service",
+					"mobile-client-enabled"
 				]
 			},
 			"status": {
@@ -43,9 +44,9 @@
 			"metadata": {
 				"name": "2b825339e8d685a78476621a252beea8",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/2b825339e8d685a78476621a252beea8",
-				"uid": "70c8d30c-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "37",
-				"creationTimestamp": "2018-04-04T09:13:29Z"
+				"uid": "258964c3-4f84-11e8-bca4-0a580a82019e",
+				"resourceVersion": "66975416",
+				"creationTimestamp": "2018-05-04T10:16:01Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -74,9 +75,9 @@
 			"metadata": {
 				"name": "9623d53183cc78619f888ea8499c678e",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/9623d53183cc78619f888ea8499c678e",
-				"uid": "709e246a-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "33",
-				"creationTimestamp": "2018-04-04T09:13:29Z"
+				"uid": "20abc8b7-1339-11e8-a1f5-0a580a820006",
+				"resourceVersion": "25057309",
+				"creationTimestamp": "2018-02-16T16:47:51Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -98,35 +99,36 @@
 				]
 			},
 			"status": {
-				"removedFromBrokerCatalog": false
+				"removedFromBrokerCatalog": true
 			}
 		},
 		{
 			"metadata": {
 				"name": "a0c0c2478554458d5c77abc95f0473a3",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/a0c0c2478554458d5c77abc95f0473a3",
-				"uid": "709f0ccd-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "35",
-				"creationTimestamp": "2018-04-04T09:13:29Z"
+				"uid": "256f4bb0-4f84-11e8-bca4-0a580a82019e",
+				"resourceVersion": "66975414",
+				"creationTimestamp": "2018-05-04T10:16:01Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
 				"externalName": "dh-aerogear-digger-apb",
 				"externalID": "a0c0c2478554458d5c77abc95f0473a3",
-				"description": "Mobile CI/CD service that integrates with Jenkins Pipelines to test and build your mobile binaries.",
+				"description": "Mobile CI|CD service that integrates with Jenkins Pipelines to test and build your mobile binaries.",
 				"bindable": false,
 				"binding_retrievable": false,
 				"planUpdatable": false,
 				"externalMetadata": {
-					"displayName": "Mobile CI/CD",
+					"displayName": "Mobile CI|CD",
 					"documentationUrl": "https://aerogear.org/digger/",
 					"imageUrl": "https://aerogear.org/img/aerogeardigger_icon_32px_cropped.png",
-					"longDescription": "To use the Mobile CI/CD service you must first agree to the Android SDK License Agreement. By checking this box you are agreeing to the Android Software Development Kit License agreement which can be read at the following URL: https://developer.android.com/studio/terms.html\n\n. If the box is not checked the installer will take no action.",
+					"longDescription": "To use the Mobile CI|CD service you must first agree to the Android SDK License Agreement. By checking this box you are agreeing to the Android Software Development Kit License agreement which can be read at the following URL: https://developer.android.com/studio/terms.html\n\n. If the box is not checked the installer will take no action.",
 					"providerDisplayName": "Red Hat, Inc.",
 					"serviceName": "aerogear-digger"
 				},
 				"tags": [
-					"mobile-service"
+					"mobile-service",
+					"mobile-client-enabled"
 				]
 			},
 			"status": {
@@ -137,9 +139,9 @@
 			"metadata": {
 				"name": "b95513950bb3f132de25d58fb75f8dca",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/b95513950bb3f132de25d58fb75f8dca",
-				"uid": "709da246-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "32",
-				"creationTimestamp": "2018-04-04T09:13:29Z"
+				"uid": "20ac53be-1339-11e8-a1f5-0a580a820006",
+				"resourceVersion": "66961995",
+				"creationTimestamp": "2018-02-16T16:47:51Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -161,20 +163,21 @@
 					"serviceName": "keycloak"
 				},
 				"tags": [
-					"mobile-service"
+					"mobile-service",
+					"mobile-client-enabled"
 				]
 			},
 			"status": {
-				"removedFromBrokerCatalog": false
+				"removedFromBrokerCatalog": true
 			}
 		},
 		{
 			"metadata": {
 				"name": "c57e94c36c1e7f6bb41cf7c589d9eb08",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/c57e94c36c1e7f6bb41cf7c589d9eb08",
-				"uid": "70aa41b6-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "36",
-				"creationTimestamp": "2018-04-04T09:13:29Z"
+				"uid": "20add41c-1339-11e8-a1f5-0a580a820006",
+				"resourceVersion": "16418101",
+				"creationTimestamp": "2018-02-16T16:47:51Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -197,23 +200,23 @@
 				]
 			},
 			"status": {
-				"removedFromBrokerCatalog": false
+				"removedFromBrokerCatalog": true
 			}
 		},
 		{
 			"metadata": {
 				"name": "f69b4a4a744c3848d352b7321a8457d1",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/f69b4a4a744c3848d352b7321a8457d1",
-				"uid": "709c9f70-37e8-11e8-8387-0242ac110003",
-				"resourceVersion": "30",
-				"creationTimestamp": "2018-04-04T09:13:29Z"
+				"uid": "25a7f1c4-4f84-11e8-bca4-0a580a82019e",
+				"resourceVersion": "66975417",
+				"creationTimestamp": "2018-05-04T10:16:02Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
 				"externalName": "dh-custom-runtime-connector-apb",
 				"externalID": "f69b4a4a744c3848d352b7321a8457d1",
 				"description": "Custom Runtime Connector",
-				"bindable": false,
+				"bindable": true,
 				"binding_retrievable": false,
 				"planUpdatable": false,
 				"externalMetadata": {
@@ -225,7 +228,8 @@
 					"serviceName": "custom-runtime-connector"
 				},
 				"tags": [
-					"mobile-service"
+					"mobile-service",
+					"mobile-client-enabled"
 				]
 			},
 			"status": {
