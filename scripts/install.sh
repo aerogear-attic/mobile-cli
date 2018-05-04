@@ -16,8 +16,6 @@ function get_os {
       os="darwin" ;;
     linux*)  
       os="linux" ;;
-    win*)     
-      os="windows" ;;
     *)
       echo "Unsupported OS: $OSTYPE" 
       exit 1 ;;
