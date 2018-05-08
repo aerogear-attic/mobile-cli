@@ -23,7 +23,18 @@ mobile get clientconfig <mobileClientID> --namespace=<namespace>
 mobile create integration <consumingServiceInstanceID> <providingServiceInstanceID> --namespace=<namespace>
 ``` 
 
-## CLI Installation
+## Installing the CLI
+To quickly get up and running with the CLI for Mac and Linux, simply execute the installer script from inside the `scripts` directory.
+```bash
+./install.sh
+```
+Or, to install a specific version: 
+```bash
+./install.sh <version>
+```
+
+## Developing the CLI
+
 ### Pre-requisites
 - Have a local Kubernetes or OpenShift cluster with mobile clients and services available via minikube, [mobile core installer](https://github.com/aerogear/mobile-core/blob/master/docs/walkthroughs/local-setup.adoc) or [minishift](https://github.com/aerogear/minishift-mobilecore-addon).
 - Install [glide](https://github.com/Masterminds/glide)
@@ -90,7 +101,7 @@ oc edit clusterrole admin # add the above and save
 oc edit clusterrole edit # add the above and save
 ```
 
-### Setup as Kubectl/OC plugin
+## Setup as Kubectl/OC plugin
 
 - have the [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) command line tool or the [oc command line tool](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#installing-the-cli) already installed
 - it should be version k8s version 1.8 or OpenShift 3.7 or later
