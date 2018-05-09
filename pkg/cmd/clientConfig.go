@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"io"
 
+	"net/url"
+
+	"path"
+
 	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
@@ -73,17 +77,29 @@ kubectl plugin mobile get clientconfig`,
 				return err
 			}
 
+			mc, err := ccc.mobileClient.MobileV1alpha1().MobileClients(ns).Get(clientID, v1.GetOptions{})
+			if err != nil {
+				return errors.Wrap(err, "failed to get mobile client with id "+clientID)
+			}
+
 			filter := v1.ListOptions{LabelSelector: fmt.Sprintf("clientId=%s", clientID)}
 			secrets, err := ccc.k8Client.CoreV1().Secrets(ns).List(filter)
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Error retrieving secrets with clientId %s", clientID))
 			}
-
 			for _, secret := range secrets.Items {
 				convertor := defaultSecretConvertor{}
 				svcConfig, err := convertor.Convert(secret)
 				if err != nil {
 					return err
+				}
+				if nil != mc && mc.Spec.DmzUrl != "" {
+					u, err := url.Parse(mc.Spec.DmzUrl)
+					if err != nil {
+						return errors.Wrap(err, "failed to parse dmz url")
+					}
+					u.Path = path.Join(u.Path, svcConfig.Name)
+					svcConfig.URL = u.String()
 				}
 				ret = append(ret, svcConfig)
 			}
