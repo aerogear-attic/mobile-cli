@@ -5,9 +5,9 @@
 			"metadata": {
 				"name": "1522a4d0e2fbf86a26cbe096eb1b6b2d",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/1522a4d0e2fbf86a26cbe096eb1b6b2d",
-				"uid": "256ebed9-4f84-11e8-bca4-0a580a82019e",
-				"resourceVersion": "66975413",
-				"creationTimestamp": "2018-05-04T10:16:01Z"
+				"uid": "d25ecede-5181-11e8-bca4-0a580a82019e",
+				"resourceVersion": "69891669",
+				"creationTimestamp": "2018-05-06T23:04:25Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -19,7 +19,7 @@
 				"planUpdatable": false,
 				"externalMetadata": {
 					"dependencies": [
-						"docker.io/aerogear/unifiedpush-wildfly-plain:2.0.2",
+						"docker.io/aerogear/unifiedpush-wildfly-plain:2.1.0",
 						"docker.io/centos/postgresql-96-centos7:9.6",
 						"docker.io/aerogear/ups-config-operator:master",
 						"docker.io/openshift/oauth-proxy:v1.1.0"
@@ -44,9 +44,9 @@
 			"metadata": {
 				"name": "2b825339e8d685a78476621a252beea8",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/2b825339e8d685a78476621a252beea8",
-				"uid": "258964c3-4f84-11e8-bca4-0a580a82019e",
-				"resourceVersion": "66975416",
-				"creationTimestamp": "2018-05-04T10:16:01Z"
+				"uid": "d760379d-5181-11e8-bca4-0a580a82019e",
+				"resourceVersion": "67431873",
+				"creationTimestamp": "2018-05-06T23:04:34Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -76,7 +76,7 @@
 				"name": "9623d53183cc78619f888ea8499c678e",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/9623d53183cc78619f888ea8499c678e",
 				"uid": "20abc8b7-1339-11e8-a1f5-0a580a820006",
-				"resourceVersion": "25057309",
+				"resourceVersion": "69891601",
 				"creationTimestamp": "2018-02-16T16:47:51Z"
 			},
 			"spec": {
@@ -84,7 +84,7 @@
 				"externalName": "dh-metrics-apb",
 				"externalID": "9623d53183cc78619f888ea8499c678e",
 				"description": "Installs a metrics service based on Prometheus and Grafana",
-				"bindable": false,
+				"bindable": true,
 				"binding_retrievable": false,
 				"planUpdatable": false,
 				"externalMetadata": {
@@ -95,7 +95,8 @@
 					"serviceName": "metrics"
 				},
 				"tags": [
-					"mobile-service"
+					"mobile-service",
+					"mobile-client-enabled"
 				]
 			},
 			"status": {
@@ -106,9 +107,9 @@
 			"metadata": {
 				"name": "a0c0c2478554458d5c77abc95f0473a3",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/a0c0c2478554458d5c77abc95f0473a3",
-				"uid": "256f4bb0-4f84-11e8-bca4-0a580a82019e",
-				"resourceVersion": "66975414",
-				"creationTimestamp": "2018-05-04T10:16:01Z"
+				"uid": "d53aef3b-5181-11e8-bca4-0a580a82019e",
+				"resourceVersion": "67431861",
+				"creationTimestamp": "2018-05-06T23:04:30Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -207,9 +208,9 @@
 			"metadata": {
 				"name": "f69b4a4a744c3848d352b7321a8457d1",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/f69b4a4a744c3848d352b7321a8457d1",
-				"uid": "25a7f1c4-4f84-11e8-bca4-0a580a82019e",
-				"resourceVersion": "66975417",
-				"creationTimestamp": "2018-05-04T10:16:02Z"
+				"uid": "d8ceabd4-5181-11e8-bca4-0a580a82019e",
+				"resourceVersion": "67431878",
+				"creationTimestamp": "2018-05-06T23:04:36Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
