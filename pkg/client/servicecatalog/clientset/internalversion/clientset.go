@@ -18,10 +18,10 @@ package internalversion
 
 import (
 	servicecataloginternalversion "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/typed/servicecatalog/internalversion"
-	"github.com/golang/glog"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/util/flowcontrol"
+	glog "github.com/golang/glog"
+	discovery "k8s.io/client-go/discovery"
+	rest "k8s.io/client-go/rest"
+	flowcontrol "k8s.io/client-go/util/flowcontrol"
 )
 
 type Interface interface {

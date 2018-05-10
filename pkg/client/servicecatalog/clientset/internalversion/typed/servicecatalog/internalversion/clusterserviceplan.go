@@ -17,12 +17,12 @@ limitations under the License.
 package internalversion
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog"
-	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/scheme"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/rest"
+	servicecatalog "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog"
+	scheme "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/scheme"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	types "k8s.io/apimachinery/pkg/types"
+	watch "k8s.io/apimachinery/pkg/watch"
+	rest "k8s.io/client-go/rest"
 )
 
 // ClusterServicePlansGetter has a method to return a ClusterServicePlanInterface.

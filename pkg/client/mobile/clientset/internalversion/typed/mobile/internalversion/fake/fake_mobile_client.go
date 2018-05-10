@@ -17,22 +17,22 @@ limitations under the License.
 package fake
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/internalversion/typed/mobile/internalversion"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/testing"
+	internalversion "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/internalversion/typed/mobile/internalversion"
+	rest "k8s.io/client-go/rest"
+	testing "k8s.io/client-go/testing"
 )
 
-type Mobile struct {
+type FakeMobile struct {
 	*testing.Fake
 }
 
-func (c *Mobile) MobileClients(namespace string) internalversion.MobileClientInterface {
-	return &MobileClients{c, namespace}
+func (c *FakeMobile) Clients(namespace string) internalversion.ClientInterface {
+	return &FakeClients{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *Mobile) RESTClient() rest.Interface {
+func (c *FakeMobile) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }
