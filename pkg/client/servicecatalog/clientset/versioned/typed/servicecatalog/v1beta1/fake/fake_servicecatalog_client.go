@@ -17,38 +17,38 @@ limitations under the License.
 package fake
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/testing"
+	v1beta1 "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1"
+	rest "k8s.io/client-go/rest"
+	testing "k8s.io/client-go/testing"
 )
 
-type ServicecatalogV1beta1 struct {
+type FakeServicecatalogV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *ServicecatalogV1beta1) ClusterServiceBrokers() v1beta1.ClusterServiceBrokerInterface {
-	return &ClusterServiceBrokers{c}
+func (c *FakeServicecatalogV1beta1) ClusterServiceBrokers() v1beta1.ClusterServiceBrokerInterface {
+	return &FakeClusterServiceBrokers{c}
 }
 
-func (c *ServicecatalogV1beta1) ClusterServiceClasses() v1beta1.ClusterServiceClassInterface {
-	return &ClusterServiceClasses{c}
+func (c *FakeServicecatalogV1beta1) ClusterServiceClasses() v1beta1.ClusterServiceClassInterface {
+	return &FakeClusterServiceClasses{c}
 }
 
-func (c *ServicecatalogV1beta1) ClusterServicePlans() v1beta1.ClusterServicePlanInterface {
-	return &ClusterServicePlans{c}
+func (c *FakeServicecatalogV1beta1) ClusterServicePlans() v1beta1.ClusterServicePlanInterface {
+	return &FakeClusterServicePlans{c}
 }
 
-func (c *ServicecatalogV1beta1) ServiceBindings(namespace string) v1beta1.ServiceBindingInterface {
-	return &ServiceBindings{c, namespace}
+func (c *FakeServicecatalogV1beta1) ServiceBindings(namespace string) v1beta1.ServiceBindingInterface {
+	return &FakeServiceBindings{c, namespace}
 }
 
-func (c *ServicecatalogV1beta1) ServiceInstances(namespace string) v1beta1.ServiceInstanceInterface {
-	return &ServiceInstances{c, namespace}
+func (c *FakeServicecatalogV1beta1) ServiceInstances(namespace string) v1beta1.ServiceInstanceInterface {
+	return &FakeServiceInstances{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *ServicecatalogV1beta1) RESTClient() rest.Interface {
+func (c *FakeServicecatalogV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

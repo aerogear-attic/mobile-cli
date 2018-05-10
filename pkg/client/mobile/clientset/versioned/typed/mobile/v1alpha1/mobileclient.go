@@ -17,12 +17,12 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
-	"github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/scheme"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/rest"
+	v1alpha1 "github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
+	scheme "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/scheme"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	types "k8s.io/apimachinery/pkg/types"
+	watch "k8s.io/apimachinery/pkg/watch"
+	rest "k8s.io/client-go/rest"
 )
 
 // MobileClientsGetter has a method to return a MobileClientInterface.

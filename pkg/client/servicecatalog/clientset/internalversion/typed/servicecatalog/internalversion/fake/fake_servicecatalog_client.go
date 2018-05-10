@@ -17,38 +17,38 @@ limitations under the License.
 package fake
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/typed/servicecatalog/internalversion"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/testing"
+	internalversion "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/internalversion/typed/servicecatalog/internalversion"
+	rest "k8s.io/client-go/rest"
+	testing "k8s.io/client-go/testing"
 )
 
-type Servicecatalog struct {
+type FakeServicecatalog struct {
 	*testing.Fake
 }
 
-func (c *Servicecatalog) ClusterServiceBrokers() internalversion.ClusterServiceBrokerInterface {
-	return &ClusterServiceBrokers{c}
+func (c *FakeServicecatalog) ClusterServiceBrokers() internalversion.ClusterServiceBrokerInterface {
+	return &FakeClusterServiceBrokers{c}
 }
 
-func (c *Servicecatalog) ClusterServiceClasses() internalversion.ClusterServiceClassInterface {
-	return &ClusterServiceClasses{c}
+func (c *FakeServicecatalog) ClusterServiceClasses() internalversion.ClusterServiceClassInterface {
+	return &FakeClusterServiceClasses{c}
 }
 
-func (c *Servicecatalog) ClusterServicePlans() internalversion.ClusterServicePlanInterface {
-	return &ClusterServicePlans{c}
+func (c *FakeServicecatalog) ClusterServicePlans() internalversion.ClusterServicePlanInterface {
+	return &FakeClusterServicePlans{c}
 }
 
-func (c *Servicecatalog) ServiceBindings(namespace string) internalversion.ServiceBindingInterface {
-	return &ServiceBindings{c, namespace}
+func (c *FakeServicecatalog) ServiceBindings(namespace string) internalversion.ServiceBindingInterface {
+	return &FakeServiceBindings{c, namespace}
 }
 
-func (c *Servicecatalog) ServiceInstances(namespace string) internalversion.ServiceInstanceInterface {
-	return &ServiceInstances{c, namespace}
+func (c *FakeServicecatalog) ServiceInstances(namespace string) internalversion.ServiceInstanceInterface {
+	return &FakeServiceInstances{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *Servicecatalog) RESTClient() rest.Interface {
+func (c *FakeServicecatalog) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

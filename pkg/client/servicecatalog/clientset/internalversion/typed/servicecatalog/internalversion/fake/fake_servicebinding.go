@@ -17,18 +17,18 @@ limitations under the License.
 package fake
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/testing"
+	servicecatalog "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	types "k8s.io/apimachinery/pkg/types"
+	watch "k8s.io/apimachinery/pkg/watch"
+	testing "k8s.io/client-go/testing"
 )
 
-// ServiceBindings implements ServiceBindingInterface
-type ServiceBindings struct {
-	Fake *Servicecatalog
+// FakeServiceBindings implements ServiceBindingInterface
+type FakeServiceBindings struct {
+	Fake *FakeServicecatalog
 	ns   string
 }
 
@@ -37,7 +37,7 @@ var servicebindingsResource = schema.GroupVersionResource{Group: "servicecatalog
 var servicebindingsKind = schema.GroupVersionKind{Group: "servicecatalog.k8s.io", Version: "", Kind: "ServiceBinding"}
 
 // Get takes name of the serviceBinding, and returns the corresponding serviceBinding object, and an error if there is any.
-func (c *ServiceBindings) Get(name string, options v1.GetOptions) (result *servicecatalog.ServiceBinding, err error) {
+func (c *FakeServiceBindings) Get(name string, options v1.GetOptions) (result *servicecatalog.ServiceBinding, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(servicebindingsResource, c.ns, name), &servicecatalog.ServiceBinding{})
 
@@ -48,7 +48,7 @@ func (c *ServiceBindings) Get(name string, options v1.GetOptions) (result *servi
 }
 
 // List takes label and field selectors, and returns the list of ServiceBindings that match those selectors.
-func (c *ServiceBindings) List(opts v1.ListOptions) (result *servicecatalog.ServiceBindingList, err error) {
+func (c *FakeServiceBindings) List(opts v1.ListOptions) (result *servicecatalog.ServiceBindingList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(servicebindingsResource, servicebindingsKind, c.ns, opts), &servicecatalog.ServiceBindingList{})
 
@@ -70,14 +70,14 @@ func (c *ServiceBindings) List(opts v1.ListOptions) (result *servicecatalog.Serv
 }
 
 // Watch returns a watch.Interface that watches the requested serviceBindings.
-func (c *ServiceBindings) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeServiceBindings) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(servicebindingsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a serviceBinding and creates it.  Returns the server's representation of the serviceBinding, and an error, if there is any.
-func (c *ServiceBindings) Create(serviceBinding *servicecatalog.ServiceBinding) (result *servicecatalog.ServiceBinding, err error) {
+func (c *FakeServiceBindings) Create(serviceBinding *servicecatalog.ServiceBinding) (result *servicecatalog.ServiceBinding, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(servicebindingsResource, c.ns, serviceBinding), &servicecatalog.ServiceBinding{})
 
@@ -88,7 +88,7 @@ func (c *ServiceBindings) Create(serviceBinding *servicecatalog.ServiceBinding) 
 }
 
 // Update takes the representation of a serviceBinding and updates it. Returns the server's representation of the serviceBinding, and an error, if there is any.
-func (c *ServiceBindings) Update(serviceBinding *servicecatalog.ServiceBinding) (result *servicecatalog.ServiceBinding, err error) {
+func (c *FakeServiceBindings) Update(serviceBinding *servicecatalog.ServiceBinding) (result *servicecatalog.ServiceBinding, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(servicebindingsResource, c.ns, serviceBinding), &servicecatalog.ServiceBinding{})
 
@@ -100,7 +100,7 @@ func (c *ServiceBindings) Update(serviceBinding *servicecatalog.ServiceBinding) 
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *ServiceBindings) UpdateStatus(serviceBinding *servicecatalog.ServiceBinding) (*servicecatalog.ServiceBinding, error) {
+func (c *FakeServiceBindings) UpdateStatus(serviceBinding *servicecatalog.ServiceBinding) (*servicecatalog.ServiceBinding, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(servicebindingsResource, "status", c.ns, serviceBinding), &servicecatalog.ServiceBinding{})
 
@@ -111,7 +111,7 @@ func (c *ServiceBindings) UpdateStatus(serviceBinding *servicecatalog.ServiceBin
 }
 
 // Delete takes name of the serviceBinding and deletes it. Returns an error if one occurs.
-func (c *ServiceBindings) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeServiceBindings) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(servicebindingsResource, c.ns, name), &servicecatalog.ServiceBinding{})
 
@@ -119,7 +119,7 @@ func (c *ServiceBindings) Delete(name string, options *v1.DeleteOptions) error {
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *ServiceBindings) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *FakeServiceBindings) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewDeleteCollectionAction(servicebindingsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &servicecatalog.ServiceBindingList{})
@@ -127,7 +127,7 @@ func (c *ServiceBindings) DeleteCollection(options *v1.DeleteOptions, listOption
 }
 
 // Patch applies the patch and returns the patched serviceBinding.
-func (c *ServiceBindings) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *servicecatalog.ServiceBinding, err error) {
+func (c *FakeServiceBindings) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *servicecatalog.ServiceBinding, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(servicebindingsResource, c.ns, name, data, subresources...), &servicecatalog.ServiceBinding{})
 

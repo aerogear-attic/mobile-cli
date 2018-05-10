@@ -17,10 +17,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	v1beta1 "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/scheme"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/rest"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
+	rest "k8s.io/client-go/rest"
 )
 
 type ServicecatalogV1beta1Interface interface {

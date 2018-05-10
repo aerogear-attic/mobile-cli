@@ -15,6 +15,7 @@ type ClientSpec struct {
 	ApiKey        string
 	ClientType    string
 	AppIdentifier string
+	DmzUrl        string
 }
 
 // +genclient

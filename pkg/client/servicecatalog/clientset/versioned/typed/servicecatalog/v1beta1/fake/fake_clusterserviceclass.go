@@ -17,18 +17,18 @@ limitations under the License.
 package fake
 
 import (
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/testing"
+	v1beta1 "github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	types "k8s.io/apimachinery/pkg/types"
+	watch "k8s.io/apimachinery/pkg/watch"
+	testing "k8s.io/client-go/testing"
 )
 
-// ClusterServiceClasses implements ClusterServiceClassInterface
-type ClusterServiceClasses struct {
-	Fake *ServicecatalogV1beta1
+// FakeClusterServiceClasses implements ClusterServiceClassInterface
+type FakeClusterServiceClasses struct {
+	Fake *FakeServicecatalogV1beta1
 }
 
 var clusterserviceclassesResource = schema.GroupVersionResource{Group: "servicecatalog.k8s.io", Version: "v1beta1", Resource: "clusterserviceclasses"}
@@ -36,7 +36,7 @@ var clusterserviceclassesResource = schema.GroupVersionResource{Group: "servicec
 var clusterserviceclassesKind = schema.GroupVersionKind{Group: "servicecatalog.k8s.io", Version: "v1beta1", Kind: "ClusterServiceClass"}
 
 // Get takes name of the clusterServiceClass, and returns the corresponding clusterServiceClass object, and an error if there is any.
-func (c *ClusterServiceClasses) Get(name string, options v1.GetOptions) (result *v1beta1.ClusterServiceClass, err error) {
+func (c *FakeClusterServiceClasses) Get(name string, options v1.GetOptions) (result *v1beta1.ClusterServiceClass, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(clusterserviceclassesResource, name), &v1beta1.ClusterServiceClass{})
 	if obj == nil {
@@ -46,7 +46,7 @@ func (c *ClusterServiceClasses) Get(name string, options v1.GetOptions) (result 
 }
 
 // List takes label and field selectors, and returns the list of ClusterServiceClasses that match those selectors.
-func (c *ClusterServiceClasses) List(opts v1.ListOptions) (result *v1beta1.ClusterServiceClassList, err error) {
+func (c *FakeClusterServiceClasses) List(opts v1.ListOptions) (result *v1beta1.ClusterServiceClassList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(clusterserviceclassesResource, clusterserviceclassesKind, opts), &v1beta1.ClusterServiceClassList{})
 	if obj == nil {
@@ -67,13 +67,13 @@ func (c *ClusterServiceClasses) List(opts v1.ListOptions) (result *v1beta1.Clust
 }
 
 // Watch returns a watch.Interface that watches the requested clusterServiceClasses.
-func (c *ClusterServiceClasses) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeClusterServiceClasses) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(clusterserviceclassesResource, opts))
 }
 
 // Create takes the representation of a clusterServiceClass and creates it.  Returns the server's representation of the clusterServiceClass, and an error, if there is any.
-func (c *ClusterServiceClasses) Create(clusterServiceClass *v1beta1.ClusterServiceClass) (result *v1beta1.ClusterServiceClass, err error) {
+func (c *FakeClusterServiceClasses) Create(clusterServiceClass *v1beta1.ClusterServiceClass) (result *v1beta1.ClusterServiceClass, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(clusterserviceclassesResource, clusterServiceClass), &v1beta1.ClusterServiceClass{})
 	if obj == nil {
@@ -83,7 +83,7 @@ func (c *ClusterServiceClasses) Create(clusterServiceClass *v1beta1.ClusterServi
 }
 
 // Update takes the representation of a clusterServiceClass and updates it. Returns the server's representation of the clusterServiceClass, and an error, if there is any.
-func (c *ClusterServiceClasses) Update(clusterServiceClass *v1beta1.ClusterServiceClass) (result *v1beta1.ClusterServiceClass, err error) {
+func (c *FakeClusterServiceClasses) Update(clusterServiceClass *v1beta1.ClusterServiceClass) (result *v1beta1.ClusterServiceClass, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(clusterserviceclassesResource, clusterServiceClass), &v1beta1.ClusterServiceClass{})
 	if obj == nil {
@@ -94,7 +94,7 @@ func (c *ClusterServiceClasses) Update(clusterServiceClass *v1beta1.ClusterServi
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *ClusterServiceClasses) UpdateStatus(clusterServiceClass *v1beta1.ClusterServiceClass) (*v1beta1.ClusterServiceClass, error) {
+func (c *FakeClusterServiceClasses) UpdateStatus(clusterServiceClass *v1beta1.ClusterServiceClass) (*v1beta1.ClusterServiceClass, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateSubresourceAction(clusterserviceclassesResource, "status", clusterServiceClass), &v1beta1.ClusterServiceClass{})
 	if obj == nil {
@@ -104,14 +104,14 @@ func (c *ClusterServiceClasses) UpdateStatus(clusterServiceClass *v1beta1.Cluste
 }
 
 // Delete takes name of the clusterServiceClass and deletes it. Returns an error if one occurs.
-func (c *ClusterServiceClasses) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeClusterServiceClasses) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(clusterserviceclassesResource, name), &v1beta1.ClusterServiceClass{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *ClusterServiceClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *FakeClusterServiceClasses) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
 	action := testing.NewRootDeleteCollectionAction(clusterserviceclassesResource, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.ClusterServiceClassList{})
@@ -119,7 +119,7 @@ func (c *ClusterServiceClasses) DeleteCollection(options *v1.DeleteOptions, list
 }
 
 // Patch applies the patch and returns the patched clusterServiceClass.
-func (c *ClusterServiceClasses) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.ClusterServiceClass, err error) {
+func (c *FakeClusterServiceClasses) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.ClusterServiceClass, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(clusterserviceclassesResource, name, data, subresources...), &v1beta1.ClusterServiceClass{})
 	if obj == nil {
