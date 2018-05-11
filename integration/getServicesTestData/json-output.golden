@@ -5,9 +5,9 @@
 			"metadata": {
 				"name": "1522a4d0e2fbf86a26cbe096eb1b6b2d",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/1522a4d0e2fbf86a26cbe096eb1b6b2d",
-				"uid": "d25ecede-5181-11e8-bca4-0a580a82019e",
-				"resourceVersion": "69891669",
-				"creationTimestamp": "2018-05-06T23:04:25Z"
+				"uid": "ff19dfb4-544a-11e8-93c3-0a580a82011a",
+				"resourceVersion": "70112773",
+				"creationTimestamp": "2018-05-10T12:09:31Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -44,9 +44,9 @@
 			"metadata": {
 				"name": "2b825339e8d685a78476621a252beea8",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/2b825339e8d685a78476621a252beea8",
-				"uid": "d760379d-5181-11e8-bca4-0a580a82019e",
-				"resourceVersion": "67431873",
-				"creationTimestamp": "2018-05-06T23:04:34Z"
+				"uid": "61478873-53fc-11e8-93c3-0a580a82011a",
+				"resourceVersion": "70039792",
+				"creationTimestamp": "2018-05-10T02:46:46Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -75,9 +75,9 @@
 			"metadata": {
 				"name": "9623d53183cc78619f888ea8499c678e",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/9623d53183cc78619f888ea8499c678e",
-				"uid": "20abc8b7-1339-11e8-a1f5-0a580a820006",
-				"resourceVersion": "69891601",
-				"creationTimestamp": "2018-02-16T16:47:51Z"
+				"uid": "ff52dfea-544a-11e8-93c3-0a580a82011a",
+				"resourceVersion": "70112778",
+				"creationTimestamp": "2018-05-10T12:09:32Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -100,16 +100,16 @@
 				]
 			},
 			"status": {
-				"removedFromBrokerCatalog": true
+				"removedFromBrokerCatalog": false
 			}
 		},
 		{
 			"metadata": {
 				"name": "a0c0c2478554458d5c77abc95f0473a3",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/a0c0c2478554458d5c77abc95f0473a3",
-				"uid": "d53aef3b-5181-11e8-bca4-0a580a82019e",
-				"resourceVersion": "67431861",
-				"creationTimestamp": "2018-05-06T23:04:30Z"
+				"uid": "ff194c46-544a-11e8-93c3-0a580a82011a",
+				"resourceVersion": "70112772",
+				"creationTimestamp": "2018-05-10T12:09:31Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",
@@ -208,9 +208,9 @@
 			"metadata": {
 				"name": "f69b4a4a744c3848d352b7321a8457d1",
 				"selfLink": "/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses/f69b4a4a744c3848d352b7321a8457d1",
-				"uid": "d8ceabd4-5181-11e8-bca4-0a580a82019e",
-				"resourceVersion": "67431878",
-				"creationTimestamp": "2018-05-06T23:04:36Z"
+				"uid": "ff1d079b-544a-11e8-93c3-0a580a82011a",
+				"resourceVersion": "70112775",
+				"creationTimestamp": "2018-05-10T12:09:31Z"
 			},
 			"spec": {
 				"clusterServiceBrokerName": "ansible-service-broker",

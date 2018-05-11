@@ -11,7 +11,9 @@
 |                          |                  | POSTGRES_STORAGE_SIZE,         |
 |                          |                  | POSTGRES_USER,                 |
 |                          |                  | PROMETHEUS_STORAGE_SIZE        |
-| aerogear-digger          |                  | ANDROID_LICENSE_AGREEMENT      |
+| aerogear-digger          |                  | ANDROID_LICENSE_AGREEMENT,     |
+|                          |                  | ANDROID_SDK_AUTO_CONFIG,       |
+|                          |                  | ANDROID_SDK_CONFIG             |
 | keycloak                 |                  | ADMIN_PASSWORD,                |
 |                          |                  | ADMIN_USERNAME,                |
 |                          |                  | CUSTOM_REALM_NAME,             |
