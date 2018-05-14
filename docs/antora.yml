@@ -1,0 +1,6 @@
+name: mobile-cli
+title: AeroGear Mobile CLI
+version: 'latest'
+start_ROOT: ROOT:index.adoc
+nav:
+- modules/ROOT/nav.adoc
