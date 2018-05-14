@@ -6,3 +6,9 @@ cmd/mobile/mobile
 mobile
 coverage.out
 integration.test
+
+
+# Antora
+/docs/build/
+/docs/node_modules/
+/docs/.cache/
