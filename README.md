@@ -145,7 +145,7 @@ In a similar fashion to the oc and kubectl CLI, we have some core resources that
 
 - **ClientConfig** The client config, is a resource created by aggregating together all of the available service configs. This resource is the configuration required in order to consume your mobile aware services from your mobile client. It is used by the client SDKs for the various mobile services.
 
--  **ServiceConfig:** The service config contains the services' information that is used to configure the Mobile SDK. For more information see [here](./doc/service_config.md).
+-  **ServiceConfig:** The service config contains the services' information that is used to configure the Mobile SDK. For more information see [here](./docs/service_config.md).
 
 - **ClientBuild** The client build is backed by a regular BuildConfig, however the CLI will help you create this BuildConfig with as little effort as possible. This allows you to focus on just the mobile parts rather than needing to understand how to setup and manage a buildconfig and builds. For example, it will help you manage build credentials, and keys and ensure the build integrates seamlessly with the aereogear mobile build farm.
 
