@@ -22,9 +22,9 @@ import (
 
 	"path"
 
-	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
-	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
+	mobile "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
+	sc "github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
