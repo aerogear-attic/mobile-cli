@@ -1,7 +1,0 @@
-dist/
-!pipeline/dist
-vendor
-coverage.txt
-goreleaser
-debug.test
-main-packr.go
