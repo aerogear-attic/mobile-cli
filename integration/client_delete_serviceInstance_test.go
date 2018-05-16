@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
+	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
 	"k8s.io/client-go/pkg/api/v1"
 )
 

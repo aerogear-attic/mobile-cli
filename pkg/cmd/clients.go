@@ -19,10 +19,10 @@ import (
 	"io"
 	"strings"
 
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
+	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd/input"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
-	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
-	mobile "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"

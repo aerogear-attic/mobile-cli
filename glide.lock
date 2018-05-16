@@ -1,23 +1,6 @@
-hash: 5b6d29936deade87d9afec5dcd15230e160e57e0fe0574f53b127e990f72f6f7
-updated: 2018-05-15T09:31:52.422788+01:00
+hash: 81e00abfb782294c27574d500d9f15cdaff488722a9fdca8d7ed2ed4179a912a
+updated: 2018-03-12T11:41:53.909954Z
 imports:
-- name: github.com/aerogear/mobile-crd-client
-  version: a5044e1e34248dcb922b9e9fa4d49797b024a46a
-  subpackages:
-  - pkg/apis/mobile/v1alpha1
-  - pkg/apis/servicecatalog/v1beta1
-  - pkg/client/mobile
-  - pkg/client/mobile/clientset/versioned
-  - pkg/client/mobile/clientset/versioned/fake
-  - pkg/client/mobile/clientset/versioned/scheme
-  - pkg/client/mobile/clientset/versioned/typed/mobile/v1alpha1
-  - pkg/client/mobile/clientset/versioned/typed/mobile/v1alpha1/fake
-  - pkg/client/servicecatalog
-  - pkg/client/servicecatalog/clientset/versioned
-  - pkg/client/servicecatalog/clientset/versioned/fake
-  - pkg/client/servicecatalog/clientset/versioned/scheme
-  - pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1
-  - pkg/client/servicecatalog/clientset/versioned/typed/servicecatalog/v1beta1/fake
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:

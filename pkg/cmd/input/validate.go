@@ -17,7 +17,7 @@ package input
 import (
 	"strings"
 
-	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
 	"github.com/pkg/errors"
 )
 

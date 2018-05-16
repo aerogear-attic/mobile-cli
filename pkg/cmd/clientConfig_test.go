@@ -22,12 +22,12 @@ import (
 
 	"regexp"
 
+	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
+	mobile "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
+	mcFake "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
+	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	scFake "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/fake"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
-	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
-	mobile "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
-	mcFake "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned/fake"
-	"github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
-	scFake "github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned/fake"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
