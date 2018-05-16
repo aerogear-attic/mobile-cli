@@ -22,8 +22,8 @@ import (
 
 	"encoding/json"
 
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
+	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
+	"github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

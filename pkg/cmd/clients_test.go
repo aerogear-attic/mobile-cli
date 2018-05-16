@@ -24,10 +24,10 @@ import (
 
 	"regexp"
 
-	"github.com/aerogear/mobile-cli/pkg/apis/mobile/v1alpha1"
-	mc "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
-	mcFake "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned/fake"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
+	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
+	mc "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
+	mcFake "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned/fake"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	kt "k8s.io/client-go/testing"

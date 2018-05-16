@@ -22,10 +22,10 @@ import (
 
 	"fmt"
 
-	"github.com/aerogear/mobile-cli/pkg/apis/servicecatalog/v1beta1"
-	"github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
-	scFake "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned/fake"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
+	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
+	"github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
+	scFake "github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned/fake"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

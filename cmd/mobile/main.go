@@ -26,9 +26,9 @@ import (
 
 	"log"
 
-	m "github.com/aerogear/mobile-cli/pkg/client/mobile/clientset/versioned"
-	sc "github.com/aerogear/mobile-cli/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/aerogear/mobile-cli/pkg/cmd"
+	m "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
+	sc "github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
 	restclient "k8s.io/client-go/rest"
 )
 
