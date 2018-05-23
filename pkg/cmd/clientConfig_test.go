@@ -215,6 +215,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 							},
 							Data: map[string][]byte{
 								"name": []byte("test-service"),
+								"uri":  []byte("https://test-service.com/test-path"),
 							},
 						},
 						{
@@ -227,6 +228,7 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 							},
 							Data: map[string][]byte{
 								"name": []byte("keycloak"),
+								"uri":  []byte("https://keycloak-service.com/keycloak-path"),
 							},
 						},
 					}
@@ -264,14 +266,14 @@ func TestClientConfigCmd_GetClientConfigCmd(t *testing.T) {
 			"id": "test-service",
 			"name": "test-service",
 			"type": "",
-			"url": "https://test.com/test-service",
+			"url": "https://test.com/mobile/test-service/test-path",
 			"config": {}
 		},
 		{
 			"id": "keycloak",
 			"name": "keycloak",
 			"type": "",
-			"url": "https://test.com/keycloak",
+			"url": "https://test.com/mobile/keycloak/keycloak-path",
 			"config": {}
 		}
 	]

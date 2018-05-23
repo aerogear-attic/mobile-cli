@@ -17,10 +17,7 @@ package cmd
 import (
 	"fmt"
 	"io"
-
-	"net/url"
-
-	"path"
+	"regexp"
 
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	mobile "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
@@ -66,6 +63,7 @@ kubectl plugin mobile get clientconfig`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var ns string
 			var err error
+			var dmzRegexp = regexp.MustCompile("http(s)?://.*/")
 			ret := make([]*ServiceConfig, 0)
 
 			if len(args) != 1 {
@@ -94,12 +92,12 @@ kubectl plugin mobile get clientconfig`,
 					return err
 				}
 				if nil != mc && mc.Spec.DmzUrl != "" {
-					u, err := url.Parse(mc.Spec.DmzUrl)
-					if err != nil {
-						return errors.Wrap(err, "failed to parse dmz url")
+					var dmzURL = mc.Spec.DmzUrl
+					if dmzURL[len(dmzURL)-1:] != "/" {
+						dmzURL += "/"
 					}
-					u.Path = path.Join(u.Path, svcConfig.Name)
-					svcConfig.URL = u.String()
+					dmzURL = dmzURL + "mobile/" + svcConfig.Name + "/"
+					svcConfig.URL = string(dmzRegexp.ReplaceAll([]byte(svcConfig.URL), []byte(dmzURL)))
 				}
 				ret = append(ret, svcConfig)
 			}
