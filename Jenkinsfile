@@ -37,7 +37,8 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
         }
 
         stage ("Setup") {
-          sh "glide install"
+          sh "go get github.com/golang/dep/cmd/dep"
+          sh "dep ensure"
           sh "go get golang.org/x/tools/cmd/cover"
           sh "go get github.com/mattn/goveralls"
         }
