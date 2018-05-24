@@ -16,7 +16,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"k8s.io/client-go/kubernetes"
@@ -40,8 +39,7 @@ func main() {
 
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
+		panic(err)
 	}
 	k8Client, mobileClient, scClient := NewClientsOrDie(config)
 	var (
