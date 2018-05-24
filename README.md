@@ -37,7 +37,7 @@ Or, to install a specific version:
 
 ### Pre-requisites
 - Have a local Kubernetes or OpenShift cluster with mobile clients and services available via minikube, [mobile core installer](https://github.com/aerogear/mobile-core/blob/master/docs/walkthroughs/local-setup.adoc) or [minishift](https://github.com/aerogear/minishift-mobilecore-addon).
-- Install [glide](https://github.com/Masterminds/glide)
+- Install [dep](https://golang.github.io/dep/docs/installation.html)
 - Install [go](https://golang.org/doc/install)
 
 ### Clone this repository
@@ -51,7 +51,7 @@ git clone https://github.com/aerogear/mobile-cli
 ### Build the CLI Binary
 
 ```bash
-glide install
+dep ensure
 make build
 ```
 
