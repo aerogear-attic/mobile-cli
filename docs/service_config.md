@@ -23,7 +23,7 @@ Which will produce output like the following:
 +----------------+-------------------+----------------+-------------------------------------------------------+
 ```
 
-For more verbose config details of each service, you can request the output in JSON format instead, with the following command:
+To use the configuration with one of our SDKs, you can get a full JSON formatted version with the following command:
 ```sh
 mobile get clientconfig example_client_id --namespace=myproject -o json
 ```
@@ -31,39 +31,30 @@ mobile get clientconfig example_client_id --namespace=myproject -o json
 Which will produce output similar to the following (newlines and indentation have been added for readability):
 ```
 {
-  "version": "1.0",
-  "cluster_name": "192.168.64.74:8443",
-  "namespace": "myproject",
-  "client_id": "example_client_id",
+  "version": 1,
+  "clusterName": "https://192.168.64.86:8443",
+  "namespace": "config",
+  "clientId": "myapp-android",
   "services": [
     {
-      "id": "fh-sync-server",
-      "name": "fh-sync-server",
-      "type": "fh-sync-server",
-      "url": "https://fh-sync-server-myproject.192.168.64.74.nip.io",
-      "config": {
-        "url": "https://fh-sync-server-myproject.192.168.64.74.nip.io"
-      }
-    },
-    {
-      "id": "keycloak",
+      "id": "keycloak-myapp-android-public",
       "name": "keycloak",
       "type": "keycloak",
-      "url": "https://keycloak-myproject.192.168.64.74.nip.io",
+      "url": "https://keycloak-config.192.168.64.86.nip.io/auth",
       "config": {
-        "auth-server-url": "https://keycloak-myproject.192.168.64.74.nip.io/auth",
-        "clientId": "juYAlRlhTyYYmOyszFa",
-        "realm": "myproject",
-        "resource": "juYAlRlhTyYYmOyszFa",
-        "ssl-required": "external",
-        "url": "https://keycloak-myproject.192.168.64.74.nip.io/auth"
+        "auth-server-url": "https://keycloak-config.192.168.64.86.nip.io/auth",
+        "confidential-port": 0,
+        "public-client": true,
+        "realm": "config",
+        "resource": "myapp-android-public",
+        "ssl-required": "external"
       }
     },
     {
-      "id": "prometheus",
-      "name": "prometheus",
-      "type": "prometheus",
-      "url": "https://prometheus-myproject.192.168.64.74.nip.io",
+      "id": "metrics-myapp-android",
+      "name": "metrics",
+      "type": "metrics",
+      "url": "https://aerogear-app-metrics-config.192.168.64.86.nip.io/metrics",
       "config": {}
     }
   ]
@@ -74,15 +65,15 @@ Which will produce output similar to the following (newlines and indentation hav
 Firstly, the parent object in the JSON output is described below:
 
 #### version
-The version of the JSON structure used in this response.
+The version of the JSON structure used in this response. If in the future the configuration changes in a non compatible way this version number would become 2 for example.
 
-#### cluster_name
+#### clusterName
 An identifier of the cluster this config was retrieved from.
 
 #### namespace
 The namespace these configs were retrieved from.
 
-#### client_id
+#### clientId
 The client id of the mobile application using these configs.
 
 #### services
@@ -102,7 +93,7 @@ A human-readable identifier of this service.
 A way of categorising services, e.g. Authentication, Storage, etc...
 
 #### url
-The URL that this service can be reach at
+The canonical URL that this service can be reach at
 
 #### config
 The config is a loosely defined object where any extra details specific to a particular service that may be required to make proper use of this service will be stored.
