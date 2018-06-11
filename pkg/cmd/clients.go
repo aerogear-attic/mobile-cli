@@ -15,30 +15,35 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
-	"strings"
-
-	"github.com/aerogear/mobile-cli/pkg/cmd/input"
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
+	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
 	mobile "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
+	"github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
+	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/pkg/api/v1"
+	"strings"
 )
 
 type ClientCmd struct {
 	*BaseCmd
 	mobileClient mobile.Interface
+	scClient     versioned.Interface
+	k8Client     kubernetes.Interface
 }
 
 // NewClientCmd returns a configured ClientCmd ready for use
-func NewClientCmd(mobileClient mobile.Interface, out io.Writer) *ClientCmd {
-	return &ClientCmd{mobileClient: mobileClient, BaseCmd: &BaseCmd{Out: output.NewRenderer(out)}}
+func NewClientCmd(mobileClient mobile.Interface, scClient versioned.Interface, k8Client kubernetes.Interface, out io.Writer) *ClientCmd {
+	return &ClientCmd{mobileClient: mobileClient, scClient: scClient, k8Client: k8Client, BaseCmd: &BaseCmd{Out: output.NewRenderer(out)}}
 }
 
 // ListClientsCmd builds the list mobile clients command
@@ -48,8 +53,8 @@ func (cc *ClientCmd) ListClientsCmd() *cobra.Command {
 		Short: "gets a list of mobile clients represented in the namespace",
 		Long:  `get clients allows you to get a list of mobile clients that are represented in your namespace.`,
 		Example: `  mobile get clients --namespace=myproject 
-  kubectl plugin mobile get clients
-  oc plugin mobile get clients`,
+  					kubectl plugin mobile get clients
+  					oc plugin mobile get clients`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ns, err := currentNamespace(cmd.Flags())
 			if err != nil {
@@ -87,10 +92,10 @@ func (cc *ClientCmd) GetClientCmd() *cobra.Command {
 		Use:   "client <clientID>",
 		Short: "gets a single mobile client in the namespace",
 		Long: `get client allows you to view client information for a specific mobile client in your namespace.
-Run the "mobile get clients" command from this tool to get the client ID.`,
+			   Run the "mobile get clients" command from this tool to get the client ID.`,
 		Example: `  mobile get client <clientID> --namespace=myproject 
-  kubectl plugin mobile get client <clientID>
-  oc plugin mobile get client <clientID>`,
+  					kubectl plugin mobile get client <clientID>
+oc plugin mobile get client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return cmd.Usage()
@@ -130,82 +135,159 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 		Use:   "client <name> <clientType iOS|cordova|android|xamarin> <appIdentifier bundleID|packageName>",
 		Short: "create a mobile client representation in your namespace",
 		Long: `create client sets up the representation of a mobile application of the specified type in your namespace.
-This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
+		       This is used to provide a mobile client context for various actions such as creating, starting or stopping mobile client builds.
 
-The available client types are android, cordova, iOS and xamarin.
+		       The available client types are android, cordova, iOS and xamarin.
 
-When used standalone, a namespace must be specified by providing the --namespace flag.`,
+		       When used standalone, a namespace must be specified by providing the --namespace flag.`,
 		Example: `  mobile create client <name> <clientType> <appIdentifier> --namespace=myproject 
-  kubectl plugin mobile create client <name> <clientType> <appIdentifier>
-  oc plugin mobile create client <name> <clientType> <appIdentifier>`,
+  					kubectl plugin mobile create client <name> <clientType> <appIdentifier>
+					oc plugin mobile create client <name> <clientType> <appIdentifier>`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 3 {
 				return cmd.Usage()
 			}
+
 			name := args[0]
 			clientType := args[1]
 			appIdentifier := args[2]
-			appKey := uuid.NewV4().String()
 
 			namespace, err := currentNamespace(cmd.Flags())
 			if err != nil {
 				return errors.Wrap(err, "failed to get namespace")
 			}
-			app := &v1alpha1.MobileClient{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "MobileClient",
-					APIVersion: "mobile.k8s.io/v1alpha1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Labels:      map[string]string{},
-					Annotations: map[string]string{},
-				},
-				Spec: v1alpha1.MobileClientSpec{Name: name, ApiKey: appKey, ClientType: clientType, AppIdentifier: appIdentifier},
+
+			if appIdentifier == "" {
+				return errors.New("failed validation while creating new mobile client")
 			}
-			switch app.Spec.ClientType {
-			case "android":
-				app.Annotations["icon"] = "fa fa-android"
-				break
-			case "iOS":
-				app.Annotations["icon"] = "fa fa-apple"
-				break
-			case "cordova":
-				app.Annotations["icon"] = "font-icon icon-cordova"
-				break
-			case "xamarin":
-				app.Annotations["icon"] = "font-icon icon-xamarin"
-				break
+
+			var apbName string
+			switch clientType {
+			case "android", "iOS", "cordova", "xamarin":
+				apbName = clientType + "-app"
 			default:
 				return errors.New("Unknown client type")
+
 			}
-			app.Name = name + "-" + strings.ToLower(app.Spec.ClientType)
-			if err := input.ValidateMobileClient(app); err != nil {
-				return errors.Wrap(err, "failed validation while creating new mobile client")
+
+			clientId := name + "-" + clientType
+			client, err := cc.mobileClient.MobileV1alpha1().MobileClients(namespace).Get(clientId, metav1.GetOptions{})
+			if client.ObjectMeta.UID != "" {
+				return errors.New("App with this name already exist for this client type")
 			}
-			createdClient, err := cc.mobileClient.MobileV1alpha1().MobileClients(namespace).Create(app)
+
+			if err != nil && !strings.Contains(err.Error(), fmt.Sprintf("\"%s\" not found", clientId)) {
+				return errors.Wrap(err, "failed to check if application name exists")
+			}
+
+			//Get available provision parameters from the cluster service plan
+			clusterServiceClass, err := findServiceClassByName(cc.scClient, apbName)
 			if err != nil {
+				return errors.Wrap(err, "failed to find ServiceClass by name")
+			}
+
+			validServiceName := clusterServiceClass.Spec.ExternalName
+			extMeta := clusterServiceClass.Spec.ExternalMetadata.Raw
+			var extServiceClass ExternalServiceMetaData
+			if err := json.Unmarshal(extMeta, &extServiceClass); err != nil {
+				return errors.Wrap(err, "failed to read ClusterServiceClass")
+			}
+
+			si := buildServiceInstance(namespace, validServiceName+"-", clientId+"-apb-"+"params", *clusterServiceClass)
+
+			if _, err := cc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Create(&si); err != nil {
 				return errors.Wrap(err, "failed to create mobile client")
 			}
-			outType := outputType(cmd.Flags())
-			if err := cc.Out.Render("create"+cmd.Name(), outType, createdClient); err != nil {
-				return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "mobile client", outType))
+			fmt.Println("Creating Mobile Client")
+
+			parameters := map[string]string{
+				"appName":       name,
+				"appIdentifier": appIdentifier,
 			}
-			return nil
+
+			secretData, err := json.Marshal(parameters)
+			if err != nil {
+				return errors.Wrap(err, "invalid secret data")
+			}
+
+			pSecret := v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: clientId + "-apb-" + "params",
+				},
+				Data: map[string][]byte{
+					"parameters": secretData,
+				},
+			}
+
+			if _, err := cc.k8Client.CoreV1().Secrets(namespace).Create(&pSecret); err != nil {
+				return errors.Wrap(err, "failed to create secret")
+			}
+
+			noWait, err := cmd.PersistentFlags().GetBool("no-wait")
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			if noWait {
+				return nil
+			}
+			cc.Out.AddRenderer("create"+cmd.Name(), "table", func(writer io.Writer, mobileClient interface{}) error {
+				var data [][]string
+				mClient := mobileClient.(*v1alpha1.MobileClient)
+				data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier})
+				table := tablewriter.NewWriter(writer)
+				table.AppendBulk(data)
+				table.SetHeader([]string{"ID", "Name", "ClientType", "AppIdentifier"})
+				table.Render()
+				return nil
+			})
+
+			timeout := int64(10 * 60) // ten minutes
+			w, err := cc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Watch(metav1.ListOptions{TimeoutSeconds: &timeout})
+
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			for {
+				select {
+				case msg, ok := <-w.ResultChan():
+					if !ok {
+						fmt.Println("Timedout waiting. It seems to be taking a long time for the Mobile Client to provision. Your Mobile Client service may still be provisioning.")
+						return nil
+					}
+					o := msg.Object.(*v1beta1.ServiceInstance)
+					switch msg.Type {
+					case watch.Error:
+						w.Stop()
+						return errors.New("unexpected error watching ServiceInstance " + err.Error())
+					case watch.Modified:
+						for _, c := range o.Status.Conditions {
+							if c.Type == "Ready" && c.Status == "True" {
+								w.Stop()
+
+								outType := outputType(cmd.Flags())
+								mClient, err := cc.mobileClient.MobileV1alpha1().MobileClients(namespace).Get(clientId, metav1.GetOptions{})
+								if err != nil {
+									return errors.Wrap(err, "Cant get client post creation, something went wrong")
+								}
+								if err := cc.Out.Render("create"+cmd.Name(), outType, mClient); err != nil {
+									return errors.Wrap(err, fmt.Sprintf(output.FailedToOutPutInFormat, "mobile client", outType))
+								}
+								return nil
+							}
+
+							if c.Type == "Failed" {
+								w.Stop()
+								return errors.New("Failed to provision " + extServiceClass.ServiceName + ". " + c.Message)
+							}
+						}
+					}
+				}
+			}
 		},
 	}
 
-	cc.Out.AddRenderer("create"+cmd.Name(), "table", func(writer io.Writer, mobileClient interface{}) error {
-		mClient := mobileClient.(*v1alpha1.MobileClient)
-		var data [][]string
-		data = append(data, []string{mClient.Name, mClient.Spec.Name, mClient.Spec.ClientType, mClient.Spec.AppIdentifier})
-		table := tablewriter.NewWriter(writer)
-		table.AppendBulk(data)
-		table.SetHeader([]string{"ID", "Name", "ClientType", "AppIdentifier"})
-		table.Render()
-		return nil
-	})
-
+	cmd.PersistentFlags().Bool("no-wait", false, "--no-wait will cause the command to exit immediately after a successful response instead of waiting until the service is fully provisioned")
 	return cmd
 }
 
@@ -215,10 +297,10 @@ func (cc *ClientCmd) DeleteClientCmd() *cobra.Command {
 		Use:   "client <clientID>",
 		Short: "deletes a single mobile client in the namespace",
 		Long: `delete client allows you to delete a single mobile client in your namespace.
-Run the "mobile get clients" command from this tool to get the client ID.`,
+               Run the "mobile get clients" command from this tool to get the client ID.`,
 		Example: `  mobile delete client <clientID> --namespace=myproject 
-  kubectl plugin mobile delete client <clientID>
-  oc plugin mobile delete client <clientID>`,
+                    kubectl plugin mobile delete client <clientID>
+                    oc plugin mobile delete client <clientID>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var ns string

@@ -16,31 +16,36 @@ package cmd_test
 
 import (
 	"bytes"
-	"testing"
-
 	"encoding/json"
-
 	"fmt"
-
-	"regexp"
-
 	"github.com/aerogear/mobile-cli/pkg/cmd"
 	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
+	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
 	mc "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned"
 	mcFake "github.com/aerogear/mobile-crd-client/pkg/client/mobile/clientset/versioned/fake"
+	sc "github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned"
+	scFake "github.com/aerogear/mobile-crd-client/pkg/client/servicecatalog/clientset/versioned/fake"
 	"github.com/pkg/errors"
+	kMetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
+	ktFake "k8s.io/client-go/kubernetes/fake"
 	kt "k8s.io/client-go/testing"
+	"regexp"
+	"testing"
 )
 
 func TestMobileClientsCmd_TestListClients(t *testing.T) {
 	cases := []struct {
-		Name         string
-		MobileClient func() mc.Interface
-		ExpectError  bool
-		Flags        []string
-		Validate     func(t *testing.T, list *v1alpha1.MobileClientList)
-		ErrorPattern string
+		Name             string
+		MobileClient     func() mc.Interface
+		SvcCatalogClient func() sc.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		Flags            []string
+		Validate         func(t *testing.T, list *v1alpha1.MobileClientList)
+		ErrorPattern     string
 	}{
 		{
 			Name: "test getting mobile clients returns a list of clients",
@@ -52,6 +57,12 @@ func TestMobileClientsCmd_TestListClients(t *testing.T) {
 					}, nil
 				})
 				return cs
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			Flags: []string{"--namespace=test", "-o=json"},
 			Validate: func(t *testing.T, list *v1alpha1.MobileClientList) {
@@ -72,6 +83,12 @@ func TestMobileClientsCmd_TestListClients(t *testing.T) {
 				})
 				return cs
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			Flags:        []string{"--namespace=test", "-o=json"},
 			ExpectError:  true,
 			ErrorPattern: "^failed to list mobile clients: .*",
@@ -82,7 +99,7 @@ func TestMobileClientsCmd_TestListClients(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			underTest := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
+			underTest := cmd.NewClientCmd(tc.MobileClient(), tc.SvcCatalogClient(), tc.K8Client(), &stdOut)
 			clientCmd := underTest.ListClientsCmd()
 			root.AddCommand(clientCmd)
 			if err := clientCmd.ParseFlags(tc.Flags); err != nil {
@@ -113,14 +130,16 @@ func TestMobileClientsCmd_TestListClients(t *testing.T) {
 
 func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ClientName   string
-		MobileClient func() mc.Interface
-		ExpectError  bool
-		ErrorPattern string
-		ExpectUsage  bool
-		Flags        []string
-		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
+		Name             string
+		ClientName       string
+		MobileClient     func() mc.Interface
+		SvcCatalogClient func() sc.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ErrorPattern     string
+		ExpectUsage      bool
+		Flags            []string
+		Validate         func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
 		{
 			Name: "test get client returns only one client with the right name",
@@ -134,6 +153,12 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 					}, nil
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			ClientName:  "myapp",
 			ExpectError: false,
@@ -156,6 +181,12 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ClientName:   "myapp",
 			Flags:        []string{"--namespace=myproject", "-o=json"},
 			ExpectError:  true,
@@ -167,6 +198,12 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 				fkMc := &mcFake.Clientset{}
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ClientName:  "",
 			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: false,
@@ -177,7 +214,7 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
+			clientCmd := cmd.NewClientCmd(tc.MobileClient(), tc.SvcCatalogClient(), tc.K8Client(), &stdOut)
 
 			getClients := clientCmd.GetClientCmd()
 			root.AddCommand(getClients)
@@ -216,20 +253,28 @@ func TestMobileClientsCmd_TestGetClient(t *testing.T) {
 
 func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 	cases := []struct {
-		Name           string
-		ClientName     string
-		MobileClient   func() mc.Interface
-		ExpectError    bool
-		ExpectUsage    bool
-		ValidateOutput func(t *testing.T, out string)
-		ErrorPattern   string
-		Flags          []string
+		Name             string
+		ClientName       string
+		MobileClient     func() mc.Interface
+		SvcCatalogClient func() sc.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ExpectUsage      bool
+		ValidateOutput   func(t *testing.T, out string)
+		ErrorPattern     string
+		Flags            []string
 	}{
 		{
 			Name: "test delete client succeeds with no errors",
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			ClientName: "myapp",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
@@ -239,6 +284,12 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ExpectError: false,
@@ -253,6 +304,12 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ExpectUsage: true,
 			Flags:       []string{"--namespace=myproject", "-o=json"},
 			ValidateOutput: func(t *testing.T, out string) {
@@ -265,7 +322,7 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
+			clientCmd := cmd.NewClientCmd(tc.MobileClient(), tc.SvcCatalogClient(), tc.K8Client(), &stdOut)
 			deleteClient := clientCmd.DeleteClientCmd()
 			deleteClient.SetOutput(&stdOut)
 			root.AddCommand(deleteClient)
@@ -297,62 +354,76 @@ func TestMobileClientsCmd_TestDeleteClient(t *testing.T) {
 
 func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 	cases := []struct {
-		Name         string
-		Args         []string
-		MobileClient func() mc.Interface
-		ExpectError  bool
-		ExpectUsage  bool
-		ErrorPattern string
-		Flags        []string
-		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
+		Name             string
+		Args             []string
+		MobileClient     func() mc.Interface
+		SvcCatalogClient func() sc.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ExpectUsage      bool
+		ErrorPattern     string
+		Flags            []string
+		Validate         func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
-		{
-			Name: "test create cordova mobile client succeeds without error",
-			Args: []string{"test", "cordova", "my.app.org"},
-			MobileClient: func() mc.Interface {
-				fkMc := &mcFake.Clientset{}
-				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					ca := action.(kt.CreateAction)
-					return true, ca.GetObject(), nil
-				})
-				return fkMc
-			},
-			Flags: []string{"--namespace=myproject", "-o=json"},
-			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
-				if nil == c {
-					t.Fatal("expected a mobile client but got nil")
-				}
-				if c.Spec.ClientType != "cordova" {
-					t.Fatal("expected the clientType to be cordova but got ", c.Spec.ClientType)
-				}
-				if c.Spec.AppIdentifier != "my.app.org" {
-					t.Fatal("expected an appIdentifier to be set as my.app.org but was  ", c.Spec.AppIdentifier)
-				}
-				if c.Spec.Name != "test" {
-					t.Fatal("expected the client name to be test but got ", c.Spec.Name)
-				}
-				if c.Spec.ApiKey == "" {
-					t.Fatal("expected an apiKey to be generated but it was empty")
-				}
-				icon, ok := c.Annotations["icon"]
-				if !ok {
-					t.Fatal("expected an icon to be set but there was none")
-				}
-				if icon != "font-icon icon-cordova" {
-					t.Fatal("expected the icon to be icon-cordova but got ", icon)
-				}
-			},
-		},
 		{
 			Name: "test create android mobile client succeeds without error",
 			Args: []string{"test", "android", "my.app.org"},
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
-				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					ca := action.(kt.CreateAction)
-					return true, ca.GetObject(), nil
+				fkMc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							Name:          "test",
+							ClientType:    "android",
+							AppIdentifier: "my.app.org",
+							ApiKey:        "fakeapikey",
+						},
+					}, nil
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				fakeClient := &scFake.Clientset{}
+				fakeClient.AddReactor("list", "clusterserviceclasses", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "android-app",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: kMetav1.ObjectMeta{Name: "test"},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+
+				var serviceInstance = &v1beta1.ServiceInstance{
+					Status: v1beta1.ServiceInstanceStatus{
+						Conditions: []v1beta1.ServiceInstanceCondition{
+							{
+								Status: v1beta1.ConditionStatus("True"),
+								Type:   v1beta1.ServiceInstanceConditionType("Ready"),
+							},
+						},
+					},
+				}
+				fakeClient.AddWatchReactor("serviceinstances", func(action kt.Action) (handled bool, ret watch.Interface, err error) {
+					fakeWatch := watch.NewRaceFreeFake()
+					fakeWatch.Action(watch.Modified, serviceInstance)
+					return true, fakeWatch, nil
+				})
+
+				return fakeClient
+			},
+			K8Client: func() kubernetes.Interface {
+				fakeClient := &ktFake.Clientset{}
+				fakeClient.AddReactor("create", "secrets", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+
+				return fakeClient
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
@@ -371,12 +442,84 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
-				icon, ok := c.Annotations["icon"]
-				if !ok {
-					t.Fatal("expected an icon to be set but there was none")
+			},
+		},
+		{
+			Name: "test create cordova mobile client succeeds without error",
+			Args: []string{"test", "cordova", "my.app.org"},
+			MobileClient: func() mc.Interface {
+				fkMc := &mcFake.Clientset{}
+				fkMc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							Name:          "test",
+							ClientType:    "cordova",
+							AppIdentifier: "my.app.org",
+							ApiKey:        "fakeapikey",
+						},
+					}, nil
+				})
+				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				fakeClient := &scFake.Clientset{}
+				fakeClient.AddReactor("list", "clusterserviceclasses", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "cordova-app",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: kMetav1.ObjectMeta{Name: "test"},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+
+				var serviceInstance = &v1beta1.ServiceInstance{
+					Status: v1beta1.ServiceInstanceStatus{
+						Conditions: []v1beta1.ServiceInstanceCondition{
+							{
+								Status: v1beta1.ConditionStatus("True"),
+								Type:   v1beta1.ServiceInstanceConditionType("Ready"),
+							},
+						},
+					},
 				}
-				if icon != "fa fa-android" {
-					t.Fatal("expected the icon to be fa-android but got ", icon)
+				fakeClient.AddWatchReactor("serviceinstances", func(action kt.Action) (handled bool, ret watch.Interface, err error) {
+					fakeWatch := watch.NewRaceFreeFake()
+					fakeWatch.Action(watch.Modified, serviceInstance)
+					return true, fakeWatch, nil
+				})
+
+				return fakeClient
+			},
+			K8Client: func() kubernetes.Interface {
+				fakeClient := &ktFake.Clientset{}
+				fakeClient.AddReactor("create", "secrets", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+
+				return fakeClient
+			},
+			Flags: []string{"--namespace=myproject", "-o=json"},
+			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
+				if nil == c {
+					t.Fatal("expected a mobile client but got nil")
+				}
+				if c.Spec.ClientType != "cordova" {
+					t.Fatal("expected the clientType to be cordova but got ", c.Spec.ClientType)
+				}
+				if c.Spec.AppIdentifier != "my.app.org" {
+					t.Fatal("expected an appIdentifier to be set as my.app.org but was  ", c.Spec.AppIdentifier)
+				}
+				if c.Spec.Name != "test" {
+					t.Fatal("expected the client name to be test but got ", c.Spec.Name)
+				}
+				if c.Spec.ApiKey == "" {
+					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
 			},
 		},
@@ -385,11 +528,60 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Args: []string{"test", "iOS", "my.app.org"},
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
-				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					ca := action.(kt.CreateAction)
-					return true, ca.GetObject(), nil
+				fkMc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							Name:          "test",
+							ClientType:    "iOS",
+							AppIdentifier: "my.app.org",
+							ApiKey:        "fakeapikey",
+						},
+					}, nil
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				fakeClient := &scFake.Clientset{}
+				fakeClient.AddReactor("list", "clusterserviceclasses", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "iOS-app",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: kMetav1.ObjectMeta{Name: "test"},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+
+				var serviceInstance = &v1beta1.ServiceInstance{
+					Status: v1beta1.ServiceInstanceStatus{
+						Conditions: []v1beta1.ServiceInstanceCondition{
+							{
+								Status: v1beta1.ConditionStatus("True"),
+								Type:   v1beta1.ServiceInstanceConditionType("Ready"),
+							},
+						},
+					},
+				}
+				fakeClient.AddWatchReactor("serviceinstances", func(action kt.Action) (handled bool, ret watch.Interface, err error) {
+					fakeWatch := watch.NewRaceFreeFake()
+					fakeWatch.Action(watch.Modified, serviceInstance)
+					return true, fakeWatch, nil
+				})
+
+				return fakeClient
+			},
+			K8Client: func() kubernetes.Interface {
+				fakeClient := &ktFake.Clientset{}
+				fakeClient.AddReactor("create", "secrets", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+
+				return fakeClient
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
@@ -408,13 +600,6 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
-				icon, ok := c.Annotations["icon"]
-				if !ok {
-					t.Fatal("expected an icon to be set but there was none")
-				}
-				if icon != "fa fa-apple" {
-					t.Fatal("expected the icon to be fa-apple but got ", icon)
-				}
 			},
 		},
 		{
@@ -422,11 +607,60 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Args: []string{"test", "xamarin", "my.app.org"},
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
-				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					ca := action.(kt.CreateAction)
-					return true, ca.GetObject(), nil
+				fkMc.AddReactor("get", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1alpha1.MobileClient{
+						Spec: v1alpha1.MobileClientSpec{
+							Name:          "test",
+							ClientType:    "xamarin",
+							AppIdentifier: "my.app.org",
+							ApiKey:        "fakeapikey",
+						},
+					}, nil
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				fakeClient := &scFake.Clientset{}
+				fakeClient.AddReactor("list", "clusterserviceclasses", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "xamarin-app",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: kMetav1.ObjectMeta{Name: "test"},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
+				})
+
+				var serviceInstance = &v1beta1.ServiceInstance{
+					Status: v1beta1.ServiceInstanceStatus{
+						Conditions: []v1beta1.ServiceInstanceCondition{
+							{
+								Status: v1beta1.ConditionStatus("True"),
+								Type:   v1beta1.ServiceInstanceConditionType("Ready"),
+							},
+						},
+					},
+				}
+				fakeClient.AddWatchReactor("serviceinstances", func(action kt.Action) (handled bool, ret watch.Interface, err error) {
+					fakeWatch := watch.NewRaceFreeFake()
+					fakeWatch.Action(watch.Modified, serviceInstance)
+					return true, fakeWatch, nil
+				})
+
+				return fakeClient
+			},
+			K8Client: func() kubernetes.Interface {
+				fakeClient := &ktFake.Clientset{}
+				fakeClient.AddReactor("create", "secrets", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+
+				return fakeClient
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 			Validate: func(t *testing.T, c *v1alpha1.MobileClient) {
@@ -445,13 +679,6 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				if c.Spec.ApiKey == "" {
 					t.Fatal("expected an apiKey to be generated but it was empty")
 				}
-				icon, ok := c.Annotations["icon"]
-				if !ok {
-					t.Fatal("expected an icon to be set but there was none")
-				}
-				if icon != "font-icon icon-xamarin" {
-					t.Fatal("expected the icon to be icon-xamarin but got ", icon)
-				}
 			},
 		},
 		{
@@ -466,6 +693,12 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
 		{
@@ -477,19 +710,69 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 				fkMc := &mcFake.Clientset{}
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
 		{
 			Name:         "test create mobile client fails with clear error message",
 			Args:         []string{"test", "cordova", "my.app.org"},
 			ExpectError:  true,
-			ErrorPattern: "^failed to create mobile client: something went wrong",
+			ErrorPattern: "^failed to create mobile client",
 			MobileClient: func() mc.Interface {
-				fkMc := &mcFake.Clientset{}
-				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
-					return true, nil, errors.New("something went wrong")
+				fakeClient := &mcFake.Clientset{}
+				return fakeClient
+			},
+			SvcCatalogClient: func() sc.Interface {
+				fakeClient := &scFake.Clientset{}
+				fakeClient.AddReactor("list", "clusterserviceclasses", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					externalData := cmd.ExternalServiceMetaData{
+						ServiceName: "cordova-app",
+					}
+					data, _ := json.Marshal(externalData)
+					return true, &v1beta1.ClusterServiceClassList{Items: []v1beta1.ClusterServiceClass{
+						{
+							ObjectMeta: kMetav1.ObjectMeta{Name: "test"},
+							Spec: v1beta1.ClusterServiceClassSpec{
+								ExternalMetadata: &runtime.RawExtension{Raw: data},
+							},
+						},
+					}}, nil
 				})
-				return fkMc
+
+				var serviceInstance = &v1beta1.ServiceInstance{
+					Status: v1beta1.ServiceInstanceStatus{
+						Conditions: []v1beta1.ServiceInstanceCondition{
+							{
+								Status: v1beta1.ConditionStatus("True"),
+								Type:   v1beta1.ServiceInstanceConditionType("Ready"),
+							},
+						},
+					},
+				}
+				fakeClient.AddWatchReactor("serviceinstances", func(action kt.Action) (handled bool, ret watch.Interface, err error) {
+					fakeWatch := watch.NewRaceFreeFake()
+					fakeWatch.Action(watch.Modified, serviceInstance)
+					return true, fakeWatch, nil
+				})
+
+				fakeClient.AddReactor("create", "serviceinstances", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("")
+				})
+
+				return fakeClient
+			},
+			K8Client: func() kubernetes.Interface {
+				fakeClient := &ktFake.Clientset{}
+				fakeClient.AddReactor("create", "secrets", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+
+				return fakeClient
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
@@ -497,13 +780,19 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 			Name:         "test create mobile client fails when there is no appIdentifier",
 			Args:         []string{"test", "android", ""},
 			ExpectError:  true,
-			ErrorPattern: "^failed validation while creating new mobile client: .*",
+			ErrorPattern: "^failed validation while creating new mobile client",
 			MobileClient: func() mc.Interface {
 				fkMc := &mcFake.Clientset{}
 				fkMc.AddReactor("create", "mobileclients", func(action kt.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("should not have been called")
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			Flags: []string{"--namespace=myproject", "-o=json"},
 		},
@@ -513,9 +802,10 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(tc.MobileClient(), &stdOut)
+			clientCmd := cmd.NewClientCmd(tc.MobileClient(), tc.SvcCatalogClient(), tc.K8Client(), &stdOut)
 			createCmd := clientCmd.CreateClientCmd()
 			root.AddCommand(createCmd)
+
 			if err := createCmd.ParseFlags(tc.Flags); err != nil {
 				t.Fatal("failed to parse flags ", err)
 			}
@@ -547,15 +837,17 @@ func TestMobileClientsCmd_TestCreateClient(t *testing.T) {
 
 func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ClientName   string
-		MobileClient func() mc.Interface
-		ExpectError  bool
-		ErrorPattern string
-		ExpectUsage  bool
-		PatchFlag    string
-		Flags        []string
-		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
+		Name             string
+		ClientName       string
+		MobileClient     func() mc.Interface
+		SvcCatalogClient func() sc.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ErrorPattern     string
+		ExpectUsage      bool
+		PatchFlag        string
+		Flags            []string
+		Validate         func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
 		{
 			Name: "Test set with empty data",
@@ -569,6 +861,12 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 					}, nil
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			ClientName: "myapp",
 			PatchFlag:  "--patch={}",
@@ -595,6 +893,12 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ClientName: "myapp",
 			PatchFlag:  "--patch={\"spec\": {\"name\": \"my-new-name\"}}",
 			Flags:      []string{"--namespace=myproject", "-o=json"},
@@ -617,6 +921,12 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ClientName:  "myapp",
 			PatchFlag:   "--patch={\"spec\": {\"dmzUrl\": \"invalid\"}}",
 			Flags:       []string{"--namespace=myproject", "-o=json"},
@@ -631,6 +941,12 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ClientName:  "myapp",
 			PatchFlag:   "",
 			Flags:       []string{"--namespace=myproject", "-o=json"},
@@ -642,7 +958,7 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(testCase.MobileClient(), &stdOut)
+			clientCmd := cmd.NewClientCmd(testCase.MobileClient(), testCase.SvcCatalogClient(), testCase.K8Client(), &stdOut)
 
 			setClient := clientCmd.SetClientValueFromJsonCmd()
 			setClient.SetOutput(&stdOut)
@@ -687,17 +1003,19 @@ func TestMobileClientsCmd_SetClientValueFromJsonCmd(t *testing.T) {
 
 func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ClientName   string
-		MobileClient func() mc.Interface
-		ExpectError  bool
-		ErrorPattern string
-		ExpectUsage  bool
-		ClientId     string
-		ValueName    string
-		Value        string
-		Flags        []string
-		Validate     func(t *testing.T, c *v1alpha1.MobileClient)
+		Name             string
+		ClientName       string
+		MobileClient     func() mc.Interface
+		SvcCatalogClient func() sc.Interface
+		K8Client         func() kubernetes.Interface
+		ExpectError      bool
+		ErrorPattern     string
+		ExpectUsage      bool
+		ClientId         string
+		ValueName        string
+		Value            string
+		Flags            []string
+		Validate         func(t *testing.T, c *v1alpha1.MobileClient)
 	}{
 		{
 			Name: "Test set dmz url",
@@ -711,6 +1029,12 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 					}, nil
 				})
 				return fkMc
+			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
 			},
 			ClientName: "myapp",
 			ClientId:   "--client=myapp-android",
@@ -736,6 +1060,12 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 				})
 				return fkMc
 			},
+			SvcCatalogClient: func() sc.Interface {
+				return &scFake.Clientset{}
+			},
+			K8Client: func() kubernetes.Interface {
+				return &ktFake.Clientset{}
+			},
 			ClientName:  "myapp",
 			ClientId:    "--client=myapp-android",
 			ValueName:   "--name=dmzUrl",
@@ -749,7 +1079,7 @@ func TestMobileClientsCmd_SetClientSpecValueCmd(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			var stdOut bytes.Buffer
 			root := cmd.NewRootCmd()
-			clientCmd := cmd.NewClientCmd(testCase.MobileClient(), &stdOut)
+			clientCmd := cmd.NewClientCmd(testCase.MobileClient(), testCase.SvcCatalogClient(), testCase.K8Client(), &stdOut)
 
 			setClient := clientCmd.SetClientSpecValueCmd()
 			setClient.SetOutput(&stdOut)

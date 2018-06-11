@@ -228,34 +228,7 @@ Run the "mobile get services" command from this tool to see which services are a
 				return errors.WithStack(err)
 			}
 
-			si := v1beta1.ServiceInstance{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "servicecatalog.k8s.io/v1beta1",
-					Kind:       "ServiceInstance",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace:    ns,
-					GenerateName: validServiceName + "-",
-				},
-				Spec: v1beta1.ServiceInstanceSpec{
-					PlanReference: v1beta1.PlanReference{
-						ClusterServiceClassExternalName: clusterServiceClass.Spec.ExternalName,
-					},
-					ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
-						Name: clusterServiceClass.Name,
-					},
-					ClusterServicePlanRef: &v1beta1.ClusterObjectReference{
-						Name: "default",
-					},
-					ParametersFrom: []v1beta1.ParametersFromSource{
-						{
-							SecretKeyRef: &v1beta1.SecretKeyReference{
-								Name: validServiceName + "-" + "params",
-								Key:  "parameters"},
-						},
-					},
-				},
-			}
+			si := buildServiceInstance(ns, validServiceName+"-", validServiceName+"-", *clusterServiceClass)
 
 			if _, err := sc.scClient.ServicecatalogV1beta1().ServiceInstances(ns).Create(&si); err != nil {
 				return errors.WithStack(err)
@@ -425,4 +398,35 @@ func (sc *ServicesCmd) ListServiceInstCmd() *cobra.Command {
 		return nil
 	})
 	return cmd
+}
+
+func buildServiceInstance(namespace string, serviceName string, secretName string, clusterServiceClass v1beta1.ClusterServiceClass) v1beta1.ServiceInstance {
+	return v1beta1.ServiceInstance{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "servicecatalog.k8s.io/v1beta1",
+			Kind:       "ServiceInstance",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:    namespace,
+			GenerateName: serviceName,
+		},
+		Spec: v1beta1.ServiceInstanceSpec{
+			PlanReference: v1beta1.PlanReference{
+				ClusterServiceClassExternalName: clusterServiceClass.Spec.ExternalName,
+			},
+			ClusterServiceClassRef: &v1beta1.ClusterObjectReference{
+				Name: clusterServiceClass.Name,
+			},
+			ClusterServicePlanRef: &v1beta1.ClusterObjectReference{
+				Name: "default",
+			},
+			ParametersFrom: []v1beta1.ParametersFromSource{
+				{
+					SecretKeyRef: &v1beta1.SecretKeyReference{
+						Name: secretName,
+						Key:  "parameters"},
+				},
+			},
+		},
+	}
 }
