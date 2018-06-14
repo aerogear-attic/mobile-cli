@@ -194,7 +194,8 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to read ClusterServiceClass")
 			}
 
-			si := buildServiceInstance(namespace, validServiceName+"-", clientId+"-apb-"+"params", *clusterServiceClass)
+			secretName := strings.ToLower(clientId)+"-apb-"+"params"
+			si := buildServiceInstance(namespace, validServiceName+"-", secretName, *clusterServiceClass)
 
 			if _, err := cc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Create(&si); err != nil {
 				return errors.Wrap(err, "failed to create mobile client")
@@ -213,7 +214,7 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 
 			pSecret := v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: strings.ToLower(clientId) + "-apb-" + "params",
+					Name: secretName,
 				},
 				Data: map[string][]byte{
 					"parameters": secretData,
