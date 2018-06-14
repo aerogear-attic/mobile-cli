@@ -213,7 +213,7 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 
 			pSecret := v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: clientId + "-apb-" + "params",
+					Name: strings.ToLower(clientId) + "-apb-" + "params",
 				},
 				Data: map[string][]byte{
 					"parameters": secretData,
