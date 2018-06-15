@@ -47,7 +47,8 @@ func IsErr(output []byte, err error) ValidationResult {
 
 func ValidRegex(pattern string) func(output []byte, err error) ValidationResult {
 	return func(output []byte, err error) ValidationResult {
-		matched, errMatch := regexp.MatchString(pattern, fmt.Sprintf("%s", output))
+		want := fmt.Sprintf("%s", output)
+		matched, errMatch := regexp.MatchString(pattern, want)
 		if errMatch != nil {
 			return ValidationResult{
 				Success: false,

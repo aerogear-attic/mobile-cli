@@ -18,6 +18,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"testing"
+
 	"github.com/aerogear/mobile-cli/pkg/cmd"
 	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
 	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
@@ -32,8 +35,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	ktFake "k8s.io/client-go/kubernetes/fake"
 	kt "k8s.io/client-go/testing"
-	"regexp"
-	"testing"
 )
 
 func TestMobileClientsCmd_TestListClients(t *testing.T) {

@@ -17,6 +17,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/aerogear/mobile-cli/pkg/cmd/output"
 	"github.com/aerogear/mobile-crd-client/pkg/apis/mobile/v1alpha1"
 	"github.com/aerogear/mobile-crd-client/pkg/apis/servicecatalog/v1beta1"
@@ -25,13 +28,12 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"io"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
-	"strings"
 )
 
 type ClientCmd struct {
@@ -171,7 +173,7 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 
 			}
 
-			clientId := name + "-" + clientType
+			clientId := strings.ToLower(name + "-" + clientType)
 			client, err := cc.mobileClient.MobileV1alpha1().MobileClients(namespace).Get(clientId, metav1.GetOptions{})
 			if client.ObjectMeta.UID != "" {
 				return errors.New("App with this name already exist for this client type")
@@ -194,7 +196,7 @@ func (cc *ClientCmd) CreateClientCmd() *cobra.Command {
 				return errors.Wrap(err, "failed to read ClusterServiceClass")
 			}
 
-			secretName := strings.ToLower(clientId)+"-apb-"+"params"
+			secretName := clientId + "-apb-" + "params"
 			si := buildServiceInstance(namespace, validServiceName+"-", secretName, *clusterServiceClass)
 
 			if _, err := cc.scClient.ServicecatalogV1beta1().ServiceInstances(namespace).Create(&si); err != nil {
