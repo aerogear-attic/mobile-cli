@@ -63,7 +63,7 @@ func TestClientJson(t *testing.T) {
 
 			m.Args("get", "client", expectedId).Should(notExists).Run().Test(t)
 			o.Args("get", "mobileclient", expectedId).Should(notExists).Run().Test(t)
-			m.Args("create", "client", name, clientType, appIdentifier).Should(exists).Run().Test(t)
+			m.Args("create", "client", name, clientType, appIdentifier).Should(NoErr).Run().Test(t)
 			m.Args("get", "client", expectedId).Should(exists).Run().Test(t)
 			o.Args("get", "mobileclient", expectedId).Should(exists).Run().Test(t)
 			m.Args("delete", "client", expectedId).Should(NoErr).Run().Test(t)

@@ -10,7 +10,7 @@ LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
 .PHONY: setup
 setup:
 	@go get github.com/kisielk/errcheck
-	dep ensure --add github.com/goreleaser/goreleaser
+	@go get -d github.com/goreleaser/goreleaser
 
 .PHONY: build
 build: setup check build_binary
