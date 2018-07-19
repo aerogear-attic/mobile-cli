@@ -46,35 +46,10 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
         withCredentials([string(credentialsId: "coveralls_io", variable: 'COVERALLS_TOKEN')]) {
           stage ("Build") {
             sh "make coveralls_build COVERALLS_TOKEN=${COVERALLS_TOKEN}"
+            sh "go test -timeout 30m -c ./integration"
           }
         }
-        
-        def project = sanitizeObjectName("mobile-cli-${env.CHANGE_AUTHOR}-${env.BUILD_TAG}")
-        stage ("Run") {
-          // workaround because of the https://issues.jboss.org/browse/FH-4471
-          sh "mkdir -p /home/jenkins/.kube"
-          sh "rm /home/jenkins/.kube/config || true"
-          sh "oc config view > /home/jenkins/.kube/config"
-          sh "oc new-project ${project}"
-          //end of workaround
-
-          sh "./mobile"
-        }
-
-        stage ("Integration") {
-          sh "oc project ${project}"
-          sh "go test -timeout 30m -c ./integration"
-          def labels = getPullRequestLabels {}  
-          def test_short = "-test.short"
-          if(labels.contains("run long tests")){
-            test_short = ""
-            print "Will run the full integration test-suite"
-          } else {
-            print "Will run the integration test-suite with -test.short flag"
-          }
-          sh "./integration.test ${test_short} -test.v -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
-        }
-
+    
         stage ("Archive") {
           sh "mkdir out"
           sh "cp mobile out/"
@@ -83,10 +58,26 @@ podTemplate(label: 'mobile-cli-go', cloud: "openshift", containers: [goSlaveCont
           archiveArtifacts artifacts: 'out/**'
         }
 
-        stage ("Clear Project") {
-            sh "oc delete project ${project}"
-        }
       }
     }
   }
+}
+
+node("ocp-slave") {
+    def project = sanitizeObjectName("mobile-cli-${env.CHANGE_AUTHOR}-${env.BUILD_TAG}")
+    
+    stage ("Integration test") {
+        step([$class: 'WsCleanup'])
+        sh "wget ${env.BUILD_URL}/artifact/*zip*/archive.zip"
+        sh "unzip archive.zip"
+        dir("archive/out"){
+            sh "oc whoami"
+            sh "oc new-project ${project}"
+            sh "chmod +x *"
+            sh "./integration.test -test.short -test.v -goldenFiles=`pwd`/integration -prefix=test-${sanitizeObjectName(env.BRANCH_NAME)}-build-$BUILD_NUMBER -namespace=`oc project -q` -executable=`pwd`/mobile"
+        }
+    }            
+    stage ("Clear Project") {
+        sh "oc delete project ${project}"
+    }
 }
