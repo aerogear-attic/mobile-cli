@@ -1,77 +1,69 @@
-# Contributing to the mobile CLI
+# How to contribute
 
-This document explains how to set up a development environment and get involved with Mobile CLI project.
+Thank you for your interest in contributing to the AeroGear project. We want
+keep this process as easy as possible so we've outlined a few guidelines below. 
+For more information about the AeroGear community and project , visit 
+[our website](https://aerogear.org/community/).
 
-Before anything else, [fork](https://help.github.com/articles/fork-a-repo/) the Mobile CLI project.
+## Asking for help
 
-## Tools We use
+Whether you're contributing a new feature or bug fix, or simply submitting a ticket, the AeroGear team is available for technical advice or feedback. 
+You can reach us at #aerogear on [Freenode IRC](https://freenode.net/) or join the  [mailing list](https://groups.google.com/forum/#!forum/aerogear)
+-- both are actively monitored.
 
-* Git
-* Go
-* Make
+## Getting started
 
-## Set Up OpenShift
+* Make sure you have a [JIRA account](https://issues.jboss.org)
+* Make sure you have a [GitHub account](https://github.com/signup/free)
+* Submit a ticket for your issue to the 
+[AeroGear project]("https://issues.jboss.org/projects/AEROGEAR), assuming one does 
+not already exist.
+  * Clearly describe the issue including steps to reproduce when it is a bug.
+  * Make sure you fill in the earliest version that you know has the issue.
+* Fork the repository on GitHub.
 
-The Mobile CLI targets Kubernetes and is intended to be developed against a running Kubernetes cluster,
-we use OpenShift as our Kubernetes distribution. The Mobile CLI is intended to help you work with Mobile Services running ontop of OpenShift.
-To provision these services, we levarage the [Service Catalog](https://github.com/kubernetes-incubator/service-catalog) and the [Ansible Service Broker](https://github.com/openshift/ansible-service-broker).
-To help get this infrastructure set up there is a [ansible based installer](https://github.com/aerogear/mobile-core#installing-from-a-development-release) provided.
+## Making changes
 
-## Clone the repositiory
+* Create a topic branch from where you want to base your work.
+  * This is usually the master branch.
+  * To quickly create a topic branch based on master; `git checkout -b
+    <branch name> master`. By convention we typically include the JIRA issue 
+    key in the branch name, e.g. `AEROGEAR-1234-my-feature`.
+  * Please avoid working directly on the `master` branch.
+* Make commits of logical units.
+* Prepend your commit messages with a JIRA ticket number, e.g. "AEROGEAR-1234: Fix
+  spelling mistake in README."
+* Follow the coding style in use.
+* Check for unnecessary whitespace with `git diff --check` before committing.
+* Make sure you have added the necessary tests for your changes.
+* Run _all_ the tests to assure nothing else was accidentally broken.
 
-As we are using Go, the path you clone this repo into is important.
+## Submitting changes
 
-* create the directory `mkdir -p $GOPATH/src/github.com/aerogear`
-* clone the repo `cd $GOPATH/src/github.com/aerogear && git clone git@github.com:aerogear/mobile-CLI.git`
-* add your own fork as the upstream target `git add remote upstream <your fork>`
+* Push your changes to a topic branch in your fork of the repository.
+* Submit a pull request to the repository in the [AeroGear GitHub organization]
+  (https://github.com/aerogear) and choose branch you want to patch 
+  (usually master). 
+  * Advanced users may want to install the [GitHub CLI](https://hub.github.com/) 
+    and use the `hub pull-request` command.
+* Update your JIRA ticket to mark that you have submitted code and are ready 
+for it to be reviewed (Status: Dev Complete).
+  * Include a link to the pull request in the ticket.
+* Add detail about the change to the pull request including screenshots 
+  if the change affects the UI.
 
-## Building the Mobile CLI
+## Reviewing changes
 
-To build the CLI locally you can run `make build` this command will run a set of checks and the unit tests before compiling the binary and outputting it into the current directory,
-if you only want to build the binary itself you can simply run `make build_binary`.
-Once built, you can access this binary and use it from the command line `./mobile`
-Remember however that the CLI is intended as a Kubernetes plugin so expects to find kube configuration in `~/.kube/config`. If you have setup OpenShift this should
-already be in place.
+* After submitting a pull request, one of AeroGear team members will review it.
+* Changes may be requested to conform to our style guide and internal 
+  requirements.
+* When the changes are approved and all tests are passing, a AeroGear team
+  member will merge them.
+* Note: if you have write access to the repository, do not directly merge pull 
+  requests. Let another team member review your pull request and approve it.
 
-## Submitting changes to the Mobile CLI
+# Additional Resources
 
-### Before making a pull request
-
-There are a few things you should keep in mind before creating a PR.
-
-* New code should have corresponding unit tests. An example of how we approach unit testing can be found in [clients_test.go](https://github.com/aerogear/mobile-CLI/blob/master/pkg/cmd/clients_test.go).
-
-* Ensure for new commands to read the [adding a new command](https://github.com/aerogear/mobile-CLI/doc/adding_new_cmd.md) doc before hand.
-
-* You must run ```make build``` before creating the PR and ensure it must execute with no errors.
-
-* When needed, provide an explanation of the command and the expected output to help others that may review and test the change.
-
-### Making a pull request
-
-Make a [pull request (PR)](https://help.github.com/articles/using-pull-requests) in the standard way.
-
-Use [WIP] at the beginning of the title (ie. [WIP] Add feature to the CLI) to mark a PR as a Work in Progress.
-
-If you are not a member of the [aerogear org](https://github.com/aerogear), the build job will pause for approval from a trusted approver.
-Anyone who can login to Jenkins can approve.
-
-Your PR will then be reviewed, questions may be asked and changes requested.
-
-Upon successful review, someone will approve the PR in the review thread. Depending on the size of the change, we may wait for 2 LGTM from reviewers before merging.
-
-
-### Major features
-
-The aerogear community uses a proposal process when introducing a major feature in order to encourage collaboration and building the best solution.
-
-Major features are things that take about 2 weeks of development or introduce disruptive changes to the code base.
-
-Start the proposal process by reviewing the [proposal template](https://github.com/aerogear/proposals/blob/master/template.md). Use this document to guide how to write a proposal. Then, submit it as a pull request where the community will review the plan.
-
-The proposal process also requires two approvals from the community before merging.
-
-## Stay in touch
-
-* IRC: Join the conversation on Freenode: #aerogear
-* Email: Subscribe to the [aerogear mailing list](https://groups.google.com/forum/#!forum/aerogear)
+* [General GitHub documentation](http://help.github.com/)
+* [GitHub pull request documentation](https://help.github.com/articles/about-pull-requests/)
+* [Read the Issue Guidelines by @necolas](https://github.com/necolas/issue-guidelines/blob/master/CONTRIBUTING.md) for more details

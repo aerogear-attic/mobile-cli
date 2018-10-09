@@ -1,10 +1,17 @@
-**This form is for bug reports and feature requests. Major features will go through a [proposal process](https://github.com/aerogear/mobile-cli/blob/master/.github/CONTRIBUTING.md).**
+## Description
+Add a brief and meaningful description.
 
-> # Feature:
-> # Bug:
+## Expected Behavior
+Describe the expected behaviour. 
 
-**What happened**:
+## Actual Behavior
+Describe the current/actual behaviour.
 
-**What you expected to happen**:
+## Environment
 
-**How to reproduce it**:
+* Operating system:
+* OpenShift versions:
+* Project Versions: 
+
+## Steps to reproduce
+Describe all steps and pre-requirements which are required to be performed in order to reproduce this scenario. ( E.g 1. Action, 2. Action ... )
